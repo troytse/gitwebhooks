@@ -1,11 +1,13 @@
 [Unit]
 Description=Git WebHooks Server
-After=network.target
+After=network-online.target
 
 [Service]
 Type=simple
 ExecStart=REPLACE_BY_INSTALL
+KillMode=process
+Restart=on-failure
+RestartSec=1min
 
 [Install]
 WantedBy=multi-user.target
-Alias=git-webhooks-server.service

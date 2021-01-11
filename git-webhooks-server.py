@@ -200,9 +200,14 @@ class RequestHandler(BaseHTTPRequestHandler):
                 cmd = config.get(repo_name, 'cmd')
                 logging.info('[{}] Execute: {}'.format(repo_name, cmd))
                 try:
-                    process = subprocess.Popen(cmd, cwd = cwd, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-                    for line in process.stdout:
-                        logging.info('[{}] Output: {}'.format(repo_name, line.rstrip()))
+                    subprocess.Popen(cmd, cwd = cwd, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+                    #
+                    # TODO: The following statement will block the process
+                    #
+                    # process = subprocess.Popen(cmd, cwd = cwd, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+                    # for line in process.stdout:
+                    #     logging.info('[{}] Output: {}'.format(repo_name, line.rstrip()))
+                    #
                 except Exception as ex:
                     logging.warning('[{}] Execution failed: {}'.format(repo_name, ex))
             else:

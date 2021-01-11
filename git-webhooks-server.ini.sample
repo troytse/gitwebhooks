@@ -14,7 +14,7 @@ verify=False
 secret=
 
 [gitee]
-handle_events=push
+handle_events=Push Hook
 verify=False
 secret=
 
@@ -33,6 +33,10 @@ handle_events=push
 verify=False
 secret=
 
-[sample/repository]
-cwd=/path/to/your/repository
+[sample/repository1]
+cwd=/path/to/your/repository1
 cmd=git fetch --all & git reset --hard origin/master & git pull
+
+[sample/repository2]
+cwd=/path/to/your/repository2
+cmd=deploy-script.sh

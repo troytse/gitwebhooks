@@ -17,7 +17,7 @@ if [[ $1 = '--uninstall' ]];then
 	if [ -f "${script_dir}/installed.env" ]; then
 		source "${script_dir}/installed.env"
 		QUES_N "Confirm to uninstall? (N/y)" confirm
-		if [ ! -z $confirm ] || [[ ${confirm:1} =~ 'Y|y' ]]; then
+		if [[ "${confirm:0:1}" =~ Y|y ]]; then
 			$cmd_prefix systemctl stop git-webhooks-server
 			$cmd_prefix systemctl disable git-webhooks-server
 			if [ -f $bin_path ];then
@@ -41,6 +41,11 @@ if [[ $1 = '--uninstall' ]];then
 		ERR "You have not installed"
 	fi
 	exit 0
+fi
+
+if [ -f "${script_dir}/installed.env" ]; then
+	WARN "You have already installed this service, you can run the \"./install.sh --uninstall\" to uninstall it."
+	exit 1
 fi
 
 # enter install directory
@@ -85,8 +90,8 @@ fi
 
 #
 if command -v systemctl > /dev/null; then
-	QUES "Install as systemd service? (Y/n)" confirm
-	if [ -z $confirm ] || [[ ${confirm:1} =~ 'Y|y' ]]; then
+	QUES_N "Install as systemd service? (Y/n)" confirm
+	if [[ "${confirm:0:1}" =~ Y|y ]]; then
 		service_dir="/usr/lib/systemd/system"
 		service_path="${service_dir}/git-webhooks-server.service"
 		INFO_N "Installing: ${script_dir}/git-webhooks-server.service.sample => ${service_path}"
@@ -105,8 +110,8 @@ if command -v systemctl > /dev/null; then
 			exit 1
 		fi
 		# startup
-		QUES "Enable and startup the service? (Y/n)" confirm
-		if [ -z $confirm ] || [[ ${confirm:1} =~ 'Y|y' ]]; then
+		QUES_N "Enable and startup the service? (Y/n)" confirm
+		if [[ "${confirm:0:1}" =~ Y|y ]]; then
 			$cmd_prefix systemctl enable git-webhooks-server
 			$cmd_prefix systemctl start git-webhooks-server
 		fi
