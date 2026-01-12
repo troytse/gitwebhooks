@@ -157,7 +157,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                         return
             else:
                 # verify=False: still verify password if token is provided (no timestamp)
-                if request_timestamp_str is None and request_signature is not None:
+                if request_timestamp_str is None and request_signature:
                     if request_signature != secret:
                         logging.warning('Invalid Password')
                         self.send_error(401)
