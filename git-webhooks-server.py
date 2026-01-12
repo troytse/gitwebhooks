@@ -50,7 +50,11 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def __parse_data(self):
         '''parse the request content'''
-        content_type = self.headers.get('Content-Type').lower()
+        content_type_header = self.headers.get('Content-Type')
+        if content_type_header is None:
+            logging.warning('Missing Content-Type header')
+            return None, None
+        content_type = content_type_header.lower()
         content_len = int(self.headers.get('Content-Length', 0))
         payload = self.rfile.read(content_len)
         try:
@@ -89,7 +93,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         if provider is Provider.Github:
             # Github
-            handle_events = str(config.get('github', 'handle_events')).split(',')
+            handle_events = [e for e in str(config.get('github', 'handle_events')).split(',') if e]
             if len(handle_events) > 0 and event not in handle_events:
                 logging.warning('The event has not set to handle. ({})'.format(event))
                 self.send_error(406)
@@ -112,49 +116,67 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         elif provider is Provider.Gitee:
             # Gitee
-            handle_events = str(config.get('gitee', 'handle_events')).split(',')
+            handle_events = [e for e in str(config.get('gitee', 'handle_events')).split(',') if e]
             if len(handle_events) > 0 and event not in handle_events:
                 logging.warning('The event has not set to handle. ({})'.format(event))
                 self.send_error(406)
                 return
+
+            request_signature = self.headers.get('X-Gitee-Token')
+            request_timestamp_str = self.headers.get('X-Gitee-Timestamp')
+            secret = config.get('gitee', 'secret')
+
             if config.getboolean('gitee', 'verify'):
-                # Signature calculation and verification
-                request_signature = self.headers.get('X-Gitee-Token')
                 if request_signature is None:
                     logging.warning('Missing Signature or Password')
                     self.send_error(401)
                     return
-                query = parse_qs(urlparse(self.path).query)
-                request_timestamp = int(self.headers.get('X-Gitee-Timestamp'))
-                secret = config.get('gitee', 'secret')
-                if 'sign' in query:
-                    # for signature
-                    secret_encoded = bytes(secret, encoding = 'utf-8')
-                    pending_to_signature = bytes('{}\n{}'.format(request_timestamp, secret), encoding = 'utf-8')
-                    verify_signature = base64.b64encode(hmac.new(secret_encoded, pending_to_signature, digestmod=hashlib.sha256).digest()).decode('utf-8')
+
+                if request_timestamp_str is not None:
+                    # Signature verification mode
+                    try:
+                        request_timestamp = int(request_timestamp_str)
+                    except ValueError:
+                        logging.warning('Invalid timestamp format')
+                        self.send_error(401)
+                        return
+
+                    # Signature format: timestamp + payload
+                    payload_str = payload.decode('utf-8') if isinstance(payload, bytes) else payload
+                    sign_string = f"{request_timestamp}{payload_str}"
+                    verify_signature = base64.b64encode(hmac.new(secret.encode('utf-8'), sign_string.encode('utf-8'), digestmod=hashlib.sha256).digest()).decode('utf-8')
                     if request_signature != verify_signature:
                         logging.warning('Invalid Signature')
                         self.send_error(401)
                         return
-                elif request_signature != secret:
-                    # for password
-                    logging.warning('Invalid Password')
-                    self.send_error(401)
-                    return
+                else:
+                    # Password verification mode
+                    if request_signature != secret:
+                        logging.warning('Invalid Password')
+                        self.send_error(401)
+                        return
+            else:
+                # verify=False: still verify password if token is provided (no timestamp)
+                if request_timestamp_str is None and request_signature is not None:
+                    if request_signature != secret:
+                        logging.warning('Invalid Password')
+                        self.send_error(401)
+                        return
+
             # Get repository name
             if 'repository' in post_data and 'full_name' in post_data['repository']:
                 repo_name = post_data['repository']['full_name']
 
         elif provider is Provider.Gitlab:
             # Gitlab
-            handle_events = str(config.get('gitlab', 'handle_events')).split(',')
+            handle_events = [e for e in str(config.get('gitlab', 'handle_events')).split(',') if e]
             if len(handle_events) > 0 and event not in handle_events:
                 logging.warning('The event has not set to handle. ({})'.format(event))
                 self.send_error(406)
                 return
             if config.getboolean('gitlab', 'verify'):
                 request_token = self.headers.get('X-Gitlab-Token')
-                secret = config.get('gitee', 'secret')
+                secret = config.get('gitlab', 'secret')  # GitLab uses its own config section
                 if request_token != secret:
                     logging.warning('Invalid Token')
                     self.send_error(401)
@@ -165,13 +187,14 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         elif provider is Provider.Custom:
             # Custom
-            handle_events = str(config.get('custom', 'handle_events')).split(',')
+            handle_events = [e for e in str(config.get('custom', 'handle_events')).split(',') if e]
             if len(handle_events) > 0 and event not in handle_events:
                 logging.warning('The event has not set to handle. ({})'.format(event))
                 self.send_error(406)
                 return
             header_token = config.get('custom', 'header_token', fallback = 'X-Custom-Token')
-            if config.getboolean('custom', 'verify') and header_token in self.headers:
+            # Always verify token if header_token is present (security best practice)
+            if header_token in self.headers:
                 request_token = self.headers.get(header_token)
                 secret = config.get('custom', 'secret')
                 if request_token != secret:
@@ -196,8 +219,13 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         if repo_name is not None:
             if repo_name in config:
-                cwd = config.get(repo_name, 'cwd')
-                cmd = config.get(repo_name, 'cmd')
+                try:
+                    cwd = config.get(repo_name, 'cwd')
+                    cmd = config.get(repo_name, 'cmd')
+                except configparser.NoOptionError as e:
+                    logging.error(f'Missing required config for {repo_name}: {e}')
+                    self.send_error(500)
+                    return
                 logging.info('[{}] Execute: {}'.format(repo_name, cmd))
                 try:
                     subprocess.Popen(cmd, cwd = cwd, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)

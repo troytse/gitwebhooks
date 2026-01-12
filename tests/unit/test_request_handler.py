@@ -81,19 +81,12 @@ class TestHTTPRequestMethods(WebhookTestCase):
             # Verify 400 response
             self.assertStatusCode(response, 400)
 
-    @unittest.skip("Known issue: Server crashes with AttributeError when Content-Type is missing. "
-                     "See git-webhooks-server.py line 53: headers.get('Content-Type').lower() "
-                     "returns None which has no .lower() method")
     def test_post_empty_content_type_returns_400(self):
         """
         Test that POST without Content-Type header returns 400.
 
         The server requires a valid Content-Type header to parse
         the request body.
-
-        NOTE: Currently skipped due to a bug in git-webhooks-server.py
-        where missing Content-Type causes an AttributeError instead of
-        returning 400.
         """
         config_path = self.config_builder.build()
 

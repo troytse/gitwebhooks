@@ -171,9 +171,10 @@ class TestProviderDetection(WebhookTestCase):
 
     def test_github_case_sensitivity(self):
         """
-        Test GitHub header detection is case-sensitive.
+        Test GitHub header detection is case-insensitive.
 
-        The X-GitHub-Event header should be detected with exact casing.
+        Per HTTP standard (RFC 2616), header names are case-insensitive.
+        Python's http.server handles this correctly.
         """
         config_path = self.config_builder.build()
 
@@ -184,16 +185,15 @@ class TestProviderDetection(WebhookTestCase):
 
             client = TestWebhookClient("127.0.0.1", server.port)
 
-            # Send with incorrect case
+            # Send with lowercase header (HTTP standard allows this)
             response = client.send_webhook(
-                headers={"X-github-event": "push"},  # Wrong case
+                headers={"x-github-event": "push"},  # Lowercase is valid per HTTP standard
                 payload=GitHubPayloadBuilder.github_push_event(repo="test/repo")
             )
 
-            # Should fail due to case sensitivity
-            # Server may not recognize the platform with wrong case
-            self.assertIn(response.status_code, [400, 404, 412],
-                         "Case sensitivity should matter for platform detection")
+            # Should succeed because HTTP headers are case-insensitive
+            self.assertNotEqual(response.status_code, 412,
+                         "HTTP headers are case-insensitive, platform should be detected")
 
     def test_custom_header_value_mismatch(self):
         """
