@@ -49,6 +49,9 @@ cleanup() {
     if [ -n "${service_path}" ] && [ -f "${service_path}" ]; then
         $cmd_prefix rm -f "${service_path}"
     fi
+    if [ -n "${package_path}" ] && [ -d "${package_path}" ]; then
+        $cmd_prefix rm -rf "${package_path}"
+    fi
     # Delete backup file created by sed -i.bak
     if [ -n "${service_path}" ] && [ -f "${service_path}.bak" ]; then
         $cmd_prefix rm -f "${service_path}.bak"
@@ -74,7 +77,7 @@ if [ $UID != 0 ]; then
     fi
     cmd_prefix="sudo "
 fi
-INFO "Git-Webhooks-Server Installation."
+INFO "Git-Webhooks-Server Installation (v2.0 - Modular)"
 
 # for uninstall
 if [[ $1 = '--uninstall' ]];then
@@ -91,20 +94,25 @@ if [[ $1 = '--uninstall' ]];then
 				$cmd_prefix systemctl stop git-webhooks-server 2>/dev/null || true
 				$cmd_prefix systemctl disable git-webhooks-server 2>/dev/null || true
 			fi
-			if [ -f "$bin_path" ];then
+			if [ -n "${bin_path}" ] && [ -f "$bin_path" ];then
 				INFO_N "Uninstall: ${bin_path}"
 				$cmd_prefix rm -f "$bin_path"
 				if [ -f "$bin_path" ];then WARN " [Fail]"; else INFO " [OK]"; fi
 			fi
-			if [ -f "$conf_path" ];then
+			if [ -n "${conf_path}" ] && [ -f "$conf_path" ];then
 				INFO_N "Uninstall: ${conf_path}"
 				$cmd_prefix rm -f "$conf_path"
 				if [ -f "$conf_path" ];then WARN " [Fail]"; else INFO " [OK]"; fi
 			fi
-			if [ -f "$service_path" ];then
+			if [ -n "${service_path}" ] && [ -f "$service_path" ];then
 				INFO_N "Uninstall: ${service_path}"
 				$cmd_prefix rm -f "$service_path"
 				if [ -f "$service_path" ];then WARN " [Fail]"; else INFO " [OK]"; fi
+			fi
+			if [ -n "${package_path}" ] && [ -d "$package_path" ];then
+				INFO_N "Uninstall: ${package_path}"
+				$cmd_prefix rm -rf "$package_path"
+				if [ -d "$package_path" ];then WARN " [Fail]"; else INFO " [OK]"; fi
 			fi
 			$cmd_prefix rm -f "${script_dir}/installed.env"
 		fi
@@ -128,24 +136,50 @@ fi
 # Create lock file
 touch "${LOCK_FILE}"
 
+# Detect Python version for package installation
+PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+PYTHON_LIB="/usr/local/lib/python${PYTHON_VERSION}/site-packages"
+
 # enter install directory
-QUES_N "Enter install directory (default: /usr/local/bin)" bin_path
-[ -z "$bin_path" ] && bin_path='/usr/local/bin'
-[ ! -d "$bin_path" ] && ERR "No such directory: ${bin_path}" && exit 1
-bin_path="${bin_path}/git-webhooks-server.py"
+QUES_N "Enter binary install directory (default: /usr/local/bin)" bin_dir
+[ -z "$bin_dir" ] && bin_dir='/usr/local/bin'
+[ ! -d "$bin_dir" ] && ERR "No such directory: ${bin_dir}" && exit 1
+bin_path="${bin_dir}/gitwebhooks-cli"
+
+# enter package directory
+QUES_N "Enter Python package directory (default: ${PYTHON_LIB})" input_package_dir
+[ -z "$input_package_dir" ] && input_package_dir="${PYTHON_LIB}"
+[ ! -d "$input_package_dir" ] && ERR "No such directory: ${input_package_dir}" && exit 1
+package_path="${input_package_dir}/gitwebhooks"
 
 # enter configuration directory
-QUES_N "Enter configuration directory (default: /usr/local/etc)" conf_path
-[ -z "$conf_path" ] && conf_path='/usr/local/etc'
-[ ! -d "$conf_path" ] && ERR "No such directory: ${conf_path}" && exit 1
-conf_path="${conf_path}/git-webhooks-server.ini"
+QUES_N "Enter configuration directory (default: /usr/local/etc)" conf_dir
+[ -z "$conf_dir" ] && conf_dir='/usr/local/etc'
+[ ! -d "$conf_dir" ] && ERR "No such directory: ${conf_dir}" && exit 1
+conf_path="${conf_dir}/git-webhooks-server.ini"
 
-# copy bin file
-INFO_N "Installing: ${script_dir}/git-webhooks-server.py => ${bin_path}"
+# Install Python package
+INFO_N "Installing: gitwebhooks package => ${package_path}"
+# Remove existing package if present
+if [ -d "${package_path}" ]; then
+    $cmd_prefix rm -rf "${package_path}"
+fi
+# Copy package directory
+$cmd_prefix cp -r "${script_dir}/gitwebhooks" "${input_package_dir}/"
+if [ -d "${package_path}" ];then
+	INFO " [OK]"
+	echo "package_path=${package_path}" >> "${script_dir}/installed.env"
+else
+	ERR " [Fail]"
+	exit 1
+fi
+
+# Install CLI wrapper
+INFO_N "Installing: ${script_dir}/gitwebhooks-cli => ${bin_path}"
 # clean
 [ -f "$bin_path" ] && $cmd_prefix rm -f "$bin_path"
 # copy file and set as executable
-$cmd_prefix cp -f "${script_dir}/git-webhooks-server.py" "$bin_path"
+$cmd_prefix cp -f "${script_dir}/gitwebhooks-cli" "$bin_path"
 $cmd_prefix chmod +x "$bin_path"
 if [ -f "$bin_path" ];then
 	INFO " [OK]"
@@ -155,6 +189,7 @@ else
 	exit 1
 fi
 
+# Install configuration file
 INFO_N "Installing: ${script_dir}/git-webhooks-server.ini.sample => ${conf_path}"
 # clean
 [ -f "$conf_path" ] && $cmd_prefix rm -f "$conf_path"
@@ -168,7 +203,7 @@ else
 	exit 1
 fi
 
-#
+# Install systemd service
 if command -v systemctl > /dev/null; then
 	QUES_N "Install as systemd service? (Y/n)" confirm
 	if [[ "${confirm:0:1}" == [Yy] ]]; then
@@ -198,7 +233,7 @@ if command -v systemctl > /dev/null; then
 		# Replace the service start command in temp file
 		escaped_bin_path="${bin_path//\//\\/}"
 		escaped_conf_path="${conf_path//\//\\/}"
-		sed "s/REPLACE_BY_INSTALL/${escaped_bin_path} -c ${escaped_conf_path}/g" "$tmp_service_file" > "$tmp_service_file.new" || {
+		sed "s|REPLACE_BY_INSTALL|${escaped_bin_path} -c ${escaped_conf_path}|g" "$tmp_service_file" > "$tmp_service_file.new" || {
 			ERR " [Fail] Cannot update service file with paths"
 			rm -f "$tmp_service_file" "$tmp_service_file.new"
 			exit 1
@@ -252,3 +287,7 @@ fi
 rm -f "${LOCK_FILE}"
 trap - SIGINT SIGTERM ERR
 INFO "Installation completed successfully!"
+INFO ""
+INFO "Usage:"
+INFO "  Direct: ${bin_path} -c ${conf_path}"
+INFO "  Service: systemctl start git-webhooks-server"
