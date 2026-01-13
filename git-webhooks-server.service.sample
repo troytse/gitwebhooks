@@ -4,6 +4,7 @@ After=network-online.target
 
 [Service]
 Type=simple
+WorkingDirectory=REPLACE_WORKING_DIR
 ExecStart=REPLACE_BY_INSTALL
 KillMode=process
 Restart=on-failure

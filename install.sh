@@ -221,10 +221,13 @@ if command -v systemctl > /dev/null; then
 			ERR " [Fail] Cannot copy service template"
 			exit 1
 		}
-		# Replace the service start command in temp file
+		# Replace the service start command and working directory in temp file
 		escaped_bin_path="${bin_path//\//\\/}"
 		escaped_conf_path="${conf_path//\//\\/}"
-		sed "s|REPLACE_BY_INSTALL|${escaped_bin_path} -c ${escaped_conf_path}|g" "$tmp_service_file" > "$tmp_service_file.new" || {
+		escaped_source_dir="${SOURCE_DIR//\//\\/}"
+		sed -e "s|REPLACE_BY_INSTALL|${escaped_bin_path} -c ${escaped_conf_path}|g" \
+		    -e "s|REPLACE_WORKING_DIR|${escaped_source_dir}|g" \
+		    "$tmp_service_file" > "$tmp_service_file.new" || {
 			ERR " [Fail] Cannot update service file with paths"
 			rm -f "$tmp_service_file" "$tmp_service_file.new"
 			exit 1
