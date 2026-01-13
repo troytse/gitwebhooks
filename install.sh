@@ -34,6 +34,14 @@ fi
 # File lock for preventing concurrent installations
 LOCK_FILE="${script_dir}/.install.lock"
 
+# Clean up stale lock file (more than 1 hour old)
+if [ -f "${LOCK_FILE}" ]; then
+    if find "${LOCK_FILE}" -maxdepth 0 -mmin +60 2>/dev/null; then
+        WARN "发现陈旧的锁文件，正在清理..."
+        rm -f "${LOCK_FILE}"
+    fi
+fi
+
 # Cleanup function for rollback on failure/interruption
 cleanup() {
     # Delete lock file
@@ -53,9 +61,9 @@ cleanup() {
     if [ -n "${service_path}" ] && [ -f "${service_path}.bak" ]; then
         $cmd_prefix rm -f "${service_path}.bak"
     fi
-    # Clean up temporary service files
-    rm -f "${script_dir}/.tmp_service."*
-    rm -f "${script_dir}/installed.env"
+    # Clean up temporary service files (use specific pattern to avoid race)
+    rm -f "${script_dir}/.tmp_service.$$"
+    rm -f "${script_dir}/.tmp_service.$$".*
 
     exit 1
 }
