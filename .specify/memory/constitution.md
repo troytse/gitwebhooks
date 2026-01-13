@@ -1,13 +1,15 @@
 <!--
 Sync Impact Report:
-Version change: (initial) → 1.0.0
-Modified principles: N/A (initial version)
-Added sections: Core Principles (5 principles), Security Requirements, Development Workflow, Governance
+Version change: 1.0.0 → 1.1.0
+Modified principles: N/A
+Added sections: Principle VI - Professional Commit Standards
 Removed sections: N/A
 Templates updated:
   - .specify/templates/plan-template.md: ⚠ pending review for Constitution Check alignment
   - .specify/templates/spec-template.md: ✅ reviewed (no changes needed)
   - .specify/templates/tasks-template.md: ✅ reviewed (no changes needed)
+  - .specify/templates/checklist-template.md: ✅ reviewed (no changes needed)
+  - .specify/templates/agent-file-template.md: ✅ reviewed (no changes needed)
 Follow-up TODOs: N/A
 -->
 
@@ -45,6 +47,12 @@ The project MUST support installation as a systemd service on Linux. The install
 
 **Rationale**: Production deployment requires daemonization, log management, and automatic restart capabilities. systemd is the Linux standard for service management.
 
+### VI. Professional Commit Standards
+
+All git/svn commits MUST NOT contain AI-generated attribution signatures such as "🤖 Generated with [Claude Code](https://claude.com/claude-code)" or similar promotional content. Commit messages MUST follow the format: `类型: 简短描述` (Chinese description) using standard types (feat, fix, docs, refactor, test, chore).
+
+**Rationale**: Professional version control records should describe technical changes without promotional content. AI attribution signatures clutter commit history, reduce signal-to-noise ratio, and are unnecessary noise in production repositories. The commit authorship is already tracked by git's author metadata.
+
 ## Security Requirements
 
 - All configuration files containing secrets MUST have restrictive file permissions (user-readable only, e.g., 0600)
@@ -75,6 +83,20 @@ The project MUST support installation as a systemd service on Linux. The install
 3. Verify all platform webhook formats still work
 4. Update README.md and README.zh.md if behavior changes
 5. Tag release with semantic version
+
+### Commit Message Standards
+
+All commits MUST follow the format: `类型: 简短描述` (Chinese description)
+
+Valid commit types:
+- `feat`: 新功能 (new feature)
+- `fix`: 修复 (bug fix)
+- `docs`: 文档 (documentation)
+- `refactor`: 重构 (code refactoring)
+- `test`: 测试 (adding or updating tests)
+- `chore`: 构建/工具 (build process or tooling changes)
+
+**PROHIBITED**: AI-generated attribution signatures, promotional content, or emojis in commit messages.
 
 ## Governance
 
@@ -111,4 +133,4 @@ For day-to-day development activities, refer to `CLAUDE.md` for:
 - Code style and formatting guidelines
 - Project structure and file organization
 
-**Version**: 1.0.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-12
+**Version**: 1.1.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-13

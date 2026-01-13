@@ -57,6 +57,11 @@ All features MUST pass the following gates from `.specify/memory/constitution.md
    - Will the install script still work?
    - Are logs written to configurable file paths?
 
+6. **Professional Commit Standards**: Do commits follow the required standards?
+   - Are commit messages free of AI-generated attribution signatures?
+   - Do commit messages follow the format: `类型: 简短描述` (Chinese description)?
+   - Are valid commit types used (feat, fix, docs, refactor, test, chore)?
+
 ### Violation Justification
 
 If any gate above cannot be passed, document in the Complexity Tracking section below.
