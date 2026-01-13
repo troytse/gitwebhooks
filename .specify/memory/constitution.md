@@ -1,11 +1,11 @@
 <!--
 Sync Impact Report:
-Version change: 1.0.0 → 1.1.0
-Modified principles: N/A
-Added sections: Principle VI - Professional Commit Standards
+Version change: 1.1.0 → 2.0.0
+Modified principles: Principle I - Simplicity & Minimalism (removed single-file requirement, added modular package structure with Python 3.7+ requirement)
+Added sections: N/A
 Removed sections: N/A
 Templates updated:
-  - .specify/templates/plan-template.md: ⚠ pending review for Constitution Check alignment
+  - .specify/templates/plan-template.md: ✅ reviewed (updated to reflect Python 3.7+ and package structure)
   - .specify/templates/spec-template.md: ✅ reviewed (no changes needed)
   - .specify/templates/tasks-template.md: ✅ reviewed (no changes needed)
   - .specify/templates/checklist-template.md: ✅ reviewed (no changes needed)
@@ -19,9 +19,9 @@ Follow-up TODOs: N/A
 
 ### I. Simplicity & Minimalism
 
-The project MUST maintain a single-file Python architecture (`git-webhooks-server.py`) for the core server logic. Features MUST be justified against the cost of complexity. External dependencies beyond Python 3 standard library are PROHIBITED unless absolutely essential. Configuration MUST remain INI-based and human-readable.
+The project MUST maintain a simple, modular Python architecture using a package structure (`gitwebhooks/`). Features MUST be justified against the cost of complexity. External dependencies beyond Python 3.7+ standard library are PROHIBITED unless absolutely essential. Configuration MUST remain INI-based and human-readable. Each module SHOULD be focused on a single responsibility and not exceed 400 lines of code.
 
-**Rationale**: This project's value proposition is simplicity and ease of deployment. Users can read, understand, and modify the entire codebase in minutes. Adding complexity undermines this core advantage.
+**Rationale**: This project's value proposition is simplicity and ease of deployment. A well-organized modular structure enables code maintainability, testability, and extensibility while preserving simplicity. Users can read, understand, and modify individual modules efficiently. Adding unnecessary complexity or external dependencies undermines this core advantage.
 
 ### II. Platform Neutrality
 
@@ -133,4 +133,4 @@ For day-to-day development activities, refer to `CLAUDE.md` for:
 - Code style and formatting guidelines
 - Project structure and file organization
 
-**Version**: 1.1.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-13
+**Version**: 2.0.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2025-01-13

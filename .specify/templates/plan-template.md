@@ -35,10 +35,12 @@
 
 All features MUST pass the following gates from `.specify/memory/constitution.md`:
 
-1. **Simplicity & Minimalism**: Does this maintain the single-file Python architecture?
+1. **Simplicity & Minimalism**: Does this maintain a simple, modular Python architecture using a package structure?
    - Are external dependencies absolutely essential?
-   - Can this be achieved with Python 3 standard library only?
+   - Can this be achieved with Python 3.7+ standard library only?
    - Does the configuration remain INI-based and human-readable?
+   - Does each module follow single responsibility principle?
+   - Are modules kept under 400 lines where possible?
 
 2. **Platform Neutrality**: Does this treat all Git platforms equally?
    - Are there platform-specific hardcoded paths or assumptions?
