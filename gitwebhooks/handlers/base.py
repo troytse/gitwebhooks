@@ -1,6 +1,6 @@
-"""处理器基类
+"""Handler base class
 
-定义 webhook 处理器的抽象接口。
+Defines the abstract interface for webhook handlers.
 """
 
 from abc import ABC, abstractmethod
@@ -14,94 +14,94 @@ from gitwebhooks.utils.exceptions import SignatureValidationError, UnsupportedEv
 
 
 class WebhookHandler(ABC):
-    """Webhook 处理器基类
+    """Webhook handler base class
 
-    所有平台特定的处理器必须继承此类并实现所有抽象方法。
+    All platform-specific handlers must inherit from this class and implement all abstract methods.
     """
 
     @abstractmethod
     def get_provider(self) -> Provider:
-        """返回此处理器支持的提供者类型
+        """Return the provider type supported by this handler
 
         Returns:
-            Provider 枚举值
+            Provider enum value
         """
         pass
 
     @abstractmethod
     def verify_signature(self, request: WebhookRequest,
                         config: ProviderConfig) -> SignatureVerificationResult:
-        """验证 webhook 签名
+        """Verify webhook signature
 
         Args:
-            request: Webhook 请求数据
-            config: 提供者配置（包含 secret）
+            request: Webhook request data
+            config: Provider configuration (includes secret)
 
         Returns:
-            签名验证结果
+            Signature verification result
 
         Raises:
-            SignatureValidationError: 验证失败时
+            SignatureValidationError: When verification fails
         """
         pass
 
     @abstractmethod
     def extract_repository(self, request: WebhookRequest,
                           config: ProviderConfig) -> Optional[str]:
-        """从请求中提取仓库标识符
+        """Extract repository identifier from request
 
         Args:
-            request: Webhook 请求数据
-            config: 提供者配置（可能包含 identifier_path）
+            request: Webhook request data
+            config: Provider configuration (may include identifier_path)
 
         Returns:
-            仓库标识符（如 'owner/repo'），未找到返回 None
+            Repository identifier (e.g., 'owner/repo'), None if not found
         """
         pass
 
     @abstractmethod
     def is_event_allowed(self, event: Optional[str],
                         config: ProviderConfig) -> bool:
-        """检查事件类型是否被允许处理
+        """Check if event type is allowed to be handled
 
         Args:
-            event: 事件类型（如 'push', 'merge_request'）
-            config: 提供者配置（包含 handle_events 列表）
+            event: Event type (e.g., 'push', 'merge_request')
+            config: Provider configuration (includes handle_events list)
 
         Returns:
-            True 如果事件被允许，False 否则
+            True if event is allowed, False otherwise
         """
         pass
 
     def handle_request(self, request: WebhookRequest,
                       config: ProviderConfig) -> Optional[str]:
-        """处理完整的 webhook 请求
+        """Handle complete webhook request
 
-        这是模板方法，定义了请求处理的固定流程：
-        1. 检查事件是否被允许
-        2. 验证签名
-        3. 提取仓库标识符
+        This is a template method that defines the fixed flow of request processing:
+        1. Check if event is allowed
+        2. Verify signature
+        3. Extract repository identifier
 
         Args:
-            request: Webhook 请求数据
-            config: 提供者配置
+            request: Webhook request data
+            config: Provider configuration
 
         Returns:
-            仓库标识符，如果处理失败返回 None
+            Repository identifier, None if processing failed
 
         Raises:
-            SignatureValidationError: 签名验证失败
-            UnsupportedEventError: 事件类型不被允许
+            SignatureValidationError: Signature verification failed
+            UnsupportedEventError: Event type not allowed
         """
-        # 步骤 1: 检查事件
+        # Step 1: Check event
         if not self.is_event_allowed(request.event, config):
             raise UnsupportedEventError(f'Event not configured: {request.event}')
 
-        # 步骤 2: 验证签名（如果需要）
+        # Step 2: Verify signature (if required)
         if config.verify:
             result = self.verify_signature(request, config)
             if not result.is_valid:
                 raise SignatureValidationError(result.error_message or 'Verification failed')
 
-        # 步骤 3: 提取仓库标识符
+        # Step 3: Extract repository identifier
         return self.extract_repository(request, config)

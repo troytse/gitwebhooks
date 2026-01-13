@@ -1,6 +1,6 @@
-"""HTTP 请求处理器
+"""HTTP request handler
 
-处理 HTTP POST 请求的 webhook 端点。
+Handles webhook endpoint for HTTP POST requests.
 """
 
 import json
@@ -19,63 +19,63 @@ from gitwebhooks.utils.executor import execute_deployment
 
 
 class WebhookRequestHandler(BaseHTTPRequestHandler):
-    """Webhook 请求处理器
+    """Webhook request handler
 
-    处理 HTTP POST 请求，验证签名，触发部署命令。
+    Handles HTTP POST requests, verifies signatures, triggers deployment commands.
     """
 
-    # 类变量：配置注入
+    # Class variables: configuration injection
     _provider_configs: Dict[Provider, ProviderConfig] = {}
     _repository_configs: Dict[str, RepositoryConfig] = {}
 
     @classmethod
     def configure(cls, provider_configs: Dict[Provider, ProviderConfig],
                  repository_configs: Dict[str, RepositoryConfig]) -> None:
-        """配置处理器类（依赖注入）
+        """Configure handler class (dependency injection)
 
         Args:
-            provider_configs: 提供者配置字典
-            repository_configs: 仓库配置字典
+            provider_configs: Provider configuration dictionary
+            repository_configs: Repository configuration dictionary
         """
         cls._provider_configs = provider_configs
         cls._repository_configs = repository_configs
 
     def __init__(self, request, client_address, server):
-        """初始化请求处理器
+        """Initialize request handler
 
         Args:
-            request: HTTP 请求
-            client_address: 客户端地址
-            server: 服务器实例
+            request: HTTP request
+            client_address: Client address
+            server: Server instance
         """
-        # 复制类级配置到实例（避免共享状态）
+        # Copy class-level config to instance (avoid shared state)
         self._provider_configs = self.__class__._provider_configs.copy()
         self._repository_configs = self.__class__._repository_configs.copy()
         super().__init__(request, client_address, server)
 
     def do_GET(self) -> None:
-        """处理 GET 请求
+        """Handle GET request
 
-        所有 GET 请求返回 403 Forbidden
+        All GET requests return 403 Forbidden
         """
         self.send_error(HTTP_FORBIDDEN, MESSAGE_FORBIDDEN)
 
     def do_POST(self) -> None:
-        """处理 POST 请求（webhook 端点）
+        """Handle POST request (webhook endpoint)
 
-        实现流程：
-        1. 解析请求体
-        2. 识别提供者和事件
-        3. 创建对应的处理器
-        4. 验证签名
-        5. 提取仓库标识符
-        6. 执行部署命令
-        7. 发送响应
+        Implementation flow:
+        1. Parse request body
+        2. Identify provider and event
+        3. Create corresponding handler
+        4. Verify signature
+        5. Extract repository identifier
+        6. Execute deployment command
+        7. Send response
 
-        所有错误都被捕获并返回适当的 HTTP 状态码
+        All errors are caught and appropriate HTTP status codes are returned
         """
         try:
-            # 步骤 1: 解析请求体
+            # Step 1: Parse request body
             try:
                 request = self._parse_request()
             except RequestParseError as e:
@@ -88,17 +88,17 @@ class WebhookRequestHandler(BaseHTTPRequestHandler):
                 self._send_error(HTTP_BAD_REQUEST, MESSAGE_BAD_REQUEST)
                 return
 
-            # 步骤 2: 识别提供者
+            # Step 2: Identify provider
             provider = self._identify_provider(request)
             if provider is None:
                 logging.warning('Unknown provider')
                 self._send_error(HTTP_PRECONDITION_FAILED, MESSAGE_PRECONDITION_FAILED)
                 return
 
-            # 步骤 3: 创建处理器
+            # Step 3: Create handler
             handler = HandlerFactory.from_handler_type(provider)
 
-            # 步骤 4-6: 处理请求
+            # Steps 4-6: Process request
             try:
                 provider_config = self._provider_configs.get(provider)
                 if not provider_config:
@@ -117,7 +117,7 @@ class WebhookRequestHandler(BaseHTTPRequestHandler):
                     self._send_error(HTTP_PRECONDITION_FAILED, MESSAGE_PRECONDITION_FAILED)
                 return
 
-            # 步骤 7: 执行部署命令
+            # Step 7: Execute deployment command
             if repo_name:
                 repo_config = self._repository_configs.get(repo_name)
                 if not repo_config:
@@ -136,25 +136,25 @@ class WebhookRequestHandler(BaseHTTPRequestHandler):
             self._send_error(HTTP_INTERNAL_SERVER_ERROR, MESSAGE_INTERNAL_SERVER_ERROR)
 
     def _parse_request(self) -> WebhookRequest:
-        """解析 HTTP 请求
+        """Parse HTTP request
 
         Returns:
-            WebhookRequest 实例
+            WebhookRequest instance
 
         Raises:
-            RequestParseError: 解析失败
+            RequestParseError: Parsing failed
         """
-        # 获取 Content-Type 和 Content-Length
+        # Get Content-Type and Content-Length
         content_type = self.headers.get(HEADER_CONTENT_TYPE, '')
         content_length = int(self.headers.get(HEADER_CONTENT_LENGTH, 0))
 
-        # 读取请求体
+        # Read request body
         if content_length == 0:
             raise RequestParseError('Empty request body')
 
         payload = self.rfile.read(content_length)
 
-        # 解析 POST 数据
+        # Parse POST data
         post_data = None
         if CONTENT_TYPE_JSON in content_type:
             try:
@@ -167,7 +167,7 @@ class WebhookRequestHandler(BaseHTTPRequestHandler):
             except UnicodeDecodeError as e:
                 raise RequestParseError(f'Invalid form data: {e}')
 
-        # 识别提供者和事件
+        # Identify provider and event
         provider, event = self._parse_provider_and_event()
 
         return WebhookRequest(
@@ -181,14 +181,14 @@ class WebhookRequestHandler(BaseHTTPRequestHandler):
         )
 
     def _parse_provider_and_event(self) -> tuple:
-        """从请求头解析提供者和事件
+        """Parse provider and event from request headers
 
         Returns:
             Tuple of (provider, event)
         """
         headers_dict = dict(self.headers)
 
-        # Github
+        # GitHub
         if HEADER_GITHUB_EVENT in headers_dict:
             return Provider.GITHUB, headers_dict.get(HEADER_GITHUB_EVENT)
 
@@ -196,7 +196,7 @@ class WebhookRequestHandler(BaseHTTPRequestHandler):
         if HEADER_GITEE_EVENT in headers_dict:
             return Provider.GITEE, headers_dict.get(HEADER_GITEE_EVENT)
 
-        # Gitlab
+        # GitLab
         if HEADER_GITLAB_EVENT in headers_dict:
             return Provider.GITLAB, headers_dict.get(HEADER_GITLAB_EVENT)
 
@@ -208,26 +208,26 @@ class WebhookRequestHandler(BaseHTTPRequestHandler):
                 event = headers_dict.get(custom_config.header_event) if custom_config.header_event else None
                 return Provider.CUSTOM, event
 
-        # 无法识别
+        # Unable to identify
         return None, None
 
     def _identify_provider(self, request: WebhookRequest) -> Optional[Provider]:
-        """从请求中识别提供者
+        """Identify provider from request
 
         Args:
-            request: Webhook 请求
+            request: Webhook request
 
         Returns:
-            Provider 枚举值，无法识别返回 None
+            Provider enum value, None if unable to identify
         """
         return request.provider
 
     def _send_response(self, status_code: int, message: bytes = MESSAGE_OK) -> None:
-        """发送 HTTP 响应
+        """Send HTTP response
 
         Args:
-            status_code: HTTP 状态码
-            message: 响应体
+            status_code: HTTP status code
+            message: Response body
         """
         self.send_response(status_code)
         self.send_header('Content-Type', 'text/plain')
@@ -235,14 +235,14 @@ class WebhookRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(message)
 
     def _send_error(self, status_code: int, message: str = '') -> None:
-        """发送 HTTP 错误响应
+        """Send HTTP error response
 
         Args:
-            status_code: HTTP 状态码
-            message: 错误消息
+            status_code: HTTP status code
+            message: Error message
         """
         self.send_error(status_code, message)
 
     def log_message(self, format: str, *args) -> None:
-        """覆盖以防止重复日志"""
+        """Override to prevent duplicate logging"""
         pass

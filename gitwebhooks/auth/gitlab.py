@@ -1,6 +1,6 @@
-"""Gitlab Token 验证器
+"""GitLab token verifier
 
-验证 Gitlab webhook 的 token。
+Verifies tokens from GitLab webhooks.
 """
 
 from gitwebhooks.auth.verifier import SignatureVerifier
@@ -8,20 +8,20 @@ from gitwebhooks.models.result import SignatureVerificationResult
 
 
 class GitlabTokenVerifier(SignatureVerifier):
-    """Gitlab Token 验证器"""
+    """GitLab token verifier"""
 
     def verify(self, payload: bytes, signature: str, secret: str,
                **kwargs) -> SignatureVerificationResult:
-        """验证 Gitlab Token
+        """Verify GitLab token
 
         Args:
-            payload: 原始请求体字节（未使用）
-            signature: X-Gitlab-Token header 值
+            payload: Raw request body bytes (unused)
+            signature: X-Gitlab-Token header value
             secret: Webhook token
-            **kwargs: 未使用
+            **kwargs: Unused
 
         Returns:
-            SignatureVerificationResult 实例
+            SignatureVerificationResult instance
         """
         if signature == secret:
             return SignatureVerificationResult.success()

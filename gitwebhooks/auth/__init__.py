@@ -1,6 +1,6 @@
-"""认证和签名验证模块
+"""Authentication and signature verification module
 
-验证 webhook 请求的签名和 token。
+Verifies signatures and tokens for webhook requests.
 """
 
 from .verifier import SignatureVerifier

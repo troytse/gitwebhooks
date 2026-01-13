@@ -1,6 +1,6 @@
-"""Python 模块入口点
+"""Python module entry point
 
-支持使用 `python3 -m gitwebhooks.cli` 运行服务器。
+Supports running the server using `python3 -m gitwebhooks.cli`.
 """
 
 from gitwebhooks.cli import main

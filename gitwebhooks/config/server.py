@@ -1,6 +1,6 @@
-"""服务器配置
+"""Server configuration
 
-定义服务器相关的配置数据类。
+Defines server-related configuration dataclasses.
 """
 
 import os
@@ -13,15 +13,15 @@ from gitwebhooks.utils.exceptions import ConfigurationError
 
 @dataclass
 class ServerConfig:
-    """服务器配置
+    """Server configuration
 
     Attributes:
-        address: 监听地址
-        port: 监听端口
-        log_file: 日志文件路径（空字符串表示不记录到文件）
-        ssl_enabled: 是否启用 SSL
-        ssl_key_file: SSL 密钥文件路径
-        ssl_cert_file: SSL 证书文件路径
+        address: Listen address
+        port: Listen port
+        log_file: Log file path (empty string means no file logging)
+        ssl_enabled: Whether SSL is enabled
+        ssl_key_file: SSL key file path
+        ssl_cert_file: SSL certificate file path
     """
     address: str
     port: int
@@ -32,13 +32,13 @@ class ServerConfig:
 
     @classmethod
     def from_loader(cls, loader: 'ConfigLoader') -> 'ServerConfig':
-        """从 ConfigLoader 创建服务器配置
+        """Create server configuration from ConfigLoader
 
         Args:
-            loader: 配置加载器实例
+            loader: Configuration loader instance
 
         Returns:
-            ServerConfig 实例
+            ServerConfig instance
         """
         server_cfg = loader.get_server_config()
         ssl_cfg = loader.get_ssl_config()
@@ -53,10 +53,10 @@ class ServerConfig:
         )
 
     def validate(self) -> None:
-        """验证服务器配置
+        """Validate server configuration
 
         Raises:
-            ConfigurationError: 配置无效
+            ConfigurationError: Configuration is invalid
         """
         if self.ssl_enabled:
             if not self.ssl_key_file:
@@ -64,7 +64,7 @@ class ServerConfig:
             if not self.ssl_cert_file:
                 raise ConfigurationError('SSL enabled but cert_file not specified')
 
-            # 验证文件存在
+            # Verify files exist
             key_path = Path(self.ssl_key_file)
             cert_path = Path(self.ssl_cert_file)
 
@@ -73,11 +73,11 @@ class ServerConfig:
             if not cert_path.exists():
                 raise ConfigurationError(f'SSL cert file not found: {self.ssl_cert_file}')
 
-        # 验证端口范围
+        # Validate port range
         if not (1 <= self.port <= 65535):
             raise ConfigurationError(f'Invalid port number: {self.port}')
 
-        # 验证日志文件可写（如果指定）
+        # Validate log file writable (if specified)
         if self.log_file:
             log_path = Path(self.log_file)
             parent_dir = log_path.parent

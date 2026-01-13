@@ -1,6 +1,6 @@
-"""数据模型模块
+"""Data models module
 
-定义核心数据类型和枚举。
+Defines core data types and enumerations.
 """
 
 from .provider import Provider

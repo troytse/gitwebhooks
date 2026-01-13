@@ -1,6 +1,6 @@
-"""签名验证器基类
+"""Signature verifier base class
 
-定义签名验证的抽象接口。
+Defines the abstract interface for signature verification.
 """
 
 from abc import ABC, abstractmethod
@@ -9,26 +9,26 @@ from gitwebhooks.models.result import SignatureVerificationResult
 
 
 class SignatureVerifier(ABC):
-    """签名验证器基类
+    """Signature verifier base class
 
-    所有平台特定的验证器必须继承此类并实现验证方法。
+    All platform-specific verifiers must inherit from this class and implement the verification method.
     """
 
     @abstractmethod
     def verify(self, payload: bytes, signature: str, secret: str,
                **kwargs) -> SignatureVerificationResult:
-        """验证签名
+        """Verify signature
 
         Args:
-            payload: 原始请求体字节
-            signature: 请求中的签名字符串
-            secret: 配置的密钥
-            **kwargs: 平台特定的额外参数（如 timestamp）
+            payload: Raw request body bytes
+            signature: Signature string from request
+            secret: Configured secret key
+            **kwargs: Platform-specific additional parameters (e.g., timestamp)
 
         Returns:
-            SignatureVerificationResult 实例
+            SignatureVerificationResult instance
 
         Raises:
-            SignatureValidationError: 验证失败时（可选）
+            SignatureValidationError: When verification fails (optional)
         """
         pass

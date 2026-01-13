@@ -1,6 +1,6 @@
-"""Webhook 请求数据封装
+"""Webhook request data wrapper
 
-表示解析后的 HTTP webhook 请求。
+Represents a parsed HTTP webhook request.
 """
 
 from dataclasses import dataclass
@@ -11,16 +11,16 @@ from gitwebhooks.models.provider import Provider
 
 @dataclass
 class WebhookRequest:
-    """Webhook 请求数据封装
+    """Webhook request data wrapper
 
     Attributes:
-        provider: Git 平台提供者
-        event: 事件类型（如 'push', 'merge_request'）
-        payload: 原始请求体字节
-        headers: HTTP 请求头
-        post_data: 解析后的 JSON/表单数据
-        content_type: Content-Type header 值
-        content_length: Content-Length header 值
+        provider: Git platform provider
+        event: Event type (e.g., 'push', 'merge_request')
+        payload: Raw request body bytes
+        headers: HTTP request headers
+        post_data: Parsed JSON/form data
+        content_type: Content-Type header value
+        content_length: Content-Length header value
     """
     provider: Provider
     event: Optional[str]
@@ -32,16 +32,16 @@ class WebhookRequest:
 
     @property
     def repo_identifier(self) -> Optional[str]:
-        """从 post_data 提取仓库标识符
+        """Extract repository identifier from post_data
 
         Returns:
-            仓库标识符（如 'owner/repo'），未找到则返回 None
+            Repository identifier (e.g., 'owner/repo'), None if not found
 
-        提取规则:
-        - Github: repository.full_name
+        Extraction rules:
+        - GitHub: repository.full_name
         - Gitee: repository.full_name
-        - Gitlab: project.path_with_namespace
-        - Custom: 使用 ProviderConfig.identifier_path
+        - GitLab: project.path_with_namespace
+        - Custom: Uses ProviderConfig.identifier_path
         """
         if self.post_data is None:
             return None
@@ -57,5 +57,5 @@ class WebhookRequest:
             result = extractor(self.post_data)
             return result if isinstance(result, str) else None
 
-        # Custom provider 使用 identifier_path（在处理器中处理）
+        # Custom provider uses identifier_path (handled in handler)
         return None

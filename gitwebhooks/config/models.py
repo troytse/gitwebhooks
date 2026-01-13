@@ -1,6 +1,6 @@
-"""配置数据模型
+"""Configuration data models
 
-定义配置相关的数据类。
+Defines configuration-related dataclasses.
 """
 
 import configparser
@@ -14,18 +14,18 @@ from gitwebhooks.utils.exceptions import ConfigurationError
 
 @dataclass
 class ProviderConfig:
-    """Git 平台提供者配置
+    """Git platform provider configuration
 
     Attributes:
-        provider: 提供者类型
-        verify: 是否验证签名/token
-        secret: 验证用的密钥
-        handle_events: 要处理的事件列表（空列表=处理所有事件）
-        header_name: 自定义识别 header（仅 CUSTOM）
-        header_value: 自定义识别值（仅 CUSTOM）
-        header_event: 自定义事件 header（仅 CUSTOM）
-        header_token: 自定义 token header（仅 CUSTOM）
-        identifier_path: 仓库标识符 JSON 路径（仅 CUSTOM）
+        provider: Provider type
+        verify: Whether to verify signature/token
+        secret: Secret key for verification
+        handle_events: List of events to handle (empty list = handle all events)
+        header_name: Custom identification header (CUSTOM only)
+        header_value: Custom identification value (CUSTOM only)
+        header_event: Custom event header (CUSTOM only)
+        header_token: Custom token header (CUSTOM only)
+        identifier_path: Repository identifier JSON path (CUSTOM only)
     """
     provider: Provider
     verify: bool
@@ -42,17 +42,17 @@ class ProviderConfig:
     @classmethod
     def from_config_parser(cls, parser: configparser.ConfigParser,
                           provider: Provider) -> 'ProviderConfig':
-        """从 ConfigParser 加载提供者配置
+        """Load provider configuration from ConfigParser
 
         Args:
-            parser: ConfigParser 实例
-            provider: 提供者类型
+            parser: ConfigParser instance
+            provider: Provider type
 
         Returns:
-            ProviderConfig 实例
+            ProviderConfig instance
 
         Raises:
-            configparser.NoSectionError: 配置节不存在
+            configparser.NoSectionError: Configuration section does not exist
         """
         section = provider.value
         handle_events_str = parser.get(section, 'handle_events',
@@ -67,7 +67,7 @@ class ProviderConfig:
             handle_events=handle_events
         )
 
-        # Custom provider 额外字段
+        # Custom provider additional fields
         if provider == Provider.CUSTOM:
             config.header_name = parser.get(section, 'header_name',
                                            fallback='X-Custom-Webhook')
@@ -83,27 +83,27 @@ class ProviderConfig:
         return config
 
     def allows_event(self, event: str) -> bool:
-        """检查事件是否被允许处理
+        """Check if an event is allowed to be handled
 
         Args:
-            event: 事件类型（None 表示所有事件）
+            event: Event type (None means all events)
 
         Returns:
-            True 如果事件被允许，False 否则
+            True if event is allowed, False otherwise
         """
         if not self.handle_events:
-            return True  # 空列表 = 处理所有事件
+            return True  # Empty list = handle all events
         return event in self.handle_events
 
 
 @dataclass
 class RepositoryConfig:
-    """仓库部署配置
+    """Repository deployment configuration
 
     Attributes:
-        name: 仓库名称（格式：'owner/repo' 或 'group/project/repo'）
-        cwd: 部署命令执行的工作目录
-        cmd: 部署命令（shell 字符串）
+        name: Repository name (format: 'owner/repo' or 'group/project/repo')
+        cwd: Working directory for deployment command execution
+        cmd: Deployment command (shell string)
     """
     name: str
     cwd: str
@@ -112,17 +112,17 @@ class RepositoryConfig:
     @classmethod
     def from_config_parser(cls, parser: configparser.ConfigParser,
                           name: str):
-        """从 ConfigParser 加载仓库配置
+        """Load repository configuration from ConfigParser
 
         Args:
-            parser: ConfigParser 实例
-            name: 配置节名称（仓库名称）
+            parser: ConfigParser instance
+            name: Configuration section name (repository name)
 
         Returns:
-            RepositoryConfig 实例，如果节不存在则返回 None
+            RepositoryConfig instance, or None if section does not exist
 
         Raises:
-            configparser.NoOptionError: 节存在但缺少必需选项
+            configparser.NoOptionError: Section exists but missing required options
         """
         if not parser.has_section(name):
             return None
@@ -134,10 +134,10 @@ class RepositoryConfig:
         )
 
     def validate(self) -> None:
-        """验证配置有效性
+        """Validate configuration
 
         Raises:
-            ConfigurationError: 配置无效
+            ConfigurationError: Configuration is invalid
         """
         if not self.cwd:
             raise ConfigurationError(f'Repository {self.name}: cwd is required')

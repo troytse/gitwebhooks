@@ -1,6 +1,6 @@
-"""配置管理模块
+"""Configuration management module
 
-负责加载、解析和管理 INI 格式的配置文件。
+Responsible for loading, parsing, and managing INI format configuration files.
 """
 
 from .loader import ConfigLoader

@@ -1,6 +1,6 @@
-"""HTTP 服务器主逻辑
+"""HTTP server main logic
 
-创建和运行 HTTP 服务器，处理 webhook 请求。
+Creates and runs the HTTP server, handles webhook requests.
 """
 
 import logging
@@ -18,82 +18,82 @@ from gitwebhooks.utils.exceptions import ConfigurationError
 
 
 class WebhookServer:
-    """Git Webhooks 服务器主类
+    """Git Webhooks server main class
 
-    负责创建和运行 HTTP 服务器，处理 webhook 请求。
+    Responsible for creating and running the HTTP server, handling webhook requests.
     """
 
     def __init__(self, config_path: str,
                  registry: Optional[ConfigurationRegistry] = None):
-        """初始化 Webhook 服务器
+        """Initialize Webhook server
 
         Args:
-            config_path: INI 配置文件路径
-            registry: 配置注册表（可选，用于依赖注入）
+            config_path: INI configuration file path
+            registry: Configuration registry (optional, for dependency injection)
 
         Raises:
-            ConfigurationError: 配置无效或缺失
+            ConfigurationError: Invalid or missing configuration
         """
         self.config_path = config_path
         self.loader = ConfigLoader(config_path)
         self.registry = registry or ConfigurationRegistry(self.loader)
         self.server_config = self.registry.server_config
 
-        # 配置日志
+        # Configure logging
         self._setup_logging()
 
     def _setup_logging(self) -> None:
-        """配置日志系统
+        """Configure logging system
 
-        根据 server 配置设置日志记录：
-        - 如果 log_file 为空，只输出到 stdout
-        - 如果 log_file 非空，同时输出到文件和 stdout
+        Sets up logging based on server configuration:
+        - If log_file is empty, output to stdout only
+        - If log_file is non-empty, output to both file and stdout
 
         Raises:
-            ConfigurationError: 日志文件无法创建
+            ConfigurationError: Log file cannot be created
         """
         setup_logging(self.server_config.log_file)
 
     def create_http_server(self) -> HTTPServer:
-        """创建 HTTP 服务器实例
+        """Create HTTP server instance
 
         Returns:
-            配置好的 HTTPServer 实例
+            Configured HTTPServer instance
 
         Raises:
-            ConfigurationError: 服务器配置无效
-            OSError: 绑定地址失败
+            ConfigurationError: Invalid server configuration
+            OSError: Failed to bind address
         """
-        # 配置处理器类（注入依赖）
+        # Configure handler class (inject dependencies)
         WebhookRequestHandler.configure(
             self.registry.provider_configs,
             self.registry.repository_configs
         )
 
-        # 创建服务器
+        # Create server
         server = HTTPServer(
             (self.server_config.address, self.server_config.port),
             WebhookRequestHandler
         )
 
-        # 配置 SSL（如果启用）
+        # Configure SSL (if enabled)
         if self.server_config.ssl_enabled:
             server.socket = self._wrap_socket_ssl(server.socket)
 
         return server
 
     def _wrap_socket_ssl(self, socket):
-        """用 SSL 包装 socket
+        """Wrap socket with SSL
 
         Args:
-            socket: 原始 socket
+            socket: Raw socket
 
         Returns:
-            SSL 包装的 socket
+            SSL-wrapped socket
 
         Raises:
-            ConfigurationError: SSL 配置无效
-            ssl.SSLError: SSL 初始化失败
+            ConfigurationError: Invalid SSL configuration
+            ssl.SSLError: SSL initialization failed
         """
         try:
             context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -106,9 +106,9 @@ class WebhookServer:
             raise ConfigurationError(f'SSL configuration error: {e}')
 
     def run(self) -> None:
-        """启动服务器主循环
+        """Start server main loop
 
-        此方法会阻塞，直到服务器被停止。
+        This method blocks until the server is stopped.
         """
         server = self.create_http_server()
 

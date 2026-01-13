@@ -1,6 +1,6 @@
-"""命令执行器
+"""Command executor
 
-异步执行部署命令。
+Asynchronously executes deployment commands.
 """
 
 import logging
@@ -8,16 +8,16 @@ import subprocess
 
 
 def execute_deployment(repo_name: str, cwd: str, cmd: str) -> None:
-    """执行部署命令
+    """Execute deployment command
 
     Args:
-        repo_name: 仓库名称（用于日志）
-        cwd: 工作目录
-        cmd: 要执行的命令
+        repo_name: Repository name (for logging)
+        cwd: Working directory
+        cmd: Command to execute
 
     Note:
-        命令异步执行，不阻塞服务器。
-        stdin 设置为 DEVNULL 避免文件描述符泄漏。
+        Command executes asynchronously without blocking the server.
+        stdin is set to DEVNULL to prevent file descriptor leaks.
     """
     logging.info('[%s] Executing: %s', repo_name, cmd)
 
@@ -26,7 +26,7 @@ def execute_deployment(repo_name: str, cwd: str, cmd: str) -> None:
             cmd,
             cwd=cwd,
             shell=True,
-            stdin=subprocess.DEVNULL,  # 防止继承 stdin，避免 fd 泄漏
+            stdin=subprocess.DEVNULL,  # Prevent inheriting stdin, avoid fd leaks
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )

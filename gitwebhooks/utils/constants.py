@@ -1,6 +1,6 @@
-"""HTTP 和响应常量定义
+"""HTTP and response constants definition
 
-定义项目中使用的所有常量。
+Defines all constants used in the project.
 """
 
 # HTTP Status Codes

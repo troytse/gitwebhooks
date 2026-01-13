@@ -1,6 +1,6 @@
-"""Gitlab webhook 处理器
+"""GitLab webhook handler
 
-处理来自 Gitlab 的 webhook 请求。
+Handles webhook requests from GitLab.
 """
 
 from typing import Optional
@@ -14,24 +14,24 @@ from gitwebhooks.auth.factory import VerifierFactory
 
 
 class GitlabHandler(WebhookHandler):
-    """Gitlab webhook 处理器"""
+    """GitLab webhook handler"""
 
     def __init__(self):
         self._verifier = VerifierFactory.create_gitlab_verifier()
 
     def get_provider(self) -> Provider:
-        """返回 Provider.GITLAB"""
+        """Return Provider.GITLAB"""
         return Provider.GITLAB
 
     def verify_signature(self, request: WebhookRequest,
                         config: ProviderConfig) -> SignatureVerificationResult:
-        """验证 Gitlab token"""
+        """Verify GitLab token"""
         signature = request.headers.get('X-Gitlab-Token')
         return self._verifier.verify(request.payload, signature, config.secret)
 
     def extract_repository(self, request: WebhookRequest,
                           config: ProviderConfig) -> Optional[str]:
-        """从请求中提取 Gitlab 项目路径"""
+        """Extract GitLab project path from request"""
         if request.post_data is None:
             return None
         project = request.post_data.get('project', {})
@@ -39,5 +39,5 @@ class GitlabHandler(WebhookHandler):
 
     def is_event_allowed(self, event: Optional[str],
                         config: ProviderConfig) -> bool:
-        """检查事件是否在 config.handle_events 列表中"""
+        """Check if event is in config.handle_events list"""
         return config.allows_event(event)

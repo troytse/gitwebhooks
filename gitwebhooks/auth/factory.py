@@ -1,6 +1,6 @@
-"""验证器工厂类
+"""Verifier factory class
 
-根据提供者类型创建对应的验证器实例。
+Creates corresponding verifier instances based on provider type.
 """
 
 from gitwebhooks.models.provider import Provider
@@ -13,9 +13,9 @@ from gitwebhooks.utils.exceptions import UnsupportedProviderError
 
 
 class VerifierFactory:
-    """验证器工厂类
+    """Verifier factory class
 
-    根据提供者类型创建对应的验证器实例
+    Creates corresponding verifier instances based on provider type
     """
 
     _verifiers = {
@@ -28,17 +28,17 @@ class VerifierFactory:
     @classmethod
     def get_verifier(cls, provider: Provider,
                     verify_enabled: bool = True) -> SignatureVerifier:
-        """获取提供者对应的验证器
+        """Get verifier for the specified provider
 
         Args:
-            provider: 提供者类型
-            verify_enabled: 是否启用验证（仅对 CUSTOM 有效）
+            provider: Provider type
+            verify_enabled: Whether verification is enabled (CUSTOM only)
 
         Returns:
-            SignatureVerifier 实例
+            SignatureVerifier instance
 
         Raises:
-            UnsupportedProviderError: 不支持的提供者
+            UnsupportedProviderError: Unsupported provider
         """
         if provider == Provider.CUSTOM:
             return CustomTokenVerifier(verify_enabled=verify_enabled)
@@ -50,24 +50,24 @@ class VerifierFactory:
 
     @classmethod
     def create_github_verifier(cls) -> GithubSignatureVerifier:
-        """创建 Github 验证器（便利方法）"""
+        """Create GitHub verifier (convenience method)"""
         return GithubSignatureVerifier()
 
     @classmethod
     def create_gitee_verifier(cls) -> GiteeSignatureVerifier:
-        """创建 Gitee 验证器（便利方法）"""
+        """Create Gitee verifier (convenience method)"""
         return GiteeSignatureVerifier()
 
     @classmethod
     def create_gitlab_verifier(cls) -> GitlabTokenVerifier:
-        """创建 Gitlab 验证器（便利方法）"""
+        """Create GitLab verifier (convenience method)"""
         return GitlabTokenVerifier()
 
     @classmethod
     def create_custom_verifier(cls, verify_enabled: bool = True) -> CustomTokenVerifier:
-        """创建自定义验证器（便利方法）
+        """Create custom verifier (convenience method)
 
         Args:
-            verify_enabled: 是否启用验证
+            verify_enabled: Whether verification is enabled
         """
         return CustomTokenVerifier(verify_enabled=verify_enabled)

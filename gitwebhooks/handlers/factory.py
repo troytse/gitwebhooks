@@ -1,6 +1,6 @@
-"""处理器工厂类
+"""Handler factory class
 
-根据请求 headers 创建对应的处理器实例。
+Creates corresponding handler instances based on request headers.
 """
 
 from typing import Dict
@@ -16,39 +16,39 @@ from gitwebhooks.utils.exceptions import UnsupportedProviderError
 
 
 class HandlerFactory:
-    """处理器工厂类
+    """Handler factory class
 
-    根据请求 headers 创建对应的处理器实例
+    Creates corresponding handler instances based on request headers
     """
 
     @staticmethod
     def from_headers(headers: Dict[str, str],
                     configs: Dict[Provider, ProviderConfig]) -> WebhookHandler:
-        """根据请求 headers 创建处理器
+        """Create handler based on request headers
 
         Args:
-            headers: HTTP 请求头字典
-            configs: 提供者配置字典
+            headers: HTTP request header dictionary
+            configs: Provider configuration dictionary
 
         Returns:
-            对应的 WebhookHandler 实例
+            Corresponding WebhookHandler instance
 
         Raises:
-            UnsupportedProviderError: 无法识别的平台
+            UnsupportedProviderError: Unrecognized platform
         """
-        # 检查 X-GitHub-Event
+        # Check X-GitHub-Event
         if 'X-GitHub-Event' in headers:
             return GithubHandler()
 
-        # 检查 X-Gitee-Event
+        # Check X-Gitee-Event
         if 'X-Gitee-Event' in headers:
             return GiteeHandler()
 
-        # 检查 X-Gitlab-Event
+        # Check X-Gitlab-Event
         if 'X-Gitlab-Event' in headers:
             return GitlabHandler()
 
-        # 检查自定义 header
+        # Check custom header
         custom_config = configs.get(Provider.CUSTOM)
         if custom_config and custom_config.header_name:
             if headers.get(custom_config.header_name) == custom_config.header_value:
@@ -58,16 +58,16 @@ class HandlerFactory:
 
     @staticmethod
     def from_handler_type(provider: Provider) -> WebhookHandler:
-        """根据提供者类型创建处理器
+        """Create handler based on provider type
 
         Args:
-            provider: 提供者类型
+            provider: Provider type
 
         Returns:
-            对应的 WebhookHandler 实例
+            Corresponding WebhookHandler instance
 
         Raises:
-            UnsupportedProviderError: 不支持的提供者
+            UnsupportedProviderError: Unsupported provider
         """
         handlers = {
             Provider.GITHUB: GithubHandler,

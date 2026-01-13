@@ -1,6 +1,6 @@
-"""Webhook 处理器模块
+"""Webhook handlers module
 
-处理来自不同 Git 平台的 webhook 请求。
+Handles webhook requests from different Git platforms.
 """
 
 from .base import WebhookHandler

@@ -1,6 +1,6 @@
-"""Github webhook 处理器
+"""GitHub webhook handler
 
-处理来自 Github 的 webhook 请求。
+Handles webhook requests from GitHub.
 """
 
 from typing import Optional
@@ -14,24 +14,24 @@ from gitwebhooks.auth.factory import VerifierFactory
 
 
 class GithubHandler(WebhookHandler):
-    """Github webhook 处理器"""
+    """GitHub webhook handler"""
 
     def __init__(self):
         self._verifier = VerifierFactory.create_github_verifier()
 
     def get_provider(self) -> Provider:
-        """返回 Provider.GITHUB"""
+        """Return Provider.GITHUB"""
         return Provider.GITHUB
 
     def verify_signature(self, request: WebhookRequest,
                         config: ProviderConfig) -> SignatureVerificationResult:
-        """验证 Github HMAC-SHA1 签名"""
+        """Verify GitHub HMAC-SHA1 signature"""
         signature = request.headers.get('X-Hub-Signature')
         return self._verifier.verify(request.payload, signature, config.secret)
 
     def extract_repository(self, request: WebhookRequest,
                           config: ProviderConfig) -> Optional[str]:
-        """从请求中提取 Github 仓库全名"""
+        """Extract GitHub repository full name from request"""
         if request.post_data is None:
             return None
         repo = request.post_data.get('repository', {})
@@ -39,5 +39,5 @@ class GithubHandler(WebhookHandler):
 
     def is_event_allowed(self, event: Optional[str],
                         config: ProviderConfig) -> bool:
-        """检查事件是否在 config.handle_events 列表中"""
+        """Check if event is in config.handle_events list"""
         return config.allows_event(event)

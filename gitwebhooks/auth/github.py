@@ -1,6 +1,6 @@
-"""Github HMAC-SHA1 签名验证器
+"""GitHub HMAC-SHA1 signature verifier
 
-验证 Github webhook 的 HMAC-SHA1 签名。
+Verifies HMAC-SHA1 signatures from GitHub webhooks.
 """
 
 import hashlib
@@ -11,23 +11,23 @@ from gitwebhooks.models.result import SignatureVerificationResult
 
 
 class GithubSignatureVerifier(SignatureVerifier):
-    """Github HMAC-SHA1 签名验证器"""
+    """GitHub HMAC-SHA1 signature verifier"""
 
     PREFIX = 'sha1='
     HASH_ALGORITHM = hashlib.sha1
 
     def verify(self, payload: bytes, signature: str, secret: str,
                **kwargs) -> SignatureVerificationResult:
-        """验证 Github HMAC-SHA1 签名
+        """Verify GitHub HMAC-SHA1 signature
 
         Args:
-            payload: 原始请求体字节
-            signature: X-Hub-Signature header 值
+            payload: Raw request body bytes
+            signature: X-Hub-Signature header value
             secret: Webhook secret
-            **kwargs: 未使用
+            **kwargs: Unused
 
         Returns:
-            SignatureVerificationResult 实例
+            SignatureVerificationResult instance
         """
         if signature is None:
             return SignatureVerificationResult.failure('Missing signature')
@@ -45,7 +45,7 @@ class GithubSignatureVerifier(SignatureVerifier):
             self.HASH_ALGORITHM
         ).hexdigest()
 
-        # 使用常量时间比较
+        # Use constant-time comparison
         if hmac.compare_digest(signature, expected_signature):
             return SignatureVerificationResult.success()
         else:

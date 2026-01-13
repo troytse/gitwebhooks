@@ -1,6 +1,6 @@
-"""日志配置模块
+"""Logging configuration module
 
-配置应用程序日志系统。
+Configures application logging system.
 """
 
 from .setup import setup_logging

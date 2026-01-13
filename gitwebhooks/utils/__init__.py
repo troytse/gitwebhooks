@@ -1,6 +1,6 @@
-"""工具模块
+"""Utilities module
 
-提供常量、异常和工具函数。
+Provides constants, exceptions, and utility functions.
 """
 
 from . import constants

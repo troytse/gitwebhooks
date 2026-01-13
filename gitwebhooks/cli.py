@@ -1,6 +1,6 @@
-"""CLI 主函数
+"""CLI main function
 
-命令行接口模块，提供与原 git-webhooks-server.py 兼容的接口。
+Command-line interface module providing compatibility with the original git-webhooks-server.py.
 """
 
 import getopt
@@ -13,20 +13,20 @@ from gitwebhooks.utils.exceptions import ConfigurationError
 
 
 def main(argv: List[str] = None) -> int:
-    """主入口点
+    """Main entry point
 
     Args:
-        argv: 命令行参数列表（默认使用 sys.argv[1:]）
+        argv: Command-line argument list (defaults to sys.argv[1:])
 
     Returns:
-        退出码（0 = 成功，1 = 错误）
+        Exit code (0 = success, 1 = error)
 
     Raises:
-        SystemExit: 在错误时退出
+        SystemExit: Exit on error
 
     Command Line Arguments:
-        -h, --help      显示帮助信息并退出
-        -c, --config    指定配置文件路径
+        -h, --help      Show help message and exit
+        -c, --config    Specify configuration file path
 
     Default Config Path:
         /usr/local/etc/git-webhooks-server.ini
@@ -38,11 +38,11 @@ def main(argv: List[str] = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
 
-    # 默认配置文件路径
+    # Default configuration file path
     default_config = '/usr/local/etc/git-webhooks-server.ini'
     config_file = default_config
 
-    # 解析命令行参数
+    # Parse command-line arguments
     try:
         opts, _ = getopt.getopt(argv, 'hc:', ['config=', 'help'])
     except getopt.GetoptError:
@@ -56,12 +56,12 @@ def main(argv: List[str] = None) -> int:
         elif opt in ('-c', '--config'):
             config_file = value
 
-    # 检查配置文件存在
+    # Check configuration file exists
     if not Path(config_file).exists():
         print(f'Error: Configuration file not found: {config_file}', file=sys.stderr)
         return 1
 
-    # 创建并运行服务器
+    # Create and run server
     try:
         server = WebhookServer(config_path=config_file)
         server.run()
@@ -78,9 +78,9 @@ def main(argv: List[str] = None) -> int:
 
 
 def print_help() -> None:
-    """打印帮助信息
+    """Print help information
 
-    显示命令行使用说明
+    Display command-line usage instructions
     """
     print('Git Webhooks Server - Automated deployment webhook handler')
     print()

@@ -1,6 +1,6 @@
-"""Gitee HMAC-SHA256/密码验证器
+"""Gitee HMAC-SHA256/password verifier
 
-验证 Gitee webhook 的签名或密码。
+Verifies signatures or passwords from Gitee webhooks.
 """
 
 import base64
@@ -12,30 +12,30 @@ from gitwebhooks.models.result import SignatureVerificationResult
 
 
 class GiteeSignatureVerifier(SignatureVerifier):
-    """Gitee HMAC-SHA256/密码验证器"""
+    """Gitee HMAC-SHA256/password verifier"""
 
     HASH_ALGORITHM = hashlib.sha256
 
     def verify(self, payload: bytes, signature: str, secret: str,
                **kwargs) -> SignatureVerificationResult:
-        """验证 Gitee 签名或密码
+        """Verify Gitee signature or password
 
         Args:
-            payload: 原始请求体字节
-            signature: X-Gitee-Token header 值
+            payload: Raw request body bytes
+            signature: X-Gitee-Token header value
             secret: Webhook secret/password
-            **kwargs: 可能包含 'timestamp' 键
+            **kwargs: May contain 'timestamp' key
 
         Returns:
-            SignatureVerificationResult 实例
+            SignatureVerificationResult instance
         """
         if signature is None:
             return SignatureVerificationResult.failure('Missing signature or password')
 
-        # 检查是否有 timestamp（签名模式）
+        # Check for timestamp (signature mode)
         timestamp = kwargs.get('timestamp')
         if timestamp is not None:
-            # 验证签名
+            # Verify signature
             try:
                 timestamp_int = int(timestamp)
             except ValueError:
@@ -57,7 +57,7 @@ class GiteeSignatureVerifier(SignatureVerifier):
             else:
                 return SignatureVerificationResult.failure('Invalid signature')
         else:
-            # 验证密码
+            # Verify password
             if signature == secret:
                 return SignatureVerificationResult.success()
             else:

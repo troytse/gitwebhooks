@@ -1,11 +1,11 @@
 """Git Webhooks Server - Modular package structure.
 
-支持 Github、Gitee、Gitlab 和自定义 webhook 的自动化部署服务器。
+Automated deployment server supporting GitHub, Gitee, GitLab, and custom webhooks.
 """
 
 __version__ = '2.0.0'
 
-# 导出主要类，提供便利的导入路径
+# Export main classes for convenient import paths
 from .server import WebhookServer
 from .models.provider import Provider
 from .models.request import WebhookRequest

@@ -1,6 +1,6 @@
-"""配置注册表
+"""Configuration registry
 
-持有所有配置并提供访问接口。
+Holds all configuration and provides access interface.
 """
 
 from typing import Dict
@@ -13,16 +13,16 @@ from gitwebhooks.utils.exceptions import ConfigurationError
 
 
 class ConfigurationRegistry:
-    """配置注册表
+    """Configuration registry
 
-    持有所有配置并提供访问接口
+    Holds all configuration and provides access interface
     """
 
     def __init__(self, loader: ConfigLoader):
-        """初始化配置注册表
+        """Initialize configuration registry
 
         Args:
-            loader: 配置加载器实例
+            loader: Configuration loader instance
         """
         self.loader = loader
         self._server_config = None
@@ -31,10 +31,10 @@ class ConfigurationRegistry:
         self._load_all_configs()
 
     def _load_all_configs(self) -> None:
-        """加载所有配置
+        """Load all configurations
 
         Raises:
-            ConfigurationError: 配置加载或验证失败
+            ConfigurationError: Configuration loading or validation failed
         """
         self._server_config = ServerConfig.from_loader(self.loader)
         self._server_config.validate()
@@ -46,33 +46,33 @@ class ConfigurationRegistry:
 
     @property
     def server_config(self) -> ServerConfig:
-        """获取服务器配置"""
+        """Get server configuration"""
         if self._server_config is None:
             raise ConfigurationError('Server config not loaded')
         return self._server_config
 
     @property
     def provider_configs(self) -> Dict[Provider, ProviderConfig]:
-        """获取提供者配置字典"""
+        """Get provider configuration dictionary"""
         if self._provider_configs is None:
             raise ConfigurationError('Provider configs not loaded')
         return self._provider_configs
 
     @property
     def repository_configs(self) -> Dict[str, RepositoryConfig]:
-        """获取仓库配置字典"""
+        """Get repository configuration dictionary"""
         if self._repository_configs is None:
             raise ConfigurationError('Repository configs not loaded')
         return self._repository_configs
 
     def get_provider_config(self, provider: Provider) -> ProviderConfig:
-        """获取指定提供者的配置
+        """Get configuration for specified provider
 
         Args:
-            provider: 提供者类型
+            provider: Provider type
 
         Returns:
-            ProviderConfig 实例
+            ProviderConfig instance
         """
         return self.provider_configs.get(provider, ProviderConfig(
             provider=provider,
@@ -82,23 +82,23 @@ class ConfigurationRegistry:
         ))
 
     def get_repository_config(self, name: str) -> RepositoryConfig:
-        """获取指定仓库的配置
+        """Get configuration for specified repository
 
         Args:
-            name: 仓库名称
+            name: Repository name
 
         Returns:
-            RepositoryConfig 实例，未找到返回 None
+            RepositoryConfig instance, or None if not found
         """
         return self.repository_configs.get(name)
 
     def has_repository(self, name: str) -> bool:
-        """检查仓库是否存在
+        """Check if repository exists
 
         Args:
-            name: 仓库名称
+            name: Repository name
 
         Returns:
-            True 如果存在，False 否则
+            True if exists, False otherwise
         """
         return name in self.repository_configs

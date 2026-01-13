@@ -1,6 +1,6 @@
-"""配置加载器
+"""Configuration loader
 
-从 INI 文件加载和解析配置。
+Load and parse configuration from INI files.
 """
 
 import configparser
@@ -13,29 +13,29 @@ from gitwebhooks.utils.exceptions import ConfigurationError
 
 
 class ConfigLoader:
-    """配置加载器
+    """Configuration loader
 
-    负责从 INI 文件加载和验证配置
+    Responsible for loading and validating configuration from INI files
     """
 
     def __init__(self, config_path: str):
-        """初始化配置加载器
+        """Initialize configuration loader
 
         Args:
-            config_path: INI 配置文件路径
+            config_path: INI configuration file path
 
         Raises:
-            ConfigurationError: 文件不存在或无法解析
+            ConfigurationError: File does not exist or cannot be parsed
         """
         self.config_path = Path(config_path)
         self.parser = configparser.ConfigParser()
         self._load_file()
 
     def _load_file(self) -> None:
-        """加载配置文件
+        """Load configuration file
 
         Raises:
-            ConfigurationError: 文件不存在或解析失败
+            ConfigurationError: File does not exist or parsing failed
         """
         if not self.config_path.exists():
             raise ConfigurationError(f'Config file not found: {self.config_path}')
@@ -46,21 +46,21 @@ class ConfigLoader:
             raise ConfigurationError(f'Failed to parse config: {e}')
 
     def load_provider_config(self, provider: Provider) -> ProviderConfig:
-        """加载指定提供者的配置
+        """Load configuration for specified provider
 
         Args:
-            provider: 提供者类型
+            provider: Provider type
 
         Returns:
-            ProviderConfig 实例
+            ProviderConfig instance
 
         Raises:
-            ConfigurationError: 配置节不存在
+            ConfigurationError: Configuration section does not exist
         """
         try:
             return ProviderConfig.from_config_parser(self.parser, provider)
         except configparser.NoSectionError:
-            # 返回默认配置
+            # Return default configuration
             return ProviderConfig(
                 provider=provider,
                 verify=False,
@@ -69,10 +69,10 @@ class ConfigLoader:
             )
 
     def load_all_provider_configs(self) -> Dict[Provider, ProviderConfig]:
-        """加载所有提供者配置
+        """Load all provider configurations
 
         Returns:
-            提供者到配置的映射
+            Mapping of provider to configuration
         """
         configs = {}
         for provider in Provider:
@@ -80,24 +80,24 @@ class ConfigLoader:
         return configs
 
     def load_repository_config(self, name: str) -> Optional[RepositoryConfig]:
-        """加载指定仓库的配置
+        """Load configuration for specified repository
 
         Args:
-            name: 仓库名称（配置节名称）
+            name: Repository name (configuration section name)
 
         Returns:
-            RepositoryConfig 实例，如果节不存在返回 None
+            RepositoryConfig instance, or None if section does not exist
         """
         return RepositoryConfig.from_config_parser(self.parser, name)
 
     def load_all_repository_configs(self) -> Dict[str, RepositoryConfig]:
-        """加载所有仓库配置
+        """Load all repository configurations
 
         Returns:
-            仓库名称到配置的映射
+            Mapping of repository name to configuration
 
         Note:
-            跳过保留节名: server, ssl, github, gitee, gitlab, custom
+            Skips reserved section names: server, ssl, github, gitee, gitlab, custom
         """
         configs = {}
         reserved_sections = self._get_reserved_sections()
@@ -111,21 +111,21 @@ class ConfigLoader:
         return configs
 
     def _get_reserved_sections(self) -> set:
-        """获取保留的配置节名称
+        """Get reserved configuration section names
 
         Returns:
-            保留节名集合
+            Set of reserved section names
         """
         return {'server', 'ssl', 'github', 'gitee', 'gitlab', 'custom'}
 
     def get_server_config(self) -> Dict[str, any]:
-        """获取服务器配置
+        """Get server configuration
 
         Returns:
-            包含 server 配置的字典，键包括:
-            - address: 监听地址
-            - port: 监听端口
-            - log_file: 日志文件路径
+            Dictionary containing server configuration, keys include:
+            - address: Listen address
+            - port: Listen port
+            - log_file: Log file path
         """
         return {
             'address': self.parser.get('server', 'address', fallback='0.0.0.0'),
@@ -134,14 +134,14 @@ class ConfigLoader:
         }
 
     def get_ssl_config(self) -> Optional[Dict[str, str]]:
-        """获取 SSL 配置
+        """Get SSL configuration
 
         Returns:
-            包含 SSL 配置的字典，如果未启用则返回 None
-            键包括:
-            - enable: 是否启用 SSL
-            - key_file: SSL 密钥文件路径
-            - cert_file: SSL 证书文件路径
+            Dictionary containing SSL configuration, or None if not enabled
+            Keys include:
+            - enable: Whether SSL is enabled
+            - key_file: SSL key file path
+            - cert_file: SSL certificate file path
         """
         try:
             if not self.parser.getboolean('ssl', 'enable'):
@@ -156,10 +156,10 @@ class ConfigLoader:
         }
 
     def validate_repository_configs(self) -> None:
-        """验证所有仓库配置
+        """Validate all repository configurations
 
         Raises:
-            ConfigurationError: 配置无效
+            ConfigurationError: Configuration is invalid
         """
         configs = self.load_all_repository_configs()
 

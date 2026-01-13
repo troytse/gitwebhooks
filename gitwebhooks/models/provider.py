@@ -1,6 +1,6 @@
-"""Git 平台提供者枚举
+"""Git platform provider enumeration
 
-定义支持的 Git 托管平台类型。
+Defines supported Git hosting platform types.
 """
 
 from enum import Enum, unique
@@ -8,13 +8,13 @@ from enum import Enum, unique
 
 @unique
 class Provider(Enum):
-    """Git 平台提供者类型
+    """Git platform provider type
 
-    支持的 Git 托管平台：
-    - GITHUB: Github 平台
-    - GITEE: Gitee 平台（中国）
-    - GITLAB: Gitlab 平台
-    - CUSTOM: 自定义 webhook 平台
+    Supported Git hosting platforms:
+    - GITHUB: GitHub platform
+    - GITEE: Gitee platform (China)
+    - GITLAB: GitLab platform
+    - CUSTOM: Custom webhook platform
     """
     GITHUB = 'github'
     GITEE = 'gitee'
