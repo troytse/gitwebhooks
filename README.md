@@ -250,13 +250,20 @@ git-webhooks-server/
 ### Running from Source
 
 ```bash
-# From project root
+# Method 1: Use CLI tool (recommended)
 ./gitwebhooks-cli -c git-webhooks-server.ini.sample
+
+# Method 2: Use module entry
+python3 -m gitwebhooks.cli -c git-webhooks-server.ini.sample
 ```
 
 ### Running Tests
 
 ```bash
+# Using pytest
+python3 -m pytest tests/
+
+# Or using unittest
 python3 -m unittest discover tests/
 ```
 

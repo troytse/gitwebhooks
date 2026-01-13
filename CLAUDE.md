@@ -7,10 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 这是一个用 Python 3 实现的 Git Webhooks 服务器，用于自动化 Git 仓库部署。支持 Github、Gitee、Gitlab 和自定义仓库的 Webhook 事件处理。
 
 **架构特点**：
-- 单文件 Python 应用 (`git-webhooks-server.py`)，约 300 行
+- 模块化 Python 包结构 (`gitwebhooks/`)
 - 使用标准库 `http.server` 实现 HTTP 服务器
 - 通过 INI 配置文件管理多个仓库的部署命令
 - 可作为 systemd 服务安装运行
+- 原地运行：CLI 从源码目录加载模块
 
 ## 常用命令
 
@@ -25,11 +26,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### 运行服务
 ```bash
-# 手动运行（指定配置文件）
-python3 git-webhooks-server.py -c /path/to/config.ini
+# 方式1: 使用模块入口
+python3 -m gitwebhooks.cli -c /path/to/config.ini
 
-# 或使用已安装的二进制
-git-webhooks-server.py -c /usr/local/etc/git-webhooks-server.ini
+# 方式2: 使用 CLI 工具（安装后）
+gitwebhooks-cli -c /path/to/config.ini
 
 # systemd 服务管理
 systemctl start git-webhooks-server
@@ -41,28 +42,48 @@ systemctl status git-webhooks-server
 ### 测试开发
 ```bash
 # 直接运行（开发模式）
-python3 git-webhooks-server.py -c git-webhooks-server.ini.sample
+./gitwebhooks-cli -c git-webhooks-server.ini.sample
+
+# 或使用模块方式
+python3 -m gitwebhooks.cli -c git-webhooks-server.ini.sample
+
+# 运行测试套件
+python3 -m pytest tests/
 ```
 
 ## 架构说明
 
 ### 核心组件
 
-**RequestHandler 类** (`git-webhooks-server.py:25-221`)
-- 继承自 `BaseHTTPRequestHandler`
-- `do_GET()`: 拒绝 GET 请求，返回 403
-- `do_POST()`: 处理 Webhook POST 请求
+**模块化包结构** (`gitwebhooks/`)
+- `__init__.py`: 包入口，导出主要类
+- `__main__.py`: 模块入口，支持 `python3 -m gitwebhooks`
+- `cli.py`: 命令行入口点
+- `server.py`: 主服务器类 `WebhookServer`
 
-**Provider 枚举** (`git-webhooks-server.py:18-23`)
+**子模块**：
+- `models/`: 数据模型（Provider、WebhookRequest、验证结果等）
+- `config/`: 配置加载和注册（ConfigLoader、ConfigurationRegistry）
+- `auth/`: 签名验证模块（各平台的验证器工厂）
+- `handlers/`: Webhook 处理器（按平台分离的处理器）
+- `utils/`: 工具类（常量、异常、命令执行器）
+- `logging/`: 日志配置
+
+**CLI 工具** (`gitwebhooks-cli`)
+- Bash 包装脚本，自动检测并加载 `gitwebhooks` 包
+- 支持从源码目录运行或已安装的包运行
+
+**Provider 枚举** (`gitwebhooks/models/provider.py`)
 - 定义支持的 Git 平台：Github、Gitee、Gitlab、Custom
 
 **请求处理流程**：
-1. `__parse_provider()`: 通过 HTTP Header 识别平台类型
-2. `__parse_data()`: 解析 POST 请求体（支持 JSON 和 form-urlencoded）
-3. 根据平台验证签名/token
-4. 从请求数据中提取仓库名称
-5. 在配置中查找对应的仓库配置
-6. 执行配置的命令（通过 `subprocess.Popen`）
+1. `WebhookRequestHandler.do_POST()`: 接收 POST 请求
+2. `_parse_provider()`: 通过 HTTP Header 识别平台类型
+3. `_parse_data()`: 解析 POST 请求体（支持 JSON 和 form-urlencoded）
+4. 平台处理器验证签名/token
+5. 从请求数据中提取仓库名称
+6. 在配置中查找对应的仓库配置
+7. 执行配置的命令（通过 `subprocess.Popen`）
 
 ### 配置结构
 
@@ -85,24 +106,28 @@ python3 git-webhooks-server.py -c git-webhooks-server.ini.sample
 
 ### 平台特定处理
 
-**Github** (`git-webhooks-server.py:90-111`)
+**Github** (`gitwebhooks/handlers/github.py`)
 - Header: `X-GitHub-Event`
 - 签名验证: `X-Hub-Signature` (HMAC-SHA1)
 - 仓库标识: `repository.full_name`
+- 验证器: `auth/github.py`
 
-**Gitee** (`git-webhooks-server.py:113-146`)
+**Gitee** (`gitwebhooks/handlers/gitee.py`)
 - Header: `X-Gitee-Event`
 - 支持签名验证或密码验证
 - 仓库标识: `repository.full_name`
+- 验证器: `auth/gitee.py`
 
-**Gitlab** (`git-webhooks-server.py:148-164`)
+**Gitlab** (`gitwebhooks/handlers/gitlab.py`)
 - Header: `X-Gitlab-Event`
 - Token 验证: `X-Gitlab-Token`
 - 仓库标识: `project.path_with_namespace`
+- 验证器: `auth/gitlab.py`
 
-**Custom** (`git-webhooks-server.py:166-191`)
+**Custom** (`gitwebhooks/handlers/custom.py`)
 - 自定义 Header 识别
 - 通过 JSON 路径提取仓库标识（如 `project.path_with_namespace`）
+- 验证器: `auth/custom.py`
 
 ## 代码规范
 
@@ -115,10 +140,13 @@ python3 git-webhooks-server.py -c git-webhooks-server.ini.sample
 - Markdown 文件保留行尾空格
 
 ### Python 代码风格
-- 遵循 Python 3 标准
+- 遵循 Python 3.6+ 标准
 - 使用 `logging` 模块记录日志
-- 私有方法使用双下划线前缀（如 `__parse_provider`）
+- 私有方法使用单下划线前缀（如 `_parse_provider`）
+- 公有 API 不使用下划线前缀
 - 配置通过 `configparser.ConfigParser` 读取
+- 类型提示使用 `typing` 模块
+- 自定义异常继承自 `Exception`
 
 ### Shell 脚本
 - `install.sh`: 交互式安装脚本
@@ -127,7 +155,7 @@ python3 git-webhooks-server.py -c git-webhooks-server.ini.sample
 ## 开发注意事项
 
 ### 命令执行
-当前使用 `subprocess.Popen` 非阻塞执行命令（`git-webhooks-server.py:203`）。代码中有注释说明阻塞式执行会阻塞进程。
+当前使用 `subprocess.Popen` 非阻塞执行命令（`gitwebhooks/utils/executor.py`）。命令在后台运行，不阻塞服务器进程。
 
 ### 日志配置
 - 日志文件位置在配置文件的 `server.log_file` 指定
@@ -148,13 +176,58 @@ python3 git-webhooks-server.py -c git-webhooks-server.ini.sample
 
 ```
 git-webhooks-server/
-├── git-webhooks-server.py           # 主程序（单文件应用）
+├── gitwebhooks-cli                  # CLI 命令行工具
+├── gitwebhooks/                     # 主包目录
+│   ├── __init__.py                  # 包入口
+│   ├── __main__.py                  # 模块入口
+│   ├── cli.py                       # CLI 实现
+│   ├── server.py                    # 主服务器类
+│   ├── auth/                        # 签名验证模块
+│   │   ├── __init__.py
+│   │   ├── factory.py               # 验证器工厂
+│   │   ├── verifier.py              # 验证器基类
+│   │   ├── github.py                # GitHub 验证器
+│   │   ├── gitee.py                 # Gitee 验证器
+│   │   ├── gitlab.py                # GitLab 验证器
+│   │   └── custom.py                # 自定义验证器
+│   ├── config/                      # 配置模块
+│   │   ├── __init__.py
+│   │   ├── loader.py                # 配置加载器
+│   │   ├── registry.py              # 配置注册表
+│   │   ├── models.py                # 配置数据类
+│   │   └── server.py                # 服务器配置
+│   ├── handlers/                    # Webhook 处理器
+│   │   ├── __init__.py
+│   │   ├── request.py               # 请求处理器基类
+│   │   ├── factory.py               # 处理器工厂
+│   │   ├── github.py                # GitHub 处理器
+│   │   ├── gitee.py                 # Gitee 处理器
+│   │   ├── gitlab.py                # GitLab 处理器
+│   │   └── custom.py                # 自定义处理器
+│   ├── models/                      # 数据模型
+│   │   ├── __init__.py
+│   │   ├── provider.py              # Provider 枚举
+│   │   ├── request.py               # 请求数据类
+│   │   └── result.py                # 验证结果类
+│   ├── utils/                       # 工具模块
+│   │   ├── __init__.py
+│   │   ├── constants.py             # 常量定义
+│   │   ├── exceptions.py            # 自定义异常
+│   │   └── executor.py              # 命令执行器
+│   └── logging/                     # 日志模块
+│       └── setup.py                 # 日志配置
+├── tests/                           # 测试套件
+│   ├── unit/                        # 单元测试
+│   ├── integration/                 # 集成测试
+│   ├── utils/                       # 测试工具
+│   └── conftest.py                  # pytest 配置
 ├── git-webhooks-server.ini.sample   # 配置文件模板
 ├── git-webhooks-server.service.sample # systemd 服务模板
 ├── install.sh                       # 安装/卸载脚本
 ├── message.sh                       # 颜色输出辅助脚本
 ├── README.md                        # 项目说明（英文）
 ├── README.zh.md                     # 项目说明（中文）
+├── CLAUDE.md                        # Claude Code 项目指南
 ├── .editorconfig                    # 编辑器配置
 ├── .gitignore                       # Git 忽略文件
 ├── doc/                             # 文档截图目录
@@ -168,20 +241,18 @@ git-webhooks-server/
 
 - 默认配置路径: `/usr/local/etc/git-webhooks-server.ini`
 - 日志文件: `/var/log/git-webhooks-server.log`
-- 安装后的二进制: `/usr/local/bin/git-webhooks-server.py`
+- 安装后的 CLI: `/usr/local/bin/gitwebhooks-cli`
 - systemd 服务: `/usr/lib/systemd/system/git-webhooks-server.service`
 
 ## Active Technologies
-- Python 3.6+（与主项目一致） + Python 标准库（unittest, subprocess, tempfile, http.client, trace, ssl） (001-test-suite)
-- 临时文件系统（tempfile 创建测试配置、目录和日志） (001-test-suite)
-- Python 3.6+ (与主项目一致，使用标准库) + Python标准库 (unittest, subprocess, tempfile, http.client, trace, ssl) (001-fix-test-suite)
-- INI配置文件 (configparser.ConfigParser) (001-fix-test-suite)
-- Bash 4.0+ (macOS 和 Linux 兼容) + 标准 POSIX/Bash 工具（sudo, cp, sed, systemctl, flock, mkdir, rm） (001-optimize-install-script)
-- 文件系统（installed.env, .install.lock） (001-optimize-install-script)
-- Python 3.6+ (保持与原代码兼容) + Python 3 标准库仅 - 不引入新的外部依赖 (001-optimize-webhooks-server)
-- INI 配置文件 (configparser) (001-optimize-webhooks-server)
-- Python 3.6+ (保持与原代码兼容) + Python 3 标准库仅（不引入外部依赖） (001-refactor-codebase)
-- INI 配置文件 (configparser.ConfigParser) (001-refactor-codebase)
+- Python 3.6+ + Python 标准库（无外部依赖）
+- 模块化包结构 (`gitwebhooks/`)
+- INI 配置文件 (configparser.ConfigParser)
+- http.server (HTTP 服务器)
+- subprocess (命令执行)
+- ssl (HTTPS 支持)
+- pytest (测试框架)
+- Bash 4.0+ (安装脚本)
 
 ## Recent Changes
-- 001-test-suite: Added Python 3.6+（与主项目一致） + Python 标准库（unittest, subprocess, tempfile, http.client, trace, ssl）
+- 001-refactor-codebase: 重构为模块化包结构，保持向后兼容

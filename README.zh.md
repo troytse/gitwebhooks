@@ -250,13 +250,20 @@ git-webhooks-server/
 ### 从源码运行
 
 ```bash
-# 在项目根目录
+# 方式1: 使用 CLI 工具（推荐）
 ./gitwebhooks-cli -c git-webhooks-server.ini.sample
+
+# 方式2: 使用模块入口
+python3 -m gitwebhooks.cli -c git-webhooks-server.ini.sample
 ```
 
 ### 运行测试
 
 ```bash
+# 使用 pytest
+python3 -m pytest tests/
+
+# 或使用 unittest
 python3 -m unittest discover tests/
 ```
 
