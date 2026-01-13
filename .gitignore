@@ -27,6 +27,7 @@ dmypy.json
 # Test artifacts
 *.log
 .env
+.env.*
 .venv
 venv/
 ENV/
@@ -38,3 +39,17 @@ env/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.settings/
+
+# Universal
+Thumbs.db
+*.tmp
+*.bak
+*.backup
+
+# SpecKit working directories
+specs/*/checklists/
+*.plan.md~
+*.spec.md~

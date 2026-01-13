@@ -180,6 +180,8 @@ git-webhooks-server/
 - 文件系统（installed.env, .install.lock） (001-optimize-install-script)
 - Python 3.6+ (保持与原代码兼容) + Python 3 标准库仅 - 不引入新的外部依赖 (001-optimize-webhooks-server)
 - INI 配置文件 (configparser) (001-optimize-webhooks-server)
+- Python 3.6+ (保持与原代码兼容) + Python 3 标准库仅（不引入外部依赖） (001-refactor-codebase)
+- INI 配置文件 (configparser.ConfigParser) (001-refactor-codebase)
 
 ## Recent Changes
 - 001-test-suite: Added Python 3.6+（与主项目一致） + Python 标准库（unittest, subprocess, tempfile, http.client, trace, ssl）

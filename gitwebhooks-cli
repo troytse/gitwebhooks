@@ -1,0 +1,5 @@
+#!/bin/bash
+# gitwebhooks-cli - Git Webhooks Server CLI wrapper
+
+# 运行 Python 模块
+exec python3 -m gitwebhooks.cli "$@"
