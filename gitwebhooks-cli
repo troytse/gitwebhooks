@@ -1,5 +1,29 @@
 #!/bin/bash
 # gitwebhooks-cli - Git Webhooks Server CLI wrapper
+#
+# 此脚本会自动检测 gitwebhooks 包的位置并运行服务器。
 
-# 运行 Python 模块
-exec python3 -m gitwebhooks.cli "$@"
+# 获取此脚本的真实路径
+if [[ -L $0 ]]; then
+    SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+else
+    SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+fi
+
+# 尝试查找 gitwebhooks 包的位置
+# 1. 首先检查脚本所在目录（用于从源码运行）
+if [ -d "$SCRIPT_DIR/gitwebhooks" ]; then
+    export PYTHONPATH="$SCRIPT_DIR:$PYTHONPATH"
+    exec python3 -m gitwebhooks.cli "$@"
+# 2. 检查是否已安装到 site-packages
+elif python3 -c "import gitwebhooks" 2>/dev/null; then
+    exec python3 -m gitwebhooks.cli "$@"
+# 3. 如果都找不到，显示错误
+else
+    echo "Error: gitwebhooks package not found" >&2
+    echo "" >&2
+    echo "Please either:" >&2
+    echo "  1. Run from the source directory containing the gitwebhooks/ folder" >&2
+    echo "  2. Install the package to site-packages" >&2
+    exit 1
+fi

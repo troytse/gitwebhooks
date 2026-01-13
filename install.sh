@@ -49,9 +49,6 @@ cleanup() {
     if [ -n "${service_path}" ] && [ -f "${service_path}" ]; then
         $cmd_prefix rm -f "${service_path}"
     fi
-    if [ -n "${package_path}" ] && [ -d "${package_path}" ]; then
-        $cmd_prefix rm -rf "${package_path}"
-    fi
     # Delete backup file created by sed -i.bak
     if [ -n "${service_path}" ] && [ -f "${service_path}.bak" ]; then
         $cmd_prefix rm -f "${service_path}.bak"
@@ -109,11 +106,6 @@ if [[ $1 = '--uninstall' ]];then
 				$cmd_prefix rm -f "$service_path"
 				if [ -f "$service_path" ];then WARN " [Fail]"; else INFO " [OK]"; fi
 			fi
-			if [ -n "${package_path}" ] && [ -d "$package_path" ];then
-				INFO_N "Uninstall: ${package_path}"
-				$cmd_prefix rm -rf "$package_path"
-				if [ -d "$package_path" ];then WARN " [Fail]"; else INFO " [OK]"; fi
-			fi
 			$cmd_prefix rm -f "${script_dir}/installed.env"
 		fi
 	else
@@ -136,9 +128,12 @@ fi
 # Create lock file
 touch "${LOCK_FILE}"
 
-# Detect Python version for package installation
-PYTHON_VERSION=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-PYTHON_LIB="/usr/local/lib/python${PYTHON_VERSION}/site-packages"
+# Verify gitwebhooks package exists in source directory
+if [ ! -d "${script_dir}/gitwebhooks" ]; then
+    ERR "gitwebhooks package not found in source directory: ${script_dir}"
+    ERR "Please run this script from the project root directory."
+    exit 1
+fi
 
 # enter install directory
 QUES_N "Enter binary install directory (default: /usr/local/bin)" bin_dir
@@ -146,44 +141,30 @@ QUES_N "Enter binary install directory (default: /usr/local/bin)" bin_dir
 [ ! -d "$bin_dir" ] && ERR "No such directory: ${bin_dir}" && exit 1
 bin_path="${bin_dir}/gitwebhooks-cli"
 
-# enter package directory
-QUES_N "Enter Python package directory (default: ${PYTHON_LIB})" input_package_dir
-[ -z "$input_package_dir" ] && input_package_dir="${PYTHON_LIB}"
-[ ! -d "$input_package_dir" ] && ERR "No such directory: ${input_package_dir}" && exit 1
-package_path="${input_package_dir}/gitwebhooks"
-
 # enter configuration directory
 QUES_N "Enter configuration directory (default: /usr/local/etc)" conf_dir
 [ -z "$conf_dir" ] && conf_dir='/usr/local/etc'
 [ ! -d "$conf_dir" ] && ERR "No such directory: ${conf_dir}" && exit 1
 conf_path="${conf_dir}/git-webhooks-server.ini"
 
-# Install Python package
-INFO_N "Installing: gitwebhooks package => ${package_path}"
-# Remove existing package if present
-if [ -d "${package_path}" ]; then
-    $cmd_prefix rm -rf "${package_path}"
-fi
-# Copy package directory
-$cmd_prefix cp -r "${script_dir}/gitwebhooks" "${input_package_dir}/"
-if [ -d "${package_path}" ];then
-	INFO " [OK]"
-	echo "package_path=${package_path}" >> "${script_dir}/installed.env"
-else
-	ERR " [Fail]"
-	exit 1
-fi
+# Store source directory for reference
+SOURCE_DIR="$(cd "${script_dir}" && pwd)"
 
-# Install CLI wrapper
-INFO_N "Installing: ${script_dir}/gitwebhooks-cli => ${bin_path}"
+# Install CLI wrapper using hard link
+INFO_N "Installing: ${script_dir}/gitwebhooks-cli => ${bin_path} (hard link)"
 # clean
 [ -f "$bin_path" ] && $cmd_prefix rm -f "$bin_path"
-# copy file and set as executable
-$cmd_prefix cp -f "${script_dir}/gitwebhooks-cli" "$bin_path"
+# Create hard link to the CLI wrapper
+$cmd_prefix ln "${script_dir}/gitwebhooks-cli" "$bin_path" || {
+    # Hard link failed (possibly different filesystem), fall back to copy
+    WARN " Hard link failed, using copy instead"
+    $cmd_prefix cp -f "${script_dir}/gitwebhooks-cli" "$bin_path"
+}
 $cmd_prefix chmod +x "$bin_path"
 if [ -f "$bin_path" ];then
 	INFO " [OK]"
 	echo "bin_path=${bin_path}" >> "${script_dir}/installed.env"
+	echo "source_dir=${SOURCE_DIR}" >> "${script_dir}/installed.env"
 else
 	ERR " [Fail]"
 	exit 1
@@ -287,6 +268,14 @@ fi
 rm -f "${LOCK_FILE}"
 trap - SIGINT SIGTERM ERR
 INFO "Installation completed successfully!"
+INFO ""
+INFO "安装位置:"
+INFO "  CLI 入口点: ${bin_path} (硬链接到源文件)"
+INFO "  源码目录:   ${SOURCE_DIR}"
+INFO "  配置文件:   ${conf_path}"
+INFO ""
+INFO "重要提示:"
+INFO "  请保持源码目录 (${SOURCE_DIR}) 完整，CLI 需要从该目录加载 gitwebhooks 包"
 INFO ""
 INFO "Usage:"
 INFO "  Direct: ${bin_path} -c ${conf_path}"
