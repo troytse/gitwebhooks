@@ -10,6 +10,8 @@ source "${script_dir}/message.sh"
 
 # Verbose mode flag
 VERBOSE_MODE=false
+# Uninstall mode flag
+UNINSTALL_MODE=false
 
 # Parse command line arguments
 for arg in "$@"; do
@@ -19,7 +21,7 @@ for arg in "$@"; do
             shift
             ;;
         --uninstall)
-            # Handled later
+            UNINSTALL_MODE=true
             shift
             ;;
     esac
@@ -85,7 +87,7 @@ fi
 INFO "Git-Webhooks-Server Installation (v2.0 - Modular)"
 
 # for uninstall
-if [[ $1 = '--uninstall' ]];then
+if [ "$UNINSTALL_MODE" = true ]; then
 	# Disable trap for uninstall to avoid rollback
 	trap - SIGINT SIGTERM ERR
 	# Disable set -e for uninstall to handle errors gracefully
