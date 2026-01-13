@@ -178,6 +178,8 @@ git-webhooks-server/
 - INI配置文件 (configparser.ConfigParser) (001-fix-test-suite)
 - Bash 4.0+ (macOS 和 Linux 兼容) + 标准 POSIX/Bash 工具（sudo, cp, sed, systemctl, flock, mkdir, rm） (001-optimize-install-script)
 - 文件系统（installed.env, .install.lock） (001-optimize-install-script)
+- Python 3.6+ (保持与原代码兼容) + Python 3 标准库仅 - 不引入新的外部依赖 (001-optimize-webhooks-server)
+- INI 配置文件 (configparser) (001-optimize-webhooks-server)
 
 ## Recent Changes
 - 001-test-suite: Added Python 3.6+（与主项目一致） + Python 标准库（unittest, subprocess, tempfile, http.client, trace, ssl）

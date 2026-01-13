@@ -1,0 +1,216 @@
+************* Module git-webhooks-server
+git-webhooks-server.py:44:0: C0301: Line too long (102/100) (line-too-long)
+git-webhooks-server.py:147:0: C0301: Line too long (169/100) (line-too-long)
+git-webhooks-server.py:231:0: C0301: Line too long (118/100) (line-too-long)
+git-webhooks-server.py:235:0: C0301: Line too long (130/100) (line-too-long)
+git-webhooks-server.py:294:0: C0301: Line too long (134/100) (line-too-long)
+git-webhooks-server.py:295:0: C0325: Unnecessary parens after 'if' keyword (superfluous-parens)
+git-webhooks-server.py:308:0: C0301: Line too long (120/100) (line-too-long)
+git-webhooks-server.py:233:21: W0511: TODO: The following statement will block the process (fixme)
+git-webhooks-server.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+git-webhooks-server.py:1:0: C0103: Module name "git-webhooks-server" doesn't conform to snake_case naming style (invalid-name)
+git-webhooks-server.py:19:0: C0115: Missing class docstring (missing-class-docstring)
+git-webhooks-server.py:20:4: C0103: Class constant name "Github" doesn't conform to UPPER_CASE naming style (invalid-name)
+git-webhooks-server.py:21:4: C0103: Class constant name "Gitee" doesn't conform to UPPER_CASE naming style (invalid-name)
+git-webhooks-server.py:22:4: C0103: Class constant name "Gitlab" doesn't conform to UPPER_CASE naming style (invalid-name)
+git-webhooks-server.py:23:4: C0103: Class constant name "Custom" doesn't conform to UPPER_CASE naming style (invalid-name)
+git-webhooks-server.py:25:0: C0115: Missing class docstring (missing-class-docstring)
+git-webhooks-server.py:29:8: W0602: Using global for 'config' but no assignment is done (global-variable-not-assigned)
+git-webhooks-server.py:31:8: R1705: Unnecessary "elif" after "return", remove the leading "el" from "elif" (no-else-return)
+git-webhooks-server.py:73:8: W0702: No exception type(s) specified (bare-except)
+git-webhooks-server.py:62:12: R1705: Unnecessary "elif" after "return", remove the leading "el" from "elif" (no-else-return)
+git-webhooks-server.py:70:20: W0702: No exception type(s) specified (bare-except)
+git-webhooks-server.py:78:4: C0103: Method name "do_GET" doesn't conform to snake_case naming style (invalid-name)
+git-webhooks-server.py:82:4: C0103: Method name "do_POST" doesn't conform to snake_case naming style (invalid-name)
+git-webhooks-server.py:82:4: R0914: Too many local variables (23/15) (too-many-locals)
+git-webhooks-server.py:205:12: W0621: Redefining name 'path' from outer scope (line 13) (redefined-outer-name)
+git-webhooks-server.py:84:8: W0602: Using global for 'config' but no assignment is done (global-variable-not-assigned)
+git-webhooks-server.py:90:28: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:90:28: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:98:32: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:98:32: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:121:32: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:121:32: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:174:32: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:174:32: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:192:32: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:192:32: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:226:20: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+git-webhooks-server.py:229:29: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:229:29: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:239:23: W0718: Catching too general exception Exception (broad-exception-caught)
+git-webhooks-server.py:231:20: R1732: Consider using 'with' for resource-allocating operations (consider-using-with)
+git-webhooks-server.py:240:36: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:240:36: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:242:32: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:242:32: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:82:4: R0911: Too many return statements (16/6) (too-many-return-statements)
+git-webhooks-server.py:82:4: R0912: Too many branches (38/12) (too-many-branches)
+git-webhooks-server.py:82:4: R0915: Too many statements (116/50) (too-many-statements)
+git-webhooks-server.py:256:0: C0116: Missing function or method docstring (missing-function-docstring)
+git-webhooks-server.py:257:4: W0603: Using the global statement (global-statement)
+git-webhooks-server.py:273:14: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:280:11: W0718: Catching too general exception Exception (broad-exception-caught)
+git-webhooks-server.py:281:14: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:290:15: W0718: Catching too general exception Exception (broad-exception-caught)
+git-webhooks-server.py:288:17: W1514: Using open without explicitly specifying an encoding (unspecified-encoding)
+git-webhooks-server.py:291:18: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:313:11: W0718: Catching too general exception Exception (broad-exception-caught)
+git-webhooks-server.py:305:12: C0415: Import outside toplevel (ssl) (import-outside-toplevel)
+git-webhooks-server.py:308:28: E1101: Module 'ssl' has no 'wrap_socket' member (no-member)
+git-webhooks-server.py:309:25: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:309:25: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:311:25: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:311:25: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:314:22: W1202: Use lazy % formatting in logging functions (logging-format-interpolation)
+git-webhooks-server.py:314:22: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+git-webhooks-server.py:256:0: R0912: Too many branches (13/12) (too-many-branches)
+git-webhooks-server.py:318:0: C0103: Constant name "config" doesn't conform to UPPER_CASE naming style (invalid-name)
+git-webhooks-server.py:12:0: W0611: Unused import time (unused-import)
+git-webhooks-server.py:15:0: W0611: Unused urlparse imported from urllib.parse (unused-import)
+
+
+Report
+======
+244 statements analysed.
+
+Statistics by type
+------------------
+
++---------+-------+-----------+-----------+------------+---------+
+|type     |number |old number |difference |%documented |%badname |
++=========+=======+===========+===========+============+=========+
+|module   |1      |NC         |NC         |0.00        |100.00   |
++---------+-------+-----------+-----------+------------+---------+
+|class    |2      |NC         |NC         |0.00        |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+|method   |4      |NC         |NC         |100.00      |50.00    |
++---------+-------+-----------+-----------+------------+---------+
+|function |2      |NC         |NC         |50.00       |0.00     |
++---------+-------+-----------+-----------+------------+---------+
+
+
+
+323 lines have been analyzed
+
+Raw metrics
+-----------
+
++----------+-------+------+---------+-----------+
+|type      |number |%     |previous |difference |
++==========+=======+======+=========+===========+
+|code      |254    |78.64 |NC       |NC         |
++----------+-------+------+---------+-----------+
+|docstring |5      |1.55  |NC       |NC         |
++----------+-------+------+---------+-----------+
+|comment   |38     |11.76 |NC       |NC         |
++----------+-------+------+---------+-----------+
+|empty     |26     |8.05  |NC       |NC         |
++----------+-------+------+---------+-----------+
+
+
+
+Duplication
+-----------
+
++-------------------------+------+---------+-----------+
+|                         |now   |previous |difference |
++=========================+======+=========+===========+
+|nb duplicated lines      |0     |NC       |NC         |
++-------------------------+------+---------+-----------+
+|percent duplicated lines |0.000 |NC       |NC         |
++-------------------------+------+---------+-----------+
+
+
+
+Messages by category
+--------------------
+
++-----------+-------+---------+-----------+
+|type       |number |previous |difference |
++===========+=======+=========+===========+
+|convention |34     |NC       |NC         |
++-----------+-------+---------+-----------+
+|refactor   |8      |NC       |NC         |
++-----------+-------+---------+-----------+
+|warning    |26     |NC       |NC         |
++-----------+-------+---------+-----------+
+|error      |1      |NC       |NC         |
++-----------+-------+---------+-----------+
+
+
+
+% errors / warnings by module
+-----------------------------
+
++--------------------+-------+--------+---------+-----------+
+|module              |error  |warning |refactor |convention |
++====================+=======+========+=========+===========+
+|git-webhooks-server |100.00 |100.00  |100.00   |100.00     |
++--------------------+-------+--------+---------+-----------+
+
+
+
+Messages
+--------
+
++------------------------------+------------+
+|message id                    |occurrences |
++==============================+============+
+|consider-using-f-string       |14          |
++------------------------------+------------+
+|logging-format-interpolation  |11          |
++------------------------------+------------+
+|invalid-name                  |8           |
++------------------------------+------------+
+|line-too-long                 |6           |
++------------------------------+------------+
+|broad-exception-caught        |4           |
++------------------------------+------------+
+|unused-import                 |2           |
++------------------------------+------------+
+|too-many-branches             |2           |
++------------------------------+------------+
+|no-else-return                |2           |
++------------------------------+------------+
+|missing-class-docstring       |2           |
++------------------------------+------------+
+|global-variable-not-assigned  |2           |
++------------------------------+------------+
+|bare-except                   |2           |
++------------------------------+------------+
+|unspecified-encoding          |1           |
++------------------------------+------------+
+|too-many-statements           |1           |
++------------------------------+------------+
+|too-many-return-statements    |1           |
++------------------------------+------------+
+|too-many-locals               |1           |
++------------------------------+------------+
+|superfluous-parens            |1           |
++------------------------------+------------+
+|redefined-outer-name          |1           |
++------------------------------+------------+
+|no-member                     |1           |
++------------------------------+------------+
+|missing-module-docstring      |1           |
++------------------------------+------------+
+|missing-function-docstring    |1           |
++------------------------------+------------+
+|logging-fstring-interpolation |1           |
++------------------------------+------------+
+|import-outside-toplevel       |1           |
++------------------------------+------------+
+|global-statement              |1           |
++------------------------------+------------+
+|fixme                         |1           |
++------------------------------+------------+
+|consider-using-with           |1           |
++------------------------------+------------+
+
+
+
+
+-----------------------------------
+Your code has been rated at 7.01/10
+
