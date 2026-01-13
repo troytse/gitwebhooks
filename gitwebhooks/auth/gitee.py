@@ -68,6 +68,13 @@ class GiteeSignatureVerifier(SignatureVerifier):
             # Gitee signature: timestamp + "\n" + secret
             # Reference: https://help.gitee.com/webhook/how-to-verify-webhook-keys
             sign_string = f'{timestamp_int}\n{secret}'
+
+            # DEBUG: Log signature verification details
+            import logging
+            logging.warning(f'[Gitee Signature Debug] timestamp={timestamp_int}, secret_len={len(secret)}')
+            logging.warning(f'[Gitee Signature Debug] received_signature={signature}')
+            logging.warning(f'[Gitee Signature Debug] sign_string={repr(sign_string)}')
+
             secret_bytes = secret.encode('utf-8')
 
             signature_bytes = hmac.new(
@@ -78,6 +85,9 @@ class GiteeSignatureVerifier(SignatureVerifier):
             expected_signature = base64.b64encode(signature_bytes).decode('utf-8')
             # URL encode to match Gitee's encoding
             expected_signature = quote_plus(expected_signature)
+
+            logging.warning(f'[Gitee Signature Debug] expected_signature={expected_signature}')
+            logging.warning(f'[Gitee Signature Debug] signatures_match={signature == expected_signature}')
 
             if hmac.compare_digest(signature, expected_signature):
                 return SignatureVerificationResult.success()
