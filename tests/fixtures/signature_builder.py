@@ -3,12 +3,23 @@ Webhook Signature Builder
 
 This module provides signature builders for various Git platforms.
 Used in tests to create valid webhook signatures.
+
+According to Gitee official documentation:
+https://help.gitee.com/webhook/how-to-verify-webhook-keys
+
+Gitee signature algorithm:
+1. sign_string = timestamp + "\\n" + secret
+2. hmac_sha256 = HmacSHA256(sign_string)
+3. signature = urlEncode(base64(hmac_sha256))
+
+Note: Gitee does NOT include the request payload in signature calculation.
 """
 
 import hmac
 import hashlib
 import base64
 from typing import Union
+from urllib.parse import quote_plus
 
 
 class SignatureBuilder:
@@ -17,7 +28,7 @@ class SignatureBuilder:
 
     Each platform uses a different signature algorithm:
     - GitHub: HMAC-SHA1 with "sha1=" prefix
-    - Gitee: HMAC-SHA256 with timestamp, Base64 encoded
+    - Gitee: HMAC-SHA256 with timestamp + "\\n" + secret, Base64 + URL encoded
     - GitLab: Simple token comparison (no signature)
 
     Usage:
@@ -27,8 +38,8 @@ class SignatureBuilder:
         # GitHub signature
         gh_sig = SignatureBuilder.github_signature(payload, secret)
 
-        # Gitee signature
-        gt_sig = SignatureBuilder.gitee_signature(payload, secret, timestamp=1234567890)
+        # Gitee signature (payload NOT used in signature)
+        gt_sig = SignatureBuilder.gitee_signature(secret, timestamp=1234567890)
     """
 
     @staticmethod
@@ -61,42 +72,47 @@ class SignatureBuilder:
         return f"sha1={signature}"
 
     @staticmethod
-    def gitee_signature(payload: bytes, secret: str, timestamp: int) -> str:
+    def gitee_signature(secret: str, timestamp: int) -> str:
         """
         Calculate Gitee webhook HMAC-SHA256 signature.
 
-        Gitee uses HMAC-SHA256 with timestamp and secret.
-        The signature is Base64 encoded.
+        According to Gitee official documentation:
+        https://help.gitee.com/webhook/how-to-verify-webhook-keys
+
+        Algorithm:
+        1. sign_string = timestamp + "\\n" + secret
+        2. hmac_sha256 = HmacSHA256(sign_string, secret)
+        3. signature = urlEncode(base64(hmac_sha256))
+
+        Note: The request payload is NOT used in Gitee signature calculation.
 
         Args:
-            payload: Request body as bytes
             secret: Webhook secret string
-            timestamp: Unix timestamp for signature
+            timestamp: Unix timestamp in milliseconds
 
         Returns:
-            str: Base64 encoded signature
+            str: Base64 + URL encoded signature
 
         Example:
-            >>> payload = b'{"ref": "master"}'
             >>> secret = "webhook_secret"
             >>> timestamp = 1705000000
-            >>> sig = SignatureBuilder.gitee_signature(payload, secret, timestamp)
+            >>> sig = SignatureBuilder.gitee_signature(secret, timestamp)
             >>> print(sig)
             YWJjZGVmMTIzNDU2Nzg5MA==
         """
-        # Gitee signs: timestamp + payload
-        # First encode the payload as string
-        payload_str = payload.decode('utf-8') if isinstance(payload, bytes) else payload
-
-        # Create the string to sign: timestamp + payload
-        sign_string = f"{timestamp}{payload_str}"
+        # Gitee signs: timestamp + "\n" + secret
+        # Reference: https://help.gitee.com/webhook/how-to-verify-webhook-keys
+        sign_string = f"{timestamp}\n{secret}"
 
         # Create HMAC-SHA256 hash
         mac = hmac.new(secret.encode('utf-8'), sign_string.encode('utf-8'), hashlib.sha256)
         signature = mac.digest()
 
         # Base64 encode
-        return base64.b64encode(signature).decode('utf-8')
+        signature = base64.b64encode(signature).decode('utf-8')
+
+        # URL encode (Gitee uses quote_plus which replaces spaces with +)
+        return quote_plus(signature)
 
     @staticmethod
     def gitlab_token(token: str) -> str:
@@ -150,21 +166,22 @@ class SignatureBuilder:
         return hmac.compare_digest(expected, signature_header)
 
     @staticmethod
-    def verify_gitee_signature(payload: bytes, secret: str,
-                                timestamp: int, signature_header: str) -> bool:
+    def verify_gitee_signature(secret: str, timestamp: int,
+                                signature_header: str) -> bool:
         """
         Verify Gitee webhook signature.
 
+        Note: payload is NOT used in Gitee signature verification.
+
         Args:
-            payload: Request body as bytes
             secret: Webhook secret
             timestamp: Timestamp from X-Gitee-Timestamp header
-            signature_header: Signature value from sign parameter or header
+            signature_header: Signature value from X-Gitee-Token header
 
         Returns:
             bool: True if signature is valid
         """
-        expected = SignatureBuilder.gitee_signature(payload, secret, timestamp)
+        expected = SignatureBuilder.gitee_signature(secret, timestamp)
 
         # Use constant-time comparison
         return hmac.compare_digest(expected, signature_header)
@@ -204,9 +221,11 @@ def sign_payload(platform: str, payload: Union[bytes, str],
     """
     Convenience function to sign a payload for a specific platform.
 
+    Note: For Gitee, the payload is NOT used in signature calculation.
+
     Args:
         platform: Platform name ('github', 'gitee', 'gitlab', 'custom')
-        payload: Request payload
+        payload: Request payload (not used for Gitee)
         secret: Webhook secret
         **kwargs: Platform-specific arguments (e.g., timestamp for Gitee)
 
@@ -228,7 +247,8 @@ def sign_payload(platform: str, payload: Union[bytes, str],
         return SignatureBuilder.github_signature(payload, secret)
     elif platform == 'gitee':
         timestamp = kwargs.get('timestamp', 1705000000)
-        return SignatureBuilder.gitee_signature(payload, secret, timestamp)
+        # Note: Gitee signature does NOT use payload
+        return SignatureBuilder.gitee_signature(secret, timestamp)
     elif platform == 'gitlab':
         return SignatureBuilder.gitlab_token(secret)
     elif platform == 'custom':

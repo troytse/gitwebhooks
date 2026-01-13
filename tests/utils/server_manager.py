@@ -10,15 +10,17 @@ import time
 import threading
 import configparser
 import logging
-import importlib.util
 from pathlib import Path
 from typing import Optional
 
-# Load git-webhooks-server.py as a module
-_server_path = Path(__file__).parent.parent.parent / "git-webhooks-server.py"
-spec = importlib.util.spec_from_file_location("git_webhooks_server", _server_path)
-git_webhooks_server = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(git_webhooks_server)
+# Add project root to path for importing gitwebhooks module
+_project_root = Path(__file__).parent.parent.parent
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
+# Import from gitwebhooks package
+from gitwebhooks.server import WebhookServer
+from gitwebhooks.handlers.request import WebhookRequestHandler
 
 
 class TestServer:
@@ -115,12 +117,18 @@ class TestServer:
                 self._config.add_section('server')
             self._config.set('server', 'port', str(self._port_override))
 
+        # Write temporary config file for WebhookServer
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.ini', delete=False) as f:
+            self._config.write(f)
+            self._temp_config_path = f.name
+
+        # Create WebhookServer instance
+        webhook_server = WebhookServer(self._temp_config_path)
+
         # Get server address and port
         address = self._config.get('server', 'address', fallback='127.0.0.1')
         port = self._config.getint('server', 'port', fallback=6789)
-
-        # Set global config for RequestHandler
-        git_webhooks_server.config = self._config
 
         # Initialize logging (to suppress output during tests)
         log_file = self._config.get('server', 'log_file', fallback='')
@@ -134,20 +142,8 @@ class TestServer:
         else:
             logging.basicConfig(level=logging.WARNING)
 
-        # Create HTTP server
-        self._server = HTTPServer((address, port), git_webhooks_server.RequestHandler)
-
-        # Apply SSL if configured
-        if self._config.getboolean('ssl', 'enable', fallback=False):
-            import ssl
-            key_file = self._config.get('ssl', 'key_file')
-            cert_file = self._config.get('ssl', 'cert_file')
-            self._server.socket = ssl.wrap_socket(
-                self._server.socket,
-                keyfile=key_file,
-                certfile=cert_file,
-                server_side=True
-            )
+        # Create HTTP server using WebhookServer's create_http_server method
+        self._server = webhook_server.create_http_server()
 
     def _server_thread(self):
         """
@@ -200,6 +196,14 @@ class TestServer:
             self._thread.join(timeout=5)
             if self._thread.is_alive():
                 # Thread didn't shut down gracefully
+                pass
+
+        # Clean up temporary config file
+        if hasattr(self, '_temp_config_path'):
+            try:
+                import os
+                os.unlink(self._temp_config_path)
+            except Exception:
                 pass
 
         self._running = False
@@ -325,16 +329,19 @@ class TestServerProcess:
 
         import subprocess
 
-        # Build command
-        server_script = Path(__file__).parent.parent.parent / "git-webhooks-server.py"
-        cmd = [sys.executable, str(server_script), "-c", self.config_path]
+        # Build command using gitwebhooks-cli
+        # The CLI wrapper expects to be run from project root
+        project_root = Path(__file__).parent.parent.parent
+        cli_script = project_root / "gitwebhooks-cli"
+        cmd = [sys.executable, "-m", "gitwebhooks.cli", "-c", self.config_path]
 
-        # Start process
+        # Start process from project root directory
         self._process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            stdin=subprocess.PIPE
+            stdin=subprocess.PIPE,
+            cwd=str(project_root)
         )
 
     def stop(self):

@@ -1,11 +1,22 @@
 """Gitee HMAC-SHA256/password verifier
 
 Verifies signatures or passwords from Gitee webhooks.
+
+According to Gitee official documentation:
+https://help.gitee.com/webhook/how-to-verify-webhook-keys
+
+Signature generation algorithm:
+1. sign_string = timestamp + "\\n" + secret
+2. hmac_sha256 = HmacSHA256(sign_string)
+3. signature = base64(urlEncode(hmac_sha256))
+
+Note: The Gitee signature does NOT include the request payload.
 """
 
 import base64
 import hashlib
 import hmac
+from urllib.parse import quote_plus
 
 from gitwebhooks.auth.verifier import SignatureVerifier
 from gitwebhooks.models.result import SignatureVerificationResult
@@ -21,7 +32,7 @@ class GiteeSignatureVerifier(SignatureVerifier):
         """Verify Gitee signature or password
 
         Args:
-            payload: Raw request body bytes
+            payload: Raw request body bytes (not used in Gitee signature)
             signature: X-Gitee-Token header value
             secret: Webhook secret/password
             **kwargs: May contain 'timestamp' key
@@ -41,8 +52,9 @@ class GiteeSignatureVerifier(SignatureVerifier):
             except ValueError:
                 return SignatureVerificationResult.failure('Invalid timestamp format')
 
-            payload_str = payload.decode('utf-8') if isinstance(payload, bytes) else payload
-            sign_string = f'{timestamp_int}{payload_str}'
+            # Gitee signature: timestamp + "\n" + secret
+            # Reference: https://help.gitee.com/webhook/how-to-verify-webhook-keys
+            sign_string = f'{timestamp_int}\n{secret}'
             secret_bytes = secret.encode('utf-8')
 
             signature_bytes = hmac.new(
@@ -51,13 +63,15 @@ class GiteeSignatureVerifier(SignatureVerifier):
                 self.HASH_ALGORITHM
             ).digest()
             expected_signature = base64.b64encode(signature_bytes).decode('utf-8')
+            # URL encode to match Gitee's encoding
+            expected_signature = quote_plus(expected_signature)
 
             if hmac.compare_digest(signature, expected_signature):
                 return SignatureVerificationResult.success()
             else:
                 return SignatureVerificationResult.failure('Invalid signature')
         else:
-            # Verify password
+            # Verify password (plaintext mode)
             if signature == secret:
                 return SignatureVerificationResult.success()
             else:

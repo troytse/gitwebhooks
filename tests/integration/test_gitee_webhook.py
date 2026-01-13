@@ -68,9 +68,9 @@ class TestGiteeWebhook(WebhookTestCase):
             client = TestWebhookClient("127.0.0.1", server.port)
 
             payload = GiteePayloadBuilder.gitee_push_event(repo="user/test-repo")
-            payload_bytes = json.dumps(payload).encode('utf-8')
             timestamp = 1705000000
-            signature = SignatureBuilder.gitee_signature(payload_bytes, "test_secret", timestamp)
+            # Gitee signature does NOT use payload
+            signature = SignatureBuilder.gitee_signature("test_secret", timestamp)
 
             response = client.send_webhook(
                 headers={
