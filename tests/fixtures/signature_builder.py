@@ -7,19 +7,19 @@ Used in tests to create valid webhook signatures.
 According to Gitee official documentation:
 https://help.gitee.com/webhook/how-to-verify-webhook-keys
 
-Gitee signature algorithm:
+Actual Gitee signature algorithm:
 1. sign_string = timestamp + "\\n" + secret
 2. hmac_sha256 = HmacSHA256(sign_string)
-3. signature = urlEncode(base64(hmac_sha256))
+3. signature = base64(hmac_sha256)
 
-Note: Gitee does NOT include the request payload in signature calculation.
+Note: Gitee sends Base64 encoded signature in HTTP headers, NOT URL encoded.
+The documentation mentions URL encode, but actual implementation sends raw Base64.
 """
 
 import hmac
 import hashlib
 import base64
 from typing import Union
-from urllib.parse import quote_plus
 
 
 class SignatureBuilder:
@@ -28,7 +28,7 @@ class SignatureBuilder:
 
     Each platform uses a different signature algorithm:
     - GitHub: HMAC-SHA1 with "sha1=" prefix
-    - Gitee: HMAC-SHA256 with timestamp + "\\n" + secret, Base64 + URL encoded
+    - Gitee: HMAC-SHA256 with timestamp + "\\n" + secret, Base64 encoded (NOT URL encoded)
     - GitLab: Simple token comparison (no signature)
 
     Usage:
@@ -79,19 +79,20 @@ class SignatureBuilder:
         According to Gitee official documentation:
         https://help.gitee.com/webhook/how-to-verify-webhook-keys
 
-        Algorithm:
+        Algorithm (actual implementation):
         1. sign_string = timestamp + "\\n" + secret
-        2. hmac_sha256 = HmacSHA256(sign_string, secret)
-        3. signature = urlEncode(base64(hmac_sha256))
+        2. hmac_sha256 = HmacSHA256(sign_string)
+        3. signature = base64(hmac_sha256)
 
         Note: The request payload is NOT used in Gitee signature calculation.
+        Gitee sends Base64 encoded signature, NOT URL encoded (despite documentation).
 
         Args:
             secret: Webhook secret string
             timestamp: Unix timestamp in milliseconds
 
         Returns:
-            str: Base64 + URL encoded signature
+            str: Base64 encoded signature (e.g., "KIUdWqRiZxFY6HZcBw0+nEXtSkAS6qKpzwMFfcC6tx4=")
 
         Example:
             >>> secret = "webhook_secret"
@@ -108,11 +109,8 @@ class SignatureBuilder:
         mac = hmac.new(secret.encode('utf-8'), sign_string.encode('utf-8'), hashlib.sha256)
         signature = mac.digest()
 
-        # Base64 encode
-        signature = base64.b64encode(signature).decode('utf-8')
-
-        # URL encode (Gitee uses quote_plus which replaces spaces with +)
-        return quote_plus(signature)
+        # Base64 encode (Gitee sends Base64, NOT URL encoded)
+        return base64.b64encode(signature).decode('utf-8')
 
     @staticmethod
     def gitlab_token(token: str) -> str:

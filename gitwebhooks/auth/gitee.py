@@ -16,7 +16,6 @@ Note: The Gitee signature does NOT include the request payload.
 import base64
 import hashlib
 import hmac
-from urllib.parse import quote_plus
 
 from gitwebhooks.auth.verifier import SignatureVerifier
 from gitwebhooks.models.result import SignatureVerificationResult
@@ -38,7 +37,7 @@ class GiteeSignatureVerifier(SignatureVerifier):
 
         This approach works because:
         - Passwords are typically short plaintext without special chars
-        - Signatures are Base64 + URL encoded, containing chars like '+', '/', '='
+        - Signatures are Base64 encoded, containing chars like '+', '/', '='
 
         Args:
             payload: Raw request body bytes (not used in Gitee signature)
@@ -68,13 +67,6 @@ class GiteeSignatureVerifier(SignatureVerifier):
             # Gitee signature: timestamp + "\n" + secret
             # Reference: https://help.gitee.com/webhook/how-to-verify-webhook-keys
             sign_string = f'{timestamp_int}\n{secret}'
-
-            # DEBUG: Log signature verification details
-            import logging
-            logging.warning(f'[Gitee Signature Debug] timestamp={timestamp_int}, secret_len={len(secret)}')
-            logging.warning(f'[Gitee Signature Debug] received_signature={signature}')
-            logging.warning(f'[Gitee Signature Debug] sign_string={repr(sign_string)}')
-
             secret_bytes = secret.encode('utf-8')
 
             signature_bytes = hmac.new(
@@ -82,12 +74,8 @@ class GiteeSignatureVerifier(SignatureVerifier):
                 sign_string.encode('utf-8'),
                 self.HASH_ALGORITHM
             ).digest()
+            # Gitee sends Base64 encoded signature (NOT URL encoded)
             expected_signature = base64.b64encode(signature_bytes).decode('utf-8')
-            # URL encode to match Gitee's encoding
-            expected_signature = quote_plus(expected_signature)
-
-            logging.warning(f'[Gitee Signature Debug] expected_signature={expected_signature}')
-            logging.warning(f'[Gitee Signature Debug] signatures_match={signature == expected_signature}')
 
             if hmac.compare_digest(signature, expected_signature):
                 return SignatureVerificationResult.success()
