@@ -8,6 +8,29 @@ else
 fi
 source "${script_dir}/message.sh"
 
+# Verbose mode flag
+VERBOSE_MODE=false
+
+# Parse command line arguments
+for arg in "$@"; do
+    case $arg in
+        --verbose|-v)
+            VERBOSE_MODE=true
+            shift
+            ;;
+        --uninstall)
+            # Handled later
+            shift
+            ;;
+    esac
+done
+
+# Enable verbose mode if requested
+if [ "$VERBOSE_MODE" = true ]; then
+    set -x
+    exec 2>&1
+fi
+
 # File lock for preventing concurrent installations
 LOCK_FILE="${script_dir}/.install.lock"
 
@@ -30,6 +53,9 @@ cleanup() {
     if [ -n "${service_path}" ] && [ -f "${service_path}.bak" ]; then
         $cmd_prefix rm -f "${service_path}.bak"
     fi
+    # Clean up temporary service files
+    rm -f "${script_dir}/.tmp_service."*
+    rm -f "${script_dir}/installed.env"
 
     exit 1
 }
@@ -149,24 +175,61 @@ if command -v systemctl > /dev/null; then
 		service_dir="/usr/lib/systemd/system"
 		service_path="${service_dir}/git-webhooks-server.service"
 		INFO_N "Installing: ${script_dir}/git-webhooks-server.service.sample => ${service_path}"
-		# clean
-		[ -f "$service_path" ] && $cmd_prefix rm -f "$service_path"
-		# copy file
-		[ ! -d "$service_dir" ] && $cmd_prefix mkdir -p "$service_dir"
-		$cmd_prefix cp -f "${script_dir}/git-webhooks-server.service.sample" "$service_path"
-		# replace the service start command
-		$cmd_prefix sed -i.bak "s/REPLACE_BY_INSTALL/${bin_path//\//\\\/} -c ${conf_path//\//\\\/}/g" "$service_path"
-		$cmd_prefix rm -f "${service_path}.bak"
-		if [ -f "$service_path" ];then
-			INFO " [OK]"
-			echo "service_path=${service_path}" >> "${script_dir}/installed.env"
-		else
-			ERR " [Fail]"
+		# Ensure service directory exists
+		if [ ! -d "$service_dir" ]; then
+			$cmd_prefix mkdir -p "$service_dir" || {
+				ERR " [Fail] Cannot create directory: ${service_dir}"
+				exit 1
+			}
+		fi
+		# Remove existing file if present (force remove even if read-only)
+		if [ -f "$service_path" ]; then
+			$cmd_prefix rm -f "$service_path" || {
+				ERR " [Fail] Cannot remove existing file: ${service_path}"
+				exit 1
+			}
+		fi
+		# Copy service file template to temp location first
+		tmp_service_file="${script_dir}/.tmp_service.$$"
+		cp "${script_dir}/git-webhooks-server.service.sample" "$tmp_service_file" || {
+			ERR " [Fail] Cannot copy service template"
+			exit 1
+		}
+		# Replace the service start command in temp file
+		escaped_bin_path="${bin_path//\//\\/}"
+		escaped_conf_path="${conf_path//\//\\/}"
+		sed "s/REPLACE_BY_INSTALL/${escaped_bin_path} -c ${escaped_conf_path}/g" "$tmp_service_file" > "$tmp_service_file.new" || {
+			ERR " [Fail] Cannot update service file with paths"
+			rm -f "$tmp_service_file" "$tmp_service_file.new"
+			exit 1
+		}
+		mv "$tmp_service_file.new" "$tmp_service_file"
+		# Install the service file
+		$cmd_prefix cp "$tmp_service_file" "$service_path" || {
+			ERR " [Fail] Cannot copy service file to ${service_path}"
+			rm -f "$tmp_service_file"
+			exit 1
+		}
+		rm -f "$tmp_service_file"
+		# Verify the service file was created correctly
+		if [ ! -f "$service_path" ]; then
+			ERR " [Fail] Service file not found after installation"
 			exit 1
 		fi
+		# Verify the service file contains the correct paths
+		if ! grep -q "$bin_path" "$service_path"; then
+			ERR " [Fail] Service file does not contain correct binary path"
+			$cmd_prefix cat "$service_path" >&2
+			exit 1
+		fi
+		INFO " [OK]"
+		echo "service_path=${service_path}" >> "${script_dir}/installed.env"
 		# startup
 		QUES_N "Enable and startup the service? (Y/n)" confirm
 		if [[ "${confirm:0:1}" == [Yy] ]]; then
+			if ! $cmd_prefix systemctl daemon-reload 2>/dev/null; then
+				WARN "systemctl daemon-reload 失败"
+			fi
 			if ! $cmd_prefix systemctl enable git-webhooks-server 2>/dev/null; then
 				WARN "systemctl enable 失败"
 				QUES_N "是否继续安装？ (Y/n)" confirm
