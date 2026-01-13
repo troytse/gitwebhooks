@@ -31,6 +31,15 @@ class GiteeSignatureVerifier(SignatureVerifier):
                **kwargs) -> SignatureVerificationResult:
         """Verify Gitee signature or password
 
+        Gitee sends X-Gitee-Timestamp in both signature and password modes.
+        To distinguish between them:
+        1. First try password validation (direct comparison)
+        2. If password fails and timestamp exists, try signature validation
+
+        This approach works because:
+        - Passwords are typically short plaintext without special chars
+        - Signatures are Base64 + URL encoded, containing chars like '+', '/', '='
+
         Args:
             payload: Raw request body bytes (not used in Gitee signature)
             signature: X-Gitee-Token header value
@@ -43,7 +52,11 @@ class GiteeSignatureVerifier(SignatureVerifier):
         if signature is None:
             return SignatureVerificationResult.failure('Missing signature or password')
 
-        # Check for timestamp (signature mode)
+        # Step 1: Try password validation first (direct comparison)
+        if hmac.compare_digest(signature, secret):
+            return SignatureVerificationResult.success()
+
+        # Step 2: If password failed, try signature validation
         timestamp = kwargs.get('timestamp')
         if timestamp is not None:
             # Verify signature
@@ -70,9 +83,6 @@ class GiteeSignatureVerifier(SignatureVerifier):
                 return SignatureVerificationResult.success()
             else:
                 return SignatureVerificationResult.failure('Invalid signature')
-        else:
-            # Verify password (plaintext mode)
-            if signature == secret:
-                return SignatureVerificationResult.success()
-            else:
-                return SignatureVerificationResult.failure('Invalid password')
+
+        # Password validation failed and no timestamp for signature validation
+        return SignatureVerificationResult.failure('Invalid password')
