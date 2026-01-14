@@ -55,15 +55,15 @@ gitwebhooks/
 
 ### 推荐：pipx（系统级安装）
 
-pipx 是安装 git-webhooks-server 的推荐方式。
+pipx 是安装 gitwebhooks 的推荐方式。
 
 ```bash
 # 安装 pipx（如果尚未安装）
 sudo apt install pipx  # Ubuntu/Debian
 # 或: python3 -m pip install --user pipx
 
-# 安装 git-webhooks-server
-pipx install git-webhooks-server
+# 安装 gitwebhooks
+pipx install gitwebhooks
 ```
 
 **为什么选择 pipx？**
@@ -82,7 +82,7 @@ python3 -m venv ~/venv/gitwebhooks
 
 # 激活并安装
 source ~/venv/gitwebhooks/bin/activate
-pip install git-webhooks-server
+pip install gitwebhooks
 
 # 添加到 PATH（可选）
 echo 'export PATH="$HOME/venv/gitwebhooks/bin:$PATH"' >> ~/.bashrc
@@ -95,7 +95,7 @@ source ~/.bashrc
 
 ```bash
 # 不要这样做
-sudo pip install git-webhooks-server
+sudo pip install gitwebhooks
 ```
 
 **风险**：
@@ -173,13 +173,13 @@ gitwebhooks-cli --help
 
 ## 从系统 pip 安装迁移
 
-如果您之前使用 `sudo pip install` 安装了 git-webhooks-server，
+如果您之前使用 `sudo pip install` 安装了 gitwebhooks，
 请按照以下步骤迁移到推荐的安装方式。
 
 ### 步骤 1：卸载旧安装
 
 ```bash
-sudo pip uninstall git-webhooks-server
+sudo pip uninstall gitwebhooks
 ```
 
 ### 步骤 2：备份配置（如果存在）
@@ -191,8 +191,8 @@ cp ~/.gitwebhook.ini ~/.gitwebhook.ini.backup
 ### 步骤 3：停止并卸载服务（如果已安装）
 
 ```bash
-sudo systemctl stop git-webhooks-server
-sudo systemctl disable git-webhooks-server
+sudo systemctl stop gitwebhooks
+sudo systemctl disable gitwebhooks
 sudo gitwebhooks-cli service uninstall
 ```
 
@@ -204,8 +204,8 @@ sudo gitwebhooks-cli service uninstall
 sudo apt install pipx  # Ubuntu/Debian
 # 或: python3 -m pip install --user pipx
 
-# 安装 git-webhooks-server
-pipx install git-webhooks-server
+# 安装 gitwebhooks
+pipx install gitwebhooks
 ```
 
 或 **venv**：
@@ -214,8 +214,8 @@ pipx install git-webhooks-server
 python3 -m venv ~/venv/gitwebhooks
 source ~/venv/gitwebhooks/bin/activate
 
-# 安装 git-webhooks-server
-pip install git-webhooks-server
+# 安装 gitwebhooks
+pip install gitwebhooks
 ```
 
 ### 步骤 5：恢复配置（如果已备份）
@@ -236,7 +236,7 @@ sudo gitwebhooks-cli service install
 ### 步骤 7：验证
 
 ```bash
-sudo systemctl status git-webhooks-server
+sudo systemctl status gitwebhooks
 ```
 
 ## 卸载
@@ -265,7 +265,7 @@ cmd=git fetch --all && git reset --hard origin/master && git pull
 
 ```bash
 # 如果作为服务运行
-systemctl restart git-webhooks-server
+systemctl restart gitwebhooks
 
 # 或直接运行：
 gitwebhooks-cli
@@ -409,7 +409,7 @@ cmd=your_command     # 要执行的命令
 ## 项目结构
 
 ```
-git-webhooks-server/
+gitwebhooks/
 ├── gitwebhooks/              # Python 包（模块化 v2.0）
 │   ├── __init__.py
 │   ├── __main__.py
@@ -423,7 +423,7 @@ git-webhooks-server/
 │   └── logging/              # 日志配置
 ├── gitwebhooks-cli           # CLI 包装脚本
 ├── install.sh                # 安装脚本
-├── git-webhooks-server.ini.sample
+├── gitwebhooks.ini.sample
 └── tests/                    # 测试套件
 ```
 
@@ -433,10 +433,10 @@ git-webhooks-server/
 
 ```bash
 # 方式1: 使用 CLI 工具（推荐）
-./gitwebhooks-cli -c git-webhooks-server.ini.sample
+./gitwebhooks-cli -c gitwebhooks.ini.sample
 
 # 方式2: 使用模块入口
-python3 -m gitwebhooks.cli -c git-webhooks-server.ini.sample
+python3 -m gitwebhooks.cli -c gitwebhooks.ini.sample
 ```
 
 ### 运行测试

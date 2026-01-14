@@ -55,15 +55,15 @@ gitwebhooks/
 
 ### Recommended: pipx (System-wide installation)
 
-pipx is the recommended way to install git-webhooks-server system-wide.
+pipx is the recommended way to install gitwebhooks system-wide.
 
 ```bash
 # Install pipx (if not already installed)
 sudo apt install pipx  # Ubuntu/Debian
 # or: python3 -m pip install --user pipx
 
-# Install git-webhooks-server
-pipx install git-webhooks-server
+# Install gitwebhooks
+pipx install gitwebhooks
 ```
 
 **Why pipx?**
@@ -82,7 +82,7 @@ python3 -m venv ~/venv/gitwebhooks
 
 # Activate and install
 source ~/venv/gitwebhooks/bin/activate
-pip install git-webhooks-server
+pip install gitwebhooks
 
 # Add to PATH (optional)
 echo 'export PATH="$HOME/venv/gitwebhooks/bin:$PATH"' >> ~/.bashrc
@@ -95,7 +95,7 @@ source ~/.bashrc
 
 ```bash
 # DO NOT DO THIS
-sudo pip install git-webhooks-server
+sudo pip install gitwebhooks
 ```
 
 **Risks**:
@@ -173,13 +173,13 @@ gitwebhooks-cli --help
 
 ## Migrating from System pip Installation
 
-If you previously installed git-webhooks-server using `sudo pip install`,
+If you previously installed gitwebhooks using `sudo pip install`,
 follow these steps to migrate to a recommended installation method.
 
 ### Step 1: Uninstall the old installation
 
 ```bash
-sudo pip uninstall git-webhooks-server
+sudo pip uninstall gitwebhooks
 ```
 
 ### Step 2: Backup your configuration (if exists)
@@ -191,8 +191,8 @@ cp ~/.gitwebhook.ini ~/.gitwebhook.ini.backup
 ### Step 3: Stop and uninstall the service (if installed)
 
 ```bash
-sudo systemctl stop git-webhooks-server
-sudo systemctl disable git-webhooks-server
+sudo systemctl stop gitwebhooks
+sudo systemctl disable gitwebhooks
 sudo gitwebhooks-cli service uninstall
 ```
 
@@ -204,8 +204,8 @@ Choose **pipx** (recommended):
 sudo apt install pipx  # Ubuntu/Debian
 # or: python3 -m pip install --user pipx
 
-# Install git-webhooks-server
-pipx install git-webhooks-server
+# Install gitwebhooks
+pipx install gitwebhooks
 ```
 
 Or **venv**:
@@ -214,8 +214,8 @@ Or **venv**:
 python3 -m venv ~/venv/gitwebhooks
 source ~/venv/gitwebhooks/bin/activate
 
-# Install git-webhooks-server
-pip install git-webhooks-server
+# Install gitwebhooks
+pip install gitwebhooks
 ```
 
 ### Step 5: Restore configuration (if backed up)
@@ -236,7 +236,7 @@ sudo gitwebhooks-cli service install
 ### Step 7: Verify
 
 ```bash
-sudo systemctl status git-webhooks-server
+sudo systemctl status gitwebhooks
 ```
 
 ## Uninstallation
@@ -265,7 +265,7 @@ cmd=git fetch --all && git reset --hard origin/master && git pull
 
 ```bash
 # If running as a service
-systemctl restart git-webhooks-server
+systemctl restart gitwebhooks
 
 # Or run directly:
 gitwebhooks-cli
@@ -409,7 +409,7 @@ cmd=your_command     # Command to execute
 ## Project Structure
 
 ```
-git-webhooks-server/
+gitwebhooks/
 ├── gitwebhooks/              # Python package (modular v2.0)
 │   ├── __init__.py
 │   ├── __main__.py
@@ -423,7 +423,7 @@ git-webhooks-server/
 │   └── logging/              # Logging setup
 ├── gitwebhooks-cli           # CLI wrapper script
 ├── install.sh                # Installation script
-├── git-webhooks-server.ini.sample
+├── gitwebhooks.ini.sample
 └── tests/                    # Test suite
 ```
 
@@ -433,10 +433,10 @@ git-webhooks-server/
 
 ```bash
 # Method 1: Use CLI tool (recommended)
-./gitwebhooks-cli -c git-webhooks-server.ini.sample
+./gitwebhooks-cli -c gitwebhooks.ini.sample
 
 # Method 2: Use module entry
-python3 -m gitwebhooks.cli -c git-webhooks-server.ini.sample
+python3 -m gitwebhooks.cli -c gitwebhooks.ini.sample
 ```
 
 ### Running Tests
