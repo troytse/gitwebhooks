@@ -269,6 +269,8 @@ git-webhooks-server/
 - Bash 4.0+ (安装脚本)
 - Python 3.6+ (与项目一致) + Python 标准库（argparse 用于子命令，tempfile 用于文件操作，pathlib 用于路径处理） (001-cli-service-install)
 - INI 配置文件（`~/.gitwebhook.ini`），systemd 服务文件（`/etc/systemd/system/`） (001-cli-service-install)
+- Python 3.7+ (与项目保持一致) + Python 标准库（configparser、pathlib、os、sys） (001-config-view)
+- INI 配置文件（只读） (001-config-view)
 
 ## Recent Changes
 - 001-refactor-codebase: 重构为模块化包结构，保持向后兼容
