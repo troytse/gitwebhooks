@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gitwebhooks"
-version = "2.1.2"
+version = "2.1.3"
 description = "A lightweight Git webhook server for automated deployment supporting GitHub, Gitee, GitLab, and custom webhooks"
 readme = "README.md"
 license = "MIT"
