@@ -50,29 +50,43 @@ gitwebhooks/
 ### 前置要求
 
 - Python 3.6 或更高版本
-- sudo/root 权限（用于安装）
+- pip（Python 包管理器）
+- sudo/root 权限（用于安装 systemd 服务）
 
-### 从源码安装
+### 使用 pip 安装
 
 ```bash
-# 克隆或下载仓库
+# 从 PyPI 安装（发布后）
+pip install gitwebhooks
+
+# 或从源码安装
 git clone https://github.com/troytse/git-webhooks-server.git
 cd git-webhooks-server
-
-# 运行安装脚本
-./install.sh
+pip install .
 ```
 
-安装程序将：
-1. 在 `/usr/local/bin` 创建 `gitwebhooks-cli` 硬链接
-2. 复制配置文件到 `/usr/local/etc/git-webhooks-server.ini`
-3. 可选：安装为 systemd 服务
+### 初始化配置
 
-![install](doc/install.png)
+```bash
+# 创建初始配置文件
+gitwebhooks-cli config init
+```
+
+将以交互方式创建 `~/.gitwebhook.ini` 配置文件。
+
+### 安装为 systemd 服务
+
+```bash
+# 安装并启动为 systemd 服务
+sudo gitwebhooks-cli service install
+
+# 卸载服务
+sudo gitwebhooks-cli service uninstall
+```
 
 ### 手动安装
 
-如果不使用安装脚本：
+如果不使用 pip：
 
 ```bash
 # 添加执行权限
@@ -80,9 +94,6 @@ chmod +x gitwebhooks-cli
 
 # 创建硬链接到系统路径
 sudo ln "$(pwd)/gitwebhooks-cli" /usr/local/bin/gitwebhooks-cli
-
-# 复制配置文件
-sudo cp git-webhooks-server.ini.sample /usr/local/etc/git-webhooks-server.ini
 ```
 
 ### 验证安装
@@ -94,17 +105,18 @@ gitwebhooks-cli --help
 ## 卸载
 
 ```bash
-cd git-webhooks-server
-./install.sh --uninstall
-```
+# 卸载 systemd 服务（如果已安装）
+sudo gitwebhooks-cli service uninstall --purge
 
-![uninstall](doc/uninstall.png)
+# 卸载包
+pip uninstall gitwebhooks
+```
 
 ## 使用
 
 ### 1. 配置仓库
 
-编辑 `/usr/local/etc/git-webhooks-server.ini`：
+编辑 `~/.gitwebhook.ini`：
 
 ```ini
 [your_name/repository]
@@ -115,9 +127,11 @@ cmd=git fetch --all && git reset --hard origin/master && git pull
 ### 2. 重启服务
 
 ```bash
+# 如果作为服务运行
 systemctl restart git-webhooks-server
+
 # 或直接运行：
-gitwebhooks-cli -c /usr/local/etc/git-webhooks-server.ini
+gitwebhooks-cli
 ```
 
 ### 3. 添加 Webhook
@@ -171,7 +185,17 @@ secret=123456
 
 ## 配置
 
-默认配置文件位置：`/usr/local/etc/git-webhooks-server.ini`
+默认配置文件位置：`~/.gitwebhook.ini`
+
+### 初始化配置
+
+```bash
+# 交互式配置设置
+gitwebhooks-cli config init
+
+# 或指定输出路径
+gitwebhooks-cli config init --output /path/to/config.ini
+```
 
 ### 服务器配置
 
@@ -179,7 +203,7 @@ secret=123456
 [server]
 address=0.0.0.0          # 监听地址
 port=6789                # 监听端口
-log_file=/var/log/git-webhooks-server.log  # 日志文件（空值=仅标准输出）
+log_file=~/.gitwebhook.log  # 日志文件（空值=仅标准输出）
 ```
 
 ### SSL 配置（可选）

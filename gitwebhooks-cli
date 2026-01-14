@@ -14,10 +14,10 @@ fi
 # 1. 首先检查脚本所在目录（用于从源码运行）
 if [ -d "$SCRIPT_DIR/gitwebhooks" ]; then
     export PYTHONPATH="$SCRIPT_DIR:$PYTHONPATH"
-    exec python3 -m gitwebhooks.cli "$@"
+    exec python3 -m gitwebhooks.main "$@"
 # 2. 检查是否已安装到 site-packages
 elif python3 -c "import gitwebhooks" 2>/dev/null; then
-    exec python3 -m gitwebhooks.cli "$@"
+    exec python3 -m gitwebhooks.main "$@"
 # 3. 如果都找不到，显示错误
 else
     echo "Error: gitwebhooks package not found" >&2

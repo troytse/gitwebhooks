@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gitwebhooks"
+version = "2.0.0"
+description = "A lightweight Git webhook server for automated deployment supporting GitHub, Gitee, GitLab, and custom webhooks"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "Troy Tse", email = "troy@holyhi.net"}
+]
+maintainers = [
+    {name = "Troy Tse", email = "troy@holyhi.net"}
+]
+keywords = [
+    "webhook",
+    "git",
+    "github",
+    "gitee",
+    "gitlab",
+    "deployment",
+    "automation",
+    "server",
+    "devops"
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: No Input/Output (Daemon)",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development :: Version Control :: Git",
+    "Topic :: System :: Installation/Setup",
+    "Topic :: System :: Systems Administration",
+    "Typing :: Typed",
+]
+requires-python = ">=3.6"
+# No external dependencies - uses Python standard library only
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/troytse/git-webhooks-server"
+Documentation = "https://github.com/troytse/git-webhooks-server#readme"
+Repository = "https://github.com/troytse/git-webhooks-server.git"
+Issues = "https://github.com/troytse/git-webhooks-server/issues"
+
+[project.scripts]
+gitwebhooks-cli = "gitwebhooks.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gitwebhooks*"]
+exclude = ["tests*", "docs*", "doc*"]
+
+[tool.setuptools.package-data]
+"gitwebhooks" = ["*.ini", "*.service"]
