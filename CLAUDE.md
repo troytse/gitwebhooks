@@ -290,6 +290,8 @@ git-webhooks-server/
 - INI 配置文件生成（读写） (001-config-init-wizard)
 - Python 3.7+ + Python 标准库（sys, shutil, os, pathlib, argparse） (001-install-method-guidance)
 - INI 配置文件，systemd 服务单元文件 (001-install-method-guidance)
+- Python 3.7+ (项目要求) + Python 标准库仅（无外部依赖） (001-fix-config-init-bug)
+- INI 配置文件 (configparser) (001-fix-config-init-bug)
 
 ## Recent Changes
 - 001-config-init-wizard: 添加 `config init` 交互式向导，支持配置级别选择、平台配置和仓库配置

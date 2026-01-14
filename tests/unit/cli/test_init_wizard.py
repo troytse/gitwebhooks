@@ -76,16 +76,20 @@ class TestInputValidation:
         assert validate_repo_name('org/team/sub-project') is True
         assert validate_repo_name('group/subgroup/project') is True
 
+        # Single-level format (now supported per spec)
+        assert validate_repo_name('owner') is True
+        assert validate_repo_name('myrepo') is True
+
     def test_validate_repo_name_invalid(self):
         """Test validate_repo_name rejects invalid formats."""
         from gitwebhooks.cli.init_wizard import validate_repo_name
 
-        assert validate_repo_name('owner') is False
         assert validate_repo_name('owner/') is False
         assert validate_repo_name('/repo') is False
         assert validate_repo_name('') is False
         assert validate_repo_name('https://github.com/owner/repo') is False
         assert validate_repo_name('owner//repo') is False
+        assert validate_repo_name('owner repo') is False  # spaces not allowed
 
     def test_validate_existing_path_valid(self):
         """Test validate_existing_path accepts existing directories."""
@@ -209,7 +213,7 @@ class TestINIGeneration:
         server = MagicMock()
         platform = PlatformConfig(
             platform='github',
-            handle_events=['push', 'release'],
+            handle_events='push,release',  # Changed from list to string
             verify=True,
             secret='test-secret',
             custom_params=None
@@ -219,7 +223,7 @@ class TestINIGeneration:
         config = _generate_config(server, platform, repo)
 
         assert config.has_section('github')
-        assert config.get('github', 'handle_events') == 'push, release'
+        assert config.get('github', 'handle_events') == 'push,release'  # No spaces
         assert config.get('github', 'verify') == 'true'
         assert config.get('github', 'secret') == 'test-secret'
 
@@ -237,9 +241,10 @@ class TestINIGeneration:
 
         config = _generate_config(server, platform, repo)
 
-        assert config.has_section('repo/owner/repo')
-        assert config.get('repo/owner/repo', 'cwd') == '/path/to/repo'
-        assert config.get('repo/owner/repo', 'cmd') == 'git pull && ./deploy.sh'
+        # Section name no longer has 'repo/' prefix
+        assert config.has_section('owner/repo')
+        assert config.get('owner/repo', 'cwd') == '/path/to/repo'
+        assert config.get('owner/repo', 'cmd') == 'git pull && ./deploy.sh'
 
     def test_generate_custom_platform_section(self):
         """Test generating [custom] section with custom parameters."""
@@ -248,7 +253,7 @@ class TestINIGeneration:
         server = MagicMock()
         platform = PlatformConfig(
             platform='custom',
-            handle_events=['push'],
+            handle_events='webhook',  # Changed from list to string
             verify=False,
             secret=None,
             custom_params={
@@ -291,12 +296,12 @@ class TestDataClasses:
 
         platform = PlatformConfig(
             platform='github',
-            handle_events=['push', 'release'],
+            handle_events='push,release',  # Changed from list to string
             verify=True,
             secret='my-secret'
         )
         assert platform.platform == 'github'
-        assert platform.handle_events == ['push', 'release']
+        assert platform.handle_events == 'push,release'
         assert platform.verify is True
         assert platform.secret == 'my-secret'
 
