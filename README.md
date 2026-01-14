@@ -449,6 +449,30 @@ python3 -m pytest tests/
 python3 -m unittest discover tests/
 ```
 
+### Releasing to PyPI
+
+**IMPORTANT**: Before releasing to PyPI, you MUST run the pre-release validation script:
+
+```bash
+./scripts/pre-release-check.sh
+```
+
+This script validates:
+- Package builds successfully
+- CLI entry point works (`gitwebhooks-cli`)
+- All subcommands work (`service`, `config`)
+- Module imports work correctly
+
+Only after all checks pass, proceed with publishing:
+
+```bash
+# Build the package
+python3 -m build
+
+# Upload to PyPI
+python3 -m twine upload dist/*
+```
+
 ## License
 
 MIT License

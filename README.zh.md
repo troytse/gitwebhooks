@@ -449,6 +449,30 @@ python3 -m pytest tests/
 python3 -m unittest discover tests/
 ```
 
+### 发布到 PyPI
+
+**重要提示**：发布到 PyPI 前，必须运行发布前验证脚本：
+
+```bash
+./scripts/pre-release-check.sh
+```
+
+此脚本会验证：
+- 包能成功构建
+- CLI 入口点正常工作（`gitwebhooks-cli`）
+- 所有子命令正常工作（`service`、`config`）
+- 模块导入正常工作
+
+只有在所有检查通过后，才能进行发布：
+
+```bash
+# 构建包
+python3 -m build
+
+# 上传到 PyPI
+python3 -m twine upload dist/*
+```
+
 ## 许可证
 
 MIT License

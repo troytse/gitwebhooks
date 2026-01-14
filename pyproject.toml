@@ -64,7 +64,7 @@ Repository = "https://github.com/troytse/git-webhooks-server.git"
 Issues = "https://github.com/troytse/git-webhooks-server/issues"
 
 [project.scripts]
-gitwebhooks-cli = "gitwebhooks.cli:main"
+gitwebhooks-cli = "gitwebhooks.main:main"
 
 [tool.setuptools]
 package-dir = {"" = "."}

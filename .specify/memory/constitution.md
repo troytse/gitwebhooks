@@ -1,8 +1,8 @@
 <!--
 Sync Impact Report:
-Version change: 2.0.0 → 2.1.0
+Version change: 2.1.0 → 2.2.0
 Modified principles: N/A
-Added sections: Environment Management (Development Workflow)
+Added sections: Mandatory Release Validation (Development Workflow)
 Removed sections: N/A
 Templates updated:
   - .specify/templates/plan-template.md: ✅ reviewed (no changes needed)
@@ -86,13 +86,40 @@ All git/svn commits MUST NOT contain AI-generated attribution signatures such as
 - Changes MUST be tested against all supported platforms when platform logic is modified
 - Configuration file changes SHOULD be validated with `configparser` before deployment
 
+### Mandatory Release Validation
+
+**ALL releases to PyPI MUST pass the pre-release validation script BEFORE publishing.**
+
+The release process MUST follow this sequence:
+
+1. **Run validation script**: `./scripts/pre-release-check.sh`
+   - This script creates an isolated virtual environment
+   - Builds the package from source
+   - Installs the built package
+   - Verifies CLI entry point works (`gitwebhooks-cli --help`)
+   - Verifies all subcommands work (`service`, `config`)
+   - Verifies module imports work correctly
+   - Cleans up test environment
+
+2. **If validation fails**: Fix issues and repeat from step 1
+
+3. **Only after validation passes**: Proceed with publishing
+   ```bash
+   python3 -m build
+   python3 -m twine upload dist/*
+   ```
+
+**Rationale**: The 2.1.1 release contained a critical bug where the CLI entry point was misconfigured (`gitwebhooks.cli:main` instead of `gitwebhooks.main:main`), causing ImportError for all users. This was caused by lack of pre-release testing in a clean environment. Mandatory validation prevents such basic functional bugs from reaching users.
+
 ### Release Process
 
-1. Update version in any version variable if added
-2. Test installation script on a clean system
-3. Verify all platform webhook formats still work
-4. Update README.md and README.zh.md if behavior changes
-5. Tag release with semantic version
+1. Run mandatory pre-release validation: `./scripts/pre-release-check.sh`
+2. Update version in `pyproject.toml`
+3. Update README.md and README.zh.md if behavior changes
+4. Tag release with semantic version
+5. Build and upload to PyPI
+
+**FORBIDDEN**: Publishing to PyPI without running the validation script first.
 
 ### Commit Message Standards
 
@@ -143,4 +170,4 @@ For day-to-day development activities, refer to `CLAUDE.md` for:
 - Code style and formatting guidelines
 - Project structure and file organization
 
-**Version**: 2.1.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-14
+**Version**: 2.2.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-14
