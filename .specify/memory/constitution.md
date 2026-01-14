@@ -1,11 +1,11 @@
 <!--
 Sync Impact Report:
-Version change: 1.1.0 → 2.0.0
-Modified principles: Principle I - Simplicity & Minimalism (removed single-file requirement, added modular package structure with Python 3.7+ requirement)
-Added sections: N/A
+Version change: 2.0.0 → 2.1.0
+Modified principles: N/A
+Added sections: Environment Management (Development Workflow)
 Removed sections: N/A
 Templates updated:
-  - .specify/templates/plan-template.md: ✅ reviewed (updated to reflect Python 3.7+ and package structure)
+  - .specify/templates/plan-template.md: ✅ reviewed (no changes needed)
   - .specify/templates/spec-template.md: ✅ reviewed (no changes needed)
   - .specify/templates/tasks-template.md: ✅ reviewed (no changes needed)
   - .specify/templates/checklist-template.md: ✅ reviewed (no changes needed)
@@ -62,6 +62,16 @@ All git/svn commits MUST NOT contain AI-generated attribution signatures such as
 - SSL certificate paths MUST be validated before server start
 
 ## Development Workflow
+
+### Environment Management
+
+**ALL Python development and testing MUST be performed within a virtual environment.** The project provides a `venv/` directory for this purpose. Before any development work:
+
+1. Activate the virtual environment: `source venv/bin/activate`
+2. Install dependencies: `pip install -e .`
+3. Install dev dependencies: `pip install -e ".[dev]"` (for testing)
+
+**Rationale**: Virtual environments isolate project dependencies from system Python, prevent version conflicts, and ensure reproducible builds. This is especially critical for a package targeting PyPI distribution.
 
 ### Code Style
 
@@ -133,4 +143,4 @@ For day-to-day development activities, refer to `CLAUDE.md` for:
 - Code style and formatting guidelines
 - Project structure and file organization
 
-**Version**: 2.0.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2025-01-13
+**Version**: 2.1.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-14

@@ -1,0 +1,8 @@
+include README.md
+include README.zh.md
+include LICENSE
+include CLAUDE.md
+include *.editorconfig
+include *.sample
+recursive-include doc *.png
+recursive-include tests *.py

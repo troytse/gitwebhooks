@@ -15,13 +15,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 常用命令
 
-### 安装和卸载
+### 安装和配置
 ```bash
-# 安装（交互式）
-./install.sh
+# 通过 pip 安装
+pip install .
 
-# 卸载
-./install.sh --uninstall
+# 初始化配置文件（交互式）
+gitwebhooks-cli config init
+
+# 安装为 systemd 服务
+sudo gitwebhooks-cli service install
+
+# 卸载 systemd 服务
+sudo gitwebhooks-cli service uninstall
 ```
 
 ### 运行服务
@@ -29,7 +35,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # 方式1: 使用模块入口
 python3 -m gitwebhooks.cli -c /path/to/config.ini
 
-# 方式2: 使用 CLI 工具（安装后）
+# 方式2: 使用 CLI 工具（使用默认配置）
+gitwebhooks-cli
+
+# 方式3: 指定配置文件
 gitwebhooks-cli -c /path/to/config.ini
 
 # systemd 服务管理
@@ -66,12 +75,17 @@ python3 -m pytest tests/
 - `config/`: 配置加载和注册（ConfigLoader、ConfigurationRegistry）
 - `auth/`: 签名验证模块（各平台的验证器工厂）
 - `handlers/`: Webhook 处理器（按平台分离的处理器）
-- `utils/`: 工具类（常量、异常、命令执行器）
+- `utils/`: 工具类（常量、异常、命令执行器、systemd 工具）
+- `cli/`: CLI 子命令（service、config）
 - `logging/`: 日志配置
 
 **CLI 工具** (`gitwebhooks-cli`)
 - Bash 包装脚本，自动检测并加载 `gitwebhooks` 包
 - 支持从源码目录运行或已安装的包运行
+- 支持子命令：
+  - `gitwebhooks-cli service install/uninstall`: systemd 服务管理
+  - `gitwebhooks-cli config init`: 交互式配置初始化
+  - `gitwebhooks-cli -c <config>`: 运行服务器（兼容原有方式）
 
 **Provider 枚举** (`gitwebhooks/models/provider.py`)
 - 定义支持的 Git 平台：Github、Gitee、Gitlab、Custom
@@ -253,6 +267,8 @@ git-webhooks-server/
 - ssl (HTTPS 支持)
 - pytest (测试框架)
 - Bash 4.0+ (安装脚本)
+- Python 3.6+ (与项目一致) + Python 标准库（argparse 用于子命令，tempfile 用于文件操作，pathlib 用于路径处理） (001-cli-service-install)
+- INI 配置文件（`~/.gitwebhook.ini`），systemd 服务文件（`/etc/systemd/system/`） (001-cli-service-install)
 
 ## Recent Changes
 - 001-refactor-codebase: 重构为模块化包结构，保持向后兼容

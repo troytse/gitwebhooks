@@ -50,29 +50,43 @@ gitwebhooks/
 ### Prerequisites
 
 - Python 3.6 or higher
-- sudo/root access (for installation)
+- pip (Python package manager)
+- sudo/root access (for systemd service installation)
 
-### Install from Source
+### Install via pip
 
 ```bash
-# Clone or download the repository
+# Install from PyPI (when published)
+pip install gitwebhooks
+
+# Or install from source
 git clone https://github.com/troytse/git-webhooks-server.git
 cd git-webhooks-server
-
-# Run the installation script
-./install.sh
+pip install .
 ```
 
-The installer will:
-1. Create a hard link for `gitwebhooks-cli` in `/usr/local/bin`
-2. Copy configuration file to `/usr/local/etc/git-webhooks-server.ini`
-3. Optionally install as a systemd service
+### Initialize Configuration
 
-![install](doc/install.png)
+```bash
+# Create initial configuration file
+gitwebhooks-cli config init
+```
+
+This will create `~/.gitwebhook.ini` with interactive prompts.
+
+### Install as systemd Service
+
+```bash
+# Install and start as a systemd service
+sudo gitwebhooks-cli service install
+
+# Uninstall the service
+sudo gitwebhooks-cli service uninstall
+```
 
 ### Manual Installation
 
-To install manually without the script:
+To install manually without pip:
 
 ```bash
 # Make CLI executable
@@ -80,9 +94,6 @@ chmod +x gitwebhooks-cli
 
 # Create hard link to system path
 sudo ln "$(pwd)/gitwebhooks-cli" /usr/local/bin/gitwebhooks-cli
-
-# Copy configuration
-sudo cp git-webhooks-server.ini.sample /usr/local/etc/git-webhooks-server.ini
 ```
 
 ### Verify Installation
@@ -94,17 +105,18 @@ gitwebhooks-cli --help
 ## Uninstallation
 
 ```bash
-cd git-webhooks-server
-./install.sh --uninstall
-```
+# Uninstall systemd service (if installed)
+sudo gitwebhooks-cli service uninstall --purge
 
-![uninstall](doc/uninstall.png)
+# Remove the package
+pip uninstall gitwebhooks
+```
 
 ## Usage
 
 ### 1. Configure Repository
 
-Edit `/usr/local/etc/git-webhooks-server.ini`:
+Edit `~/.gitwebhook.ini`:
 
 ```ini
 [your_name/repository]
@@ -115,9 +127,11 @@ cmd=git fetch --all && git reset --hard origin/master && git pull
 ### 2. Restart Service
 
 ```bash
+# If running as a service
 systemctl restart git-webhooks-server
+
 # Or run directly:
-gitwebhooks-cli -c /usr/local/etc/git-webhooks-server.ini
+gitwebhooks-cli
 ```
 
 ### 3. Add Webhook
@@ -171,7 +185,17 @@ Example payload:
 
 ## Configuration
 
-Default configuration file: `/usr/local/etc/git-webhooks-server.ini`
+Default configuration file: `~/.gitwebhook.ini`
+
+### Initialize Configuration
+
+```bash
+# Interactive configuration setup
+gitwebhooks-cli config init
+
+# Or specify output path
+gitwebhooks-cli config init --output /path/to/config.ini
+```
 
 ### Server Configuration
 
@@ -179,7 +203,7 @@ Default configuration file: `/usr/local/etc/git-webhooks-server.ini`
 [server]
 address=0.0.0.0          # Listen address
 port=6789                # Listen port
-log_file=/var/log/git-webhooks-server.log  # Log file (empty = stdout only)
+log_file=~/.gitwebhook.log  # Log file (empty = stdout only)
 ```
 
 ### SSL Configuration (Optional)
