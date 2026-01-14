@@ -53,6 +53,6 @@ Thumbs.db
 *.backup
 
 # SpecKit working directories
-specs/*/checklists/
+specs/
 *.plan.md~
 *.spec.md~
