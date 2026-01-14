@@ -68,11 +68,23 @@ pip install .
 ### 初始化配置
 
 ```bash
-# 创建初始配置文件
+# 交互式配置设置（会提示配置级别）
 gitwebhooks-cli config init
+
+# 或直接指定配置级别
+gitwebhooks-cli config init user      # 用户级（~/.gitwebhooks.ini）
+gitwebhooks-cli config init local      # 本地级（/usr/local/etc/gitwebhooks.ini）
+sudo gitwebhooks-cli config init system # 系统级（/etc/gitwebhooks.ini，需要 root）
 ```
 
-将以交互方式创建 `~/.gitwebhook.ini` 配置文件。
+向导会提示输入：
+1. 配置级别（system/local/user）
+2. 服务器配置（地址、端口、日志文件）
+3. Git 平台（github/gitee/gitlab/custom）
+4. 平台特定设置（webhook 事件、验证、密钥）
+5. 仓库配置（名称、工作目录、部署命令）
+
+这将创建具有安全权限（0600）的配置文件。
 
 ### 安装为 systemd 服务
 
@@ -193,8 +205,9 @@ secret=123456
 # 交互式配置设置
 gitwebhooks-cli config init
 
-# 或指定输出路径
-gitwebhooks-cli config init --output /path/to/config.ini
+# 或直接指定配置级别
+gitwebhooks-cli config init user
+sudo gitwebhooks-cli config init system
 ```
 
 ### 查看配置

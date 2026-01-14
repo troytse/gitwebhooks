@@ -23,6 +23,13 @@ pip install .
 # 初始化配置文件（交互式）
 gitwebhooks-cli config init
 
+# 直接指定配置级别（system/local/user）
+gitwebhooks-cli config init user
+sudo gitwebhooks-cli config init system
+
+# 查看配置文件内容
+gitwebhooks-cli config view
+
 # 安装为 systemd 服务
 sudo gitwebhooks-cli service install
 
@@ -76,7 +83,10 @@ python3 -m pytest tests/
 - `auth/`: 签名验证模块（各平台的验证器工厂）
 - `handlers/`: Webhook 处理器（按平台分离的处理器）
 - `utils/`: 工具类（常量、异常、命令执行器、systemd 工具）
-- `cli/`: CLI 子命令（service、config）
+- `cli/`: CLI 子命令（service、config、init_wizard）
+  - `service.py`: systemd 服务管理
+  - `config.py`: 配置查看和管理
+  - `init_wizard.py`: 交互式配置初始化向导
 - `logging/`: 日志配置
 
 **CLI 工具** (`gitwebhooks-cli`)
@@ -84,7 +94,12 @@ python3 -m pytest tests/
 - 支持从源码目录运行或已安装的包运行
 - 支持子命令：
   - `gitwebhooks-cli service install/uninstall`: systemd 服务管理
-  - `gitwebhooks-cli config init`: 交互式配置初始化
+  - `gitwebhooks-cli config init [level]`: 交互式配置初始化向导
+    - 支持配置级别：`system`（系统级，需 root）、`local`（本地级，需 root）、`user`（用户级）
+    - 交互式收集服务器配置、平台配置（github/gitee/gitlab/custom）、仓库配置
+    - 自动生成 INI 配置文件，设置安全权限（0600）
+    - 支持配置文件覆盖和备份
+  - `gitwebhooks-cli config view`: 查看配置文件内容
   - `gitwebhooks-cli -c <config>`: 运行服务器（兼容原有方式）
 
 **Provider 枚举** (`gitwebhooks/models/provider.py`)
@@ -271,6 +286,11 @@ git-webhooks-server/
 - INI 配置文件（`~/.gitwebhook.ini`），systemd 服务文件（`/etc/systemd/system/`） (001-cli-service-install)
 - Python 3.7+ (与项目保持一致) + Python 标准库（configparser、pathlib、os、sys） (001-config-view)
 - INI 配置文件（只读） (001-config-view)
+- Python 3.7+ + Python 标准库（dataclasses、configparser、os、re、sys） + 交互式 input() (001-config-init-wizard)
+- INI 配置文件生成（读写） (001-config-init-wizard)
 
 ## Recent Changes
+- 001-config-init-wizard: 添加 `config init` 交互式向导，支持配置级别选择、平台配置和仓库配置
+- 001-config-view: 添加 `config view` 子命令，支持查看配置文件内容和敏感字段高亮
+- 001-cli-service-install: 添加 systemd 服务管理子命令（install/uninstall）
 - 001-refactor-codebase: 重构为模块化包结构，保持向后兼容

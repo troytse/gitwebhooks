@@ -68,11 +68,23 @@ pip install .
 ### Initialize Configuration
 
 ```bash
-# Create initial configuration file
+# Interactive configuration setup (prompts for configuration level)
 gitwebhooks-cli config init
+
+# Or specify configuration level directly
+gitwebhooks-cli config init user      # User level (~/.gitwebhooks.ini)
+gitwebhooks-cli config init local      # Local level (/usr/local/etc/gitwebhooks.ini)
+sudo gitwebhooks-cli config init system # System level (/etc/gitwebhooks.ini, requires root)
 ```
 
-This will create `~/.gitwebhook.ini` with interactive prompts.
+The wizard will prompt for:
+1. Configuration level (system/local/user)
+2. Server configuration (address, port, log file)
+3. Git platform (github/gitee/gitlab/custom)
+4. Platform-specific settings (webhook events, verification, secret)
+5. Repository configuration (name, working directory, deploy command)
+
+This will create a configuration file with secure permissions (0600).
 
 ### Install as systemd Service
 
@@ -193,8 +205,9 @@ Default configuration file: `~/.gitwebhook.ini`
 # Interactive configuration setup
 gitwebhooks-cli config init
 
-# Or specify output path
-gitwebhooks-cli config init --output /path/to/config.ini
+# Or specify configuration level directly
+gitwebhooks-cli config init user
+sudo gitwebhooks-cli config init system
 ```
 
 ### View Configuration

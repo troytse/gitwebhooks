@@ -73,11 +73,15 @@ def register_config_subparser(subparsers):
     config_subparsers = config_parser.add_subparsers(dest='config_action')
 
     # init action
-    init_parser = config_subparsers.add_parser('init')
+    init_parser = config_subparsers.add_parser(
+        'init',
+        help='Initialize configuration file using interactive wizard'
+    )
     init_parser.add_argument(
-        '--output',
-        default='~/.gitwebhook.ini',
-        help='Output configuration file path (default: ~/.gitwebhook.ini)'
+        'level',
+        nargs='?',
+        choices=['system', 'local', 'user'],
+        help='Configuration level (system/local/user). If not specified, will be prompted.'
     )
     init_parser.set_defaults(func=cmd_init)
 
