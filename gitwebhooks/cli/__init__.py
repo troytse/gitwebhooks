@@ -45,6 +45,17 @@ def register_service_subparser(subparsers):
         action='store_true',
         help='Force overwrite existing service'
     )
+    install_parser.add_argument(
+        '-v', '--verbose',
+        action='count',
+        default=0,
+        help='Increase verbosity (can be used: -v, -vv)'
+    )
+    install_parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Preview service file without installing'
+    )
     install_parser.set_defaults(func=cmd_install)
 
     # uninstall action

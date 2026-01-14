@@ -13,7 +13,8 @@ from gitwebhooks.utils.systemd import (
     check_root_permission,
     generate_service_file,
     get_service_path,
-    get_cli_path
+    detect_installation_type,
+    InstallationType,
 )
 from gitwebhooks.cli.prompts import ask_yes_no
 
@@ -30,57 +31,128 @@ def cmd_install(args: argparse.Namespace) -> int:
     Args:
         args: Parsed command-line arguments
             - force: Force overwrite existing service
+            - verbose: Verbosity level (0=normal, 1=verbose, 2=extra verbose)
+            - dry_run: Preview mode without actual installation
 
     Returns:
         Exit code (0 = success, 1 = error)
     """
-    # Check root permission
-    if not check_root_permission():
-        print('Error: This operation requires root privileges', file=sys.stderr)
-        print('Please use: sudo gitwebhooks-cli service install', file=sys.stderr)
-        return E_PERM
+    # Get verbose and dry_run from args
+    verbose = getattr(args, 'verbose', 0)
+    dry_run = getattr(args, 'dry_run', False)
 
-    # Check systemd availability
-    if not check_systemd():
-        print('Error: systemd is not supported on this system', file=sys.stderr)
-        return E_SYSTEMD
+    # For dry-run mode, skip root check
+    if not dry_run:
+        # Check root permission
+        if not check_root_permission():
+            print('Error: This operation requires root privileges', file=sys.stderr)
+            print('Please use: sudo gitwebhooks-cli service install', file=sys.stderr)
+            return E_PERM
 
-    # Check if service already exists
-    service_path = get_service_path()
-    if service_path.exists():
-        if not args.force:
-            print(f'Error: Service already installed', file=sys.stderr)
-            print(f'Service file: {service_path}', file=sys.stderr)
-            print('Use --force to force overwrite', file=sys.stderr)
-            return E_EXISTS
+        # Check systemd availability
+        if not check_systemd():
+            print('Error: systemd is not supported on this system', file=sys.stderr)
+            return E_SYSTEMD
 
-        # Confirm overwrite
-        if not confirm_overwrite():
-            print('Installation cancelled')
-            return 0
+        # Check if service already exists
+        service_path = get_service_path()
+        if service_path.exists():
+            if not args.force:
+                print(f'Error: Service already installed', file=sys.stderr)
+                print(f'Service file: {service_path}', file=sys.stderr)
+                print('Use --force to force overwrite', file=sys.stderr)
+                return E_EXISTS
+
+            # Confirm overwrite
+            if not confirm_overwrite():
+                print('Installation cancelled')
+                return 0
+    else:
+        # In dry-run mode, warn if service exists but continue
+        service_path = get_service_path()
+        if service_path.exists() and not args.force:
+            print(f'Notice: Service already exists at {service_path}', file=sys.stderr)
+            print('Previewing service file content (use --force to suppress this notice)...', file=sys.stderr)
+            print()
 
     # Perform installation
-    return install_service(args.force)
+    return install_service(force=args.force, verbose=verbose, dry_run=dry_run)
 
 
-def install_service(force: bool = False) -> int:
+def install_service(force: bool = False, verbose: int = 0, dry_run: bool = False) -> int:
     """Execute service installation logic
 
     Args:
         force: Force overwrite existing service
+        verbose: Verbosity level (0=normal, 1=verbose, 2=extra verbose)
+        dry_run: Preview mode without actual installation
 
     Returns:
         Exit code (0 = success, 1 = error)
     """
-    print('Installing systemd service...')
+    # Detect installation environment
+    env = detect_installation_type()
+
+    # Verbose output
+    if verbose >= 1:
+        print('Detecting Python environment...')
+        print(f'  Installation type: {env.type.value}')
+        print(f'  Python interpreter: {env.python_path}')
+        print(f'  CLI path: {env.cli_path}')
+        if verbose >= 2 and env.detection_methods:
+            print(f'  Detection methods: {", ".join(env.detection_methods)}')
+        if env.venv_root:
+            print(f'  Virtual environment root: {env.venv_root}')
+        print()
+
+    # Check if environment is supported
+    if not env.is_supported:
+        print(f'Error: {env.error_message}', file=sys.stderr)
+        print()
+        print('For migration from conda:', file=sys.stderr)
+        print('  1. Deactivate your conda environment: conda deactivate', file=sys.stderr)
+        print('  2. Install using pipx: pipx install git-webhooks-server', file=sys.stderr)
+        print('     OR create a venv: python3 -m venv ~/venv/gitwebhooks', file=sys.stderr)
+        return 1
+
+    # Warnings for non-recommended installation types
+    if env.type == InstallationType.VIRTUALENV:
+        print('Warning: virtualenv detected. venv is recommended.', file=sys.stderr)
+        print()
+    elif env.type == InstallationType.SYSTEM_PIP:
+        print('Warning: System pip installation is not recommended.', file=sys.stderr)
+        print('Consider using pipx or venv for better isolation.', file=sys.stderr)
+        print()
 
     # Get paths
     service_path = get_service_path()
-    cli_path = get_cli_path()
     config_path = '~/.gitwebhook.ini'
 
-    # Generate service file
-    service_content = generate_service_file(cli_path, config_path)
+    # Generate service file based on installation type
+    # For pipx: use cli_path directly
+    # For others: use python -m gitwebhooks.cli
+    use_python_module = env.type != InstallationType.PIPX
+
+    service_content = generate_service_file(
+        cli_path=env.cli_path,
+        config_path=config_path,
+        python_path=env.python_path if use_python_module else None,
+        use_python_module=use_python_module
+    )
+
+    # Dry-run mode
+    if dry_run:
+        print('Dry-run mode: Preview of service file:')
+        print('---')
+        print(service_content)
+        print('---')
+        print()
+        print(f'Service file would be written to: {service_path}')
+        print('Dry-run complete: No changes made.')
+        return 0
+
+    # Actual installation
+    print('Installing systemd service...')
 
     # Write service file
     try:
@@ -234,7 +306,7 @@ def stop_and_disable_service() -> None:
             check=False,
             capture_output=True
         )
-    except Exception as e:
+    except OSError as e:
         print(f'Warning: systemctl stop failed: {e}', file=sys.stderr)
         # Continue anyway
 
@@ -246,7 +318,7 @@ def stop_and_disable_service() -> None:
             check=False,
             capture_output=True
         )
-    except Exception as e:
+    except OSError as e:
         print(f'Warning: systemctl disable failed: {e}', file=sys.stderr)
         # Continue anyway
 
@@ -274,7 +346,7 @@ def remove_service_file() -> None:
             check=False,
             capture_output=True
         )
-    except Exception as e:
+    except OSError as e:
         print(f'Warning: systemctl daemon-reload failed: {e}', file=sys.stderr)
         # Continue anyway
 

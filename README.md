@@ -53,17 +53,55 @@ gitwebhooks/
 - pip (Python package manager)
 - sudo/root access (for systemd service installation)
 
-### Install via pip
+### Recommended: pipx (System-wide installation)
+
+pipx is the recommended way to install git-webhooks-server system-wide.
 
 ```bash
-# Install from PyPI (when published)
-pip install gitwebhooks
+# Install pipx (if not already installed)
+sudo apt install pipx  # Ubuntu/Debian
+# or: python3 -m pip install --user pipx
 
-# Or install from source
-git clone https://github.com/troytse/git-webhooks-server.git
-cd git-webhooks-server
-pip install .
+# Install git-webhooks-server
+pipx install git-webhooks-server
 ```
+
+**Why pipx?**
+- Isolated from system Python packages
+- No dependency conflicts
+- Easy to upgrade and uninstall
+- Automatic service file configuration
+
+### Alternative: venv (Virtual environment)
+
+If you prefer using Python's built-in venv module:
+
+```bash
+# Create virtual environment
+python3 -m venv ~/venv/gitwebhooks
+
+# Activate and install
+source ~/venv/gitwebhooks/bin/activate
+pip install git-webhooks-server
+
+# Add to PATH (optional)
+echo 'export PATH="$HOME/venv/gitwebhooks/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### ⚠️ NOT Recommended: System pip
+
+**Warning**: Installing directly with `sudo pip install` is NOT recommended:
+
+```bash
+# DO NOT DO THIS
+sudo pip install git-webhooks-server
+```
+
+**Risks**:
+- Can conflict with system Python packages
+- May break system tools that depend on Python
+- Difficult to uninstall cleanly
 
 ### Initialize Configuration
 
@@ -88,13 +126,32 @@ This will create a configuration file with secure permissions (0600).
 
 ### Install as systemd Service
 
+The service installation command automatically detects your installation type (pipx, venv, or system) and generates the appropriate service file.
+
 ```bash
 # Install and start as a systemd service
 sudo gitwebhooks-cli service install
 
+# Preview service file without installing (dry-run mode)
+sudo gitwebhooks-cli service install --dry-run
+
+# Install with verbose output
+sudo gitwebhooks-cli service install --verbose
+sudo gitwebhooks-cli service install -v      # Basic verbosity
+sudo gitwebhooks-cli service install -vv     # Extra verbosity
+
+# Force overwrite existing service
+sudo gitwebhooks-cli service install --force
+
 # Uninstall the service
 sudo gitwebhooks-cli service uninstall
 ```
+
+**Service file auto-detection**:
+- **pipx installation**: Uses `gitwebhooks-cli` command directly
+- **venv/virtualenv**: Uses `python -m gitwebhooks.cli` with environment's Python
+- **System pip**: Uses system Python with `python -m gitwebhooks.cli`
+- **conda**: Not supported - installation will be refused with clear error message
 
 ### Manual Installation
 
@@ -112,6 +169,74 @@ sudo ln "$(pwd)/gitwebhooks-cli" /usr/local/bin/gitwebhooks-cli
 
 ```bash
 gitwebhooks-cli --help
+```
+
+## Migrating from System pip Installation
+
+If you previously installed git-webhooks-server using `sudo pip install`,
+follow these steps to migrate to a recommended installation method.
+
+### Step 1: Uninstall the old installation
+
+```bash
+sudo pip uninstall git-webhooks-server
+```
+
+### Step 2: Backup your configuration (if exists)
+
+```bash
+cp ~/.gitwebhook.ini ~/.gitwebhook.ini.backup
+```
+
+### Step 3: Stop and uninstall the service (if installed)
+
+```bash
+sudo systemctl stop git-webhooks-server
+sudo systemctl disable git-webhooks-server
+sudo gitwebhooks-cli service uninstall
+```
+
+### Step 4: Install using the recommended method
+
+Choose **pipx** (recommended):
+```bash
+# Install pipx if needed
+sudo apt install pipx  # Ubuntu/Debian
+# or: python3 -m pip install --user pipx
+
+# Install git-webhooks-server
+pipx install git-webhooks-server
+```
+
+Or **venv**:
+```bash
+# Create virtual environment
+python3 -m venv ~/venv/gitwebhooks
+source ~/venv/gitwebhooks/bin/activate
+
+# Install git-webhooks-server
+pip install git-webhooks-server
+```
+
+### Step 5: Restore configuration (if backed up)
+
+```bash
+# If you backed up your configuration
+cp ~/.gitwebhook.ini.backup ~/.gitwebhook.ini
+# Or create a new one
+gitwebhooks-cli config init
+```
+
+### Step 6: Reinstall the service
+
+```bash
+sudo gitwebhooks-cli service install
+```
+
+### Step 7: Verify
+
+```bash
+sudo systemctl status git-webhooks-server
 ```
 
 ## Uninstallation

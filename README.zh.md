@@ -53,17 +53,55 @@ gitwebhooks/
 - pip（Python 包管理器）
 - sudo/root 权限（用于安装 systemd 服务）
 
-### 使用 pip 安装
+### 推荐：pipx（系统级安装）
+
+pipx 是安装 git-webhooks-server 的推荐方式。
 
 ```bash
-# 从 PyPI 安装（发布后）
-pip install gitwebhooks
+# 安装 pipx（如果尚未安装）
+sudo apt install pipx  # Ubuntu/Debian
+# 或: python3 -m pip install --user pipx
 
-# 或从源码安装
-git clone https://github.com/troytse/git-webhooks-server.git
-cd git-webhooks-server
-pip install .
+# 安装 git-webhooks-server
+pipx install git-webhooks-server
 ```
+
+**为什么选择 pipx？**
+- 与系统 Python 包隔离
+- 无依赖冲突
+- 易于升级和卸载
+- 自动服务文件配置
+
+### 备选：venv（虚拟环境）
+
+如果更喜欢使用 Python 内置的 venv 模块：
+
+```bash
+# 创建虚拟环境
+python3 -m venv ~/venv/gitwebhooks
+
+# 激活并安装
+source ~/venv/gitwebhooks/bin/activate
+pip install git-webhooks-server
+
+# 添加到 PATH（可选）
+echo 'export PATH="$HOME/venv/gitwebhooks/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### ⚠️ 不推荐：系统 pip
+
+**警告**：不推荐使用 `sudo pip install` 直接安装：
+
+```bash
+# 不要这样做
+sudo pip install git-webhooks-server
+```
+
+**风险**：
+- 可能与系统 Python 包冲突
+- 可能破坏依赖 Python 的系统工具
+- 难以完全卸载
 
 ### 初始化配置
 
@@ -88,13 +126,32 @@ sudo gitwebhooks-cli config init system # 系统级（/etc/gitwebhooks.ini，需
 
 ### 安装为 systemd 服务
 
+服务安装命令会自动检测您的安装类型（pipx、venv 或系统）并生成相应的服务文件。
+
 ```bash
 # 安装并启动为 systemd 服务
 sudo gitwebhooks-cli service install
 
+# 预览服务文件但不安装（dry-run 模式）
+sudo gitwebhooks-cli service install --dry-run
+
+# 安装并显示详细输出
+sudo gitwebhooks-cli service install --verbose
+sudo gitwebhooks-cli service install -v      # 基本详细程度
+sudo gitwebhooks-cli service install -vv     # 额外详细程度
+
+# 强制覆盖现有服务
+sudo gitwebhooks-cli service install --force
+
 # 卸载服务
 sudo gitwebhooks-cli service uninstall
 ```
+
+**服务文件自动检测**：
+- **pipx 安装**：直接使用 `gitwebhooks-cli` 命令
+- **venv/virtualenv**：使用环境的 Python 执行 `python -m gitwebhooks.cli`
+- **系统 pip**：使用系统 Python 执行 `python -m gitwebhooks.cli`
+- **conda**：不支持 - 安装将被拒绝并显示明确错误消息
 
 ### 手动安装
 
@@ -112,6 +169,74 @@ sudo ln "$(pwd)/gitwebhooks-cli" /usr/local/bin/gitwebhooks-cli
 
 ```bash
 gitwebhooks-cli --help
+```
+
+## 从系统 pip 安装迁移
+
+如果您之前使用 `sudo pip install` 安装了 git-webhooks-server，
+请按照以下步骤迁移到推荐的安装方式。
+
+### 步骤 1：卸载旧安装
+
+```bash
+sudo pip uninstall git-webhooks-server
+```
+
+### 步骤 2：备份配置（如果存在）
+
+```bash
+cp ~/.gitwebhook.ini ~/.gitwebhook.ini.backup
+```
+
+### 步骤 3：停止并卸载服务（如果已安装）
+
+```bash
+sudo systemctl stop git-webhooks-server
+sudo systemctl disable git-webhooks-server
+sudo gitwebhooks-cli service uninstall
+```
+
+### 步骤 4：使用推荐方式安装
+
+选择 **pipx**（推荐）：
+```bash
+# 安装 pipx（如果需要）
+sudo apt install pipx  # Ubuntu/Debian
+# 或: python3 -m pip install --user pipx
+
+# 安装 git-webhooks-server
+pipx install git-webhooks-server
+```
+
+或 **venv**：
+```bash
+# 创建虚拟环境
+python3 -m venv ~/venv/gitwebhooks
+source ~/venv/gitwebhooks/bin/activate
+
+# 安装 git-webhooks-server
+pip install git-webhooks-server
+```
+
+### 步骤 5：恢复配置（如果已备份）
+
+```bash
+# 如果备份了配置文件
+cp ~/.gitwebhook.ini.backup ~/.gitwebhook.ini
+# 或创建新的配置
+gitwebhooks-cli config init
+```
+
+### 步骤 6：重新安装服务
+
+```bash
+sudo gitwebhooks-cli service install
+```
+
+### 步骤 7：验证
+
+```bash
+sudo systemctl status git-webhooks-server
 ```
 
 ## 卸载
