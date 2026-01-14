@@ -3,6 +3,28 @@ Interactive configuration initialization wizard.
 
 This module provides a user-friendly wizard for creating git-webhooks-server
 configuration files through an interactive command-line interface.
+
+Features:
+- Support for GitHub, Gitee, GitLab, and custom webhook platforms
+- Automatic validation of repository names (supports dots, hyphens, underscores)
+- Direct text input for event names with platform-specific defaults
+- Secure file generation with proper permissions (0600)
+
+Validation Functions:
+- validate_repo_name: Validates repository name format
+- validate_event_input: Validates event name input (rejects newlines and digits)
+- _get_platform_default_event: Returns platform-specific default event
+
+TECHNICAL DEBT:
+This module (768 lines) exceeds the Constitution's recommended 400 line limit.
+This is acceptable because the module contains the complete interactive wizard
+logic including platform selection, repository configuration, event configuration,
+and file generation.
+
+Refactoring Plan (future task):
+- Extract validation functions to gitwebhooks/cli/wizard_validators.py
+- Consider splitting Wizard class into smaller focused classes
+- Evaluate separating platform-specific logic into dedicated handlers
 """
 
 import os
@@ -51,6 +73,19 @@ PLATFORMS = {
     }
 }
 
+# 平台默认事件值
+# 每个平台使用不同的默认事件格式：
+# - GitHub: 'push' (小写单数)
+# - Gitee: 'Push Hook' (大写带空格)
+# - GitLab: 'Push Hooks' (大写空格复数)
+# - Custom: 'webhook' (通用自定义事件)
+PLATFORM_DEFAULT_EVENTS = {
+    'github': 'push',
+    'gitee': 'Push Hook',
+    'gitlab': 'Push Hooks',
+    'custom': 'webhook',
+}
+
 
 # =============================================================================
 # Data Classes
@@ -76,7 +111,7 @@ class ServerConfig:
 class PlatformConfig:
     """Platform configuration parameters."""
     platform: str
-    handle_events: List[str]
+    handle_events: str  # Changed from List[str] to str - comma-separated event names
     verify: bool
     secret: Optional[str] = None
     custom_params: Optional[Dict[str, str]] = None
@@ -96,19 +131,31 @@ class RepositoryConfig:
 
 def validate_repo_name(value: str) -> bool:
     """
-    Validate repository name format.
+    验证仓库名称格式。
 
-    Supports:
-    - Two-level format: owner/repo (GitHub/Gitee)
-    - Multi-level format: group/subgroup/project (GitLab)
+    支持的格式：
+    - Two-level: owner/repo (GitHub/Gitee)
+    - Multi-level: group/subgroup/project (GitLab)
+    - 特殊字符: 支持点号、连字符、下划线
+
+    有效示例：
+    - owner/repo
+    - my-org/my-repo
+    - user.repo/project
+    - group/sub_group/project.name
+
+    无效示例：
+    - owner repo (包含空格)
+    - owner/repo/ (尾部斜杠)
+    - owner@org/repo (包含不支持的字符)
 
     Args:
-        value: Repository name string
+        value: 仓库名称字符串
 
     Returns:
         True if valid, False otherwise
     """
-    return bool(re.match(r'^[^/]+(/[^/]+)+$', value))
+    return bool(re.match(r'^[\w.-]+(/[\w.-]+)*$', value))
 
 
 def validate_existing_path(value: str) -> bool:
@@ -154,6 +201,50 @@ def validate_port(value: str) -> bool:
         return False
 
 
+def validate_event_input(value: str) -> tuple[bool, str]:
+    """
+    验证事件名称输入。
+
+    验证规则：
+    1. 不能为空字符串
+    2. 不能包含换行符（会破坏 INI 文件格式）
+    3. 不能包含数字（拒绝旧的数字选择格式）
+
+    Args:
+        value: 用户输入的事件名称
+
+    Returns:
+        (is_valid, error_message) - 验证结果和错误消息（如果验证失败）
+    """
+    # 空输入检查（由调用方处理默认值，这里只做非空检查）
+    if not value or not value.strip():
+        return False, "事件名称不能为空"
+
+    # 换行符检查
+    if '\n' in value or '\r' in value:
+        return False, "事件名称不能包含换行符"
+
+    # 数字检查：去除逗号和空格后检查是否包含数字
+    cleaned = value.replace(',', '').replace(' ', '')
+    if any(c.isdigit() for c in cleaned):
+        return False, "请直接输入事件名称，不支持数字选择"
+
+    return True, ""
+
+
+def _get_platform_default_event(platform: str) -> str:
+    """
+    获取平台默认事件值。
+
+    Args:
+        platform: 平台名称 (github/gitee/gitlab/custom)
+
+    Returns:
+        默认事件字符串，如果平台未找到则返回 'webhook'
+    """
+    return PLATFORM_DEFAULT_EVENTS.get(platform.lower(), 'webhook')
+
+
 # =============================================================================
 # INI Generation Functions
 # =============================================================================
@@ -186,7 +277,7 @@ def _generate_config(
     # Platform section
     platform_section = platform.platform
     platform_config = {
-        'handle_events': ', '.join(platform.handle_events),
+        'handle_events': platform.handle_events,  # Direct string value
         'verify': 'true' if platform.verify else 'false'
     }
 
@@ -202,7 +293,7 @@ def _generate_config(
     config[platform_section] = platform_config
 
     # Repository section
-    repo_section = f'repo/{repo.name}'
+    repo_section = repo.name
     config[repo_section] = {
         'cwd': repo.cwd,
         'cmd': repo.cmd
@@ -489,51 +580,38 @@ class Wizard:
             custom_params=custom_params
         )
 
-    def _collect_events(self, platform: str) -> List[str]:
+    def _collect_events(self, platform: str) -> str:
         """
-        Collect webhook events to handle.
+        收集平台要处理的事件名称。
+
+        改为直接文本输入方式，支持逗号分隔多个事件。
+        空输入时使用平台默认值。
 
         Args:
-            platform: Platform name
+            platform: Platform name (github/gitee/gitlab/custom)
 
         Returns:
-            List of event names
+            逗号分隔的事件名称字符串
         """
-        platform_info = PLATFORMS[platform]
-
-        if platform == 'custom':
-            # Custom platform: ask for event name
-            print("自定义平台事件处理")
-            print("输入要处理的事件名称（直接回车跳过）:")
-            events_str = input().strip()
-            return [e.strip() for e in events_str.split(',') if e.strip()] if events_str else ['webhook']
-
-        # Standard platforms: show event list
-        events = platform_info['events']
-        print("选择要处理的 webhook 事件（多个用逗号分隔，直接回车默认选 1）:")
-        for idx, event in enumerate(events, 1):
-            print(f"  {idx}. {event}")
+        default_event = _get_platform_default_event(platform)
+        prompt = f"输入要处理的事件名称（多个用逗号分隔，直接回车默认: {default_event}）: "
 
         while True:
-            try:
-                choice = input("输入选择: ").strip()
-                if not choice:
-                    # Default to first event (push)
-                    return [events[0]]
+            value = input(prompt).strip()
 
-                # Parse comma-separated indices
-                indices = [int(x.strip()) - 1 for x in choice.split(',')]
+            # 空输入使用默认值
+            if not value:
+                return default_event
 
-                # Validate indices
-                if all(0 <= i < len(events) for i in indices):
-                    return [events[i] for i in indices]
-                else:
-                    print(f"无效选择，请输入 1-{len(events)} 之间的数字，多个用逗号分隔")
+            # 验证输入
+            is_valid, error_msg = validate_event_input(value)
+            if not is_valid:
+                print(f"错误: {error_msg}")
+                continue
 
-            except ValueError:
-                print("请输入有效的数字，多个用逗号分隔")
-            except KeyboardInterrupt:
-                raise
+            # 去除逗号前后的空格
+            cleaned = ','.join(part.strip() for part in value.split(','))
+            return cleaned
 
     def _collect_custom_params(self) -> Dict[str, str]:
         """
@@ -585,7 +663,7 @@ class Wizard:
             repo_name = input("输入仓库名称 (格式: owner/repo): ").strip()
             if validate_repo_name(repo_name):
                 break
-            print("仓库名称格式不正确，应为 owner/repo 格式")
+            print("仓库名称只能包含字母、数字、斜杠、点号、连字符和下划线")
 
         # Working directory
         while True:
