@@ -40,3 +40,16 @@ MESSAGE_INTERNAL_SERVER_ERROR = 'Internal Server Error'
 
 # Reserved configuration sections
 RESERVED_SECTIONS = {'server', 'ssl', 'github', 'gitee', 'gitlab', 'custom'}
+
+# Configuration file paths (in priority order)
+CONFIG_PATH_USER = "~/.gitwebhooks.ini"
+CONFIG_PATH_LOCAL = "/usr/local/etc/gitwebhooks.ini"
+CONFIG_PATH_SYSTEM = "/etc/gitwebhooks.ini"
+CONFIG_SEARCH_PATHS = [CONFIG_PATH_USER, CONFIG_PATH_LOCAL, CONFIG_PATH_SYSTEM]
+
+# Sensitive field keywords
+SENSITIVE_KEYWORDS = {"secret", "password", "token", "key", "passphrase"}
+
+# ANSI color codes for sensitive field highlighting
+COLOR_SENSITIVE = "\033[33m"  # Yellow
+COLOR_RESET = "\033[0m"

@@ -4,7 +4,7 @@ Provides subcommand registration and implementation for gitwebhooks-cli.
 """
 
 from gitwebhooks.cli.service import cmd_install, cmd_uninstall
-from gitwebhooks.cli.config import cmd_init
+from gitwebhooks.cli.config import cmd_init, cmd_view
 
 
 def register_subparsers(subparsers):
@@ -80,3 +80,13 @@ def register_config_subparser(subparsers):
         help='Output configuration file path (default: ~/.gitwebhook.ini)'
     )
     init_parser.set_defaults(func=cmd_init)
+
+    # view action
+    view_parser = config_subparsers.add_parser('view')
+    view_parser.add_argument(
+        '-c',
+        '--config',
+        dest='config',
+        help='Path to configuration file (default: auto-detect)'
+    )
+    view_parser.set_defaults(func=cmd_view)

@@ -197,6 +197,26 @@ gitwebhooks-cli config init
 gitwebhooks-cli config init --output /path/to/config.ini
 ```
 
+### 查看配置
+
+```bash
+# 查看当前配置文件（自动检测位置）
+gitwebhooks-cli config view
+
+# 查看指定配置文件
+gitwebhooks-cli config view -c /path/to/config.ini
+```
+
+`config view` 命令显示：
+- 配置文件路径和来源（用户指定或自动检测）
+- 按节组织的配置内容
+- 敏感字段（包含：secret、password、token、key、passphrase）以黄色高亮显示
+
+禁用颜色高亮：
+```bash
+NO_COLOR=1 gitwebhooks-cli config view
+```
+
 ### 服务器配置
 
 ```ini

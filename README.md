@@ -197,6 +197,26 @@ gitwebhooks-cli config init
 gitwebhooks-cli config init --output /path/to/config.ini
 ```
 
+### View Configuration
+
+```bash
+# View current configuration file (auto-detects location)
+gitwebhooks-cli config view
+
+# View specific configuration file
+gitwebhooks-cli config view -c /path/to/config.ini
+```
+
+The `config view` command displays:
+- Configuration file path and source (user-specified or auto-detected)
+- Configuration content organized by sections
+- Sensitive fields (containing: secret, password, token, key, passphrase) highlighted in yellow
+
+To disable color highlighting:
+```bash
+NO_COLOR=1 gitwebhooks-cli config view
+```
+
 ### Server Configuration
 
 ```ini
