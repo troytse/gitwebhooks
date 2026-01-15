@@ -16,7 +16,7 @@ from typing import Optional, List
 class InstallationType(Enum):
     """Installation type enumeration
 
-    Represents the method used to install git-webhooks-server.
+    Represents the method used to install gitwebhooks.
     """
     PIPX = "pipx"          # Installed via pipx (recommended)
     VENV = "venv"          # Python standard library venv
@@ -49,7 +49,7 @@ class InstallationEnvironment:
 # Service file template
 SERVICE_TEMPLATE = """[Unit]
 Description=Git Webhooks Server
-Documentation=https://github.com/troytse/git-webhooks-server
+Documentation=https://github.com/troytse/gitwebhooks
 After=network-online.target
 Wants=network-online.target
 
@@ -244,7 +244,7 @@ def get_service_path() -> Path:
     Returns:
         Path to service file location
     """
-    return Path('/etc/systemd/system/git-webhooks-server.service')
+    return Path('/etc/systemd/system/gitwebhooks.service')
 
 
 def get_cli_path() -> str:

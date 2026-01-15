@@ -58,10 +58,8 @@ class TestConfigLoading(unittest.TestCase):
             nonexistent_config = f"{temp_dir}/nonexistent.ini"
 
             # Run server with nonexistent config
-            server_script = Path(__file__).parent.parent.parent / "git-webhooks-server.py"
-
             result = subprocess.run(
-                [sys.executable, str(server_script), "-c", nonexistent_config],
+                [sys.executable, '-m', 'gitwebhooks.cli', '-c', nonexistent_config],
                 capture_output=True,
                 timeout=5
             )
@@ -82,10 +80,8 @@ class TestConfigLoading(unittest.TestCase):
             invalid_config = f.name
 
         try:
-            server_script = Path(__file__).parent.parent.parent / "git-webhooks-server.py"
-
             result = subprocess.run(
-                [sys.executable, str(server_script), "-c", invalid_config],
+                [sys.executable, '-m', 'gitwebhooks.cli', '-c', invalid_config],
                 capture_output=True,
                 timeout=5
             )
@@ -126,10 +122,8 @@ class TestConfigLoading(unittest.TestCase):
         The server should display usage help when -h or --help
         is provided.
         """
-        server_script = Path(__file__).parent.parent.parent / "git-webhooks-server.py"
-
         result = subprocess.run(
-            [sys.executable, str(server_script), "-h"],
+            [sys.executable, '-m', 'gitwebhooks.cli', '-h'],
             capture_output=True,
             timeout=5
         )

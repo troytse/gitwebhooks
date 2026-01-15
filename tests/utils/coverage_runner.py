@@ -1,5 +1,5 @@
 """
-Coverage Runner for git-webhooks-server Test Suite
+Coverage Runner for gitwebhooks Test Suite
 
 This module provides a CoverageRunner class for generating code coverage
 reports using Python's trace module.
@@ -110,7 +110,7 @@ class CoverageRunner:
     Code coverage runner using Python's trace module.
 
     This class runs tests and generates coverage reports for the
-    git-webhooks-server codebase.
+    gitwebhooks codebase.
 
     Usage:
         runner = CoverageRunner(cover_dir="coverage")

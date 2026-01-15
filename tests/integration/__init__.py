@@ -1,3 +1,3 @@
 # Integration Tests
 #
-# Integration tests for git-webhooks-server end-to-end workflows.
+# Integration tests for gitwebhooks end-to-end workflows.

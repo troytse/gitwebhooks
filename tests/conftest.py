@@ -1,5 +1,5 @@
 """
-Shared fixtures and configuration for git-webhooks-server test suite.
+Shared fixtures and configuration for gitwebhooks test suite.
 
 This module provides common test fixtures used across all test modules.
 """

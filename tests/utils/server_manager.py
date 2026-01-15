@@ -1,7 +1,7 @@
 """
-Server Manager for git-webhooks-server Testing
+Server Manager for gitwebhooks Testing
 
-This module provides a TestServer class for managing the git-webhooks-server
+This module provides a TestServer class for managing the gitwebhooks
 in test environments. It handles starting, stopping, and monitoring the server.
 """
 
@@ -25,7 +25,7 @@ from gitwebhooks.handlers.request import WebhookRequestHandler
 
 class TestServer:
     """
-    Test server manager for git-webhooks-server.
+    Test server manager for gitwebhooks.
 
     This class manages the HTTP server in a background thread for testing.
     It provides methods to start, stop, and monitor the server state.

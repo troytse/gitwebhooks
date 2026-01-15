@@ -50,7 +50,7 @@ class TestConfigViewIntegration(WebhookTestCase):
             config_content = """[server]
 address = 0.0.0.0
 port = 6789
-log_file = /var/log/git-webhooks-server.log
+log_file = /var/log/gitwebhooks.log
 
 [github]
 handle_events = push

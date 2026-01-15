@@ -49,19 +49,19 @@ gitwebhooks-cli
 gitwebhooks-cli -c /path/to/config.ini
 
 # systemd 服务管理
-systemctl start git-webhooks-server
-systemctl stop git-webhooks-server
-systemctl restart git-webhooks-server
-systemctl status git-webhooks-server
+systemctl start gitwebhooks
+systemctl stop gitwebhooks
+systemctl restart gitwebhooks
+systemctl status gitwebhooks
 ```
 
 ### 测试开发
 ```bash
 # 直接运行（开发模式）
-./gitwebhooks-cli -c git-webhooks-server.ini.sample
+./gitwebhooks-cli -c gitwebhooks.ini.sample
 
 # 或使用模块方式
-python3 -m gitwebhooks.cli -c git-webhooks-server.ini.sample
+python3 -m gitwebhooks.cli -c gitwebhooks.ini.sample
 
 # 运行测试套件
 python3 -m pytest tests/
@@ -204,7 +204,7 @@ python3 -m pytest tests/
 ## 文件结构
 
 ```
-git-webhooks-server/
+gitwebhooks/
 ├── gitwebhooks-cli                  # CLI 命令行工具
 ├── gitwebhooks/                     # 主包目录
 │   ├── __init__.py                  # 包入口
@@ -250,8 +250,8 @@ git-webhooks-server/
 │   ├── integration/                 # 集成测试
 │   ├── utils/                       # 测试工具
 │   └── conftest.py                  # pytest 配置
-├── git-webhooks-server.ini.sample   # 配置文件模板
-├── git-webhooks-server.service.sample # systemd 服务模板
+├── gitwebhooks.ini.sample           # 配置文件模板
+├── gitwebhooks.service.sample       # systemd 服务模板
 ├── install.sh                       # 安装/卸载脚本
 ├── message.sh                       # 颜色输出辅助脚本
 ├── README.md                        # 项目说明（英文）
@@ -268,10 +268,10 @@ git-webhooks-server/
 
 ## 配置文件位置
 
-- 默认配置路径: `/usr/local/etc/git-webhooks-server.ini`
-- 日志文件: `/var/log/git-webhooks-server.log`
+- 默认配置路径: `/usr/local/etc/gitwebhooks.ini`
+- 日志文件: `/var/log/gitwebhooks.log`
 - 安装后的 CLI: `/usr/local/bin/gitwebhooks-cli`
-- systemd 服务: `/usr/lib/systemd/system/git-webhooks-server.service`
+- systemd 服务: `/usr/lib/systemd/system/gitwebhooks.service`
 
 ## Active Technologies
 - Python 3.6+ + Python 标准库（无外部依赖）

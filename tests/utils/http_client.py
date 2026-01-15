@@ -1,5 +1,5 @@
 """
-HTTP Test Client for git-webhooks-server
+HTTP Test Client for gitwebhooks
 
 This module provides a simple HTTP client for sending webhook requests
 during testing. Uses only Python standard library (http.client).

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test Suite Entry Point for git-webhooks-server
+Test Suite Entry Point for gitwebhooks
 
 This module provides the main entry point for running the test suite.
 It supports test discovery, execution, and reporting.
@@ -29,7 +29,7 @@ def main(argv=None) -> int:
         int: 0 if all tests pass, 1 otherwise
     """
     parser = argparse.ArgumentParser(
-        description="Run git-webhooks-server test suite"
+        description="Run gitwebhooks test suite"
     )
     parser.add_argument(
         "-v", "--verbose",

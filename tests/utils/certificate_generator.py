@@ -1,5 +1,5 @@
 """
-SSL Certificate Generator for git-webhooks-server Testing
+SSL Certificate Generator for gitwebhooks Testing
 
 This module provides a TestCertificate class for generating self-signed
 SSL certificates for testing HTTPS connections.

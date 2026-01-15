@@ -1,7 +1,7 @@
 """
 Interactive configuration initialization wizard.
 
-This module provides a user-friendly wizard for creating git-webhooks-server
+This module provides a user-friendly wizard for creating gitwebhooks
 configuration files through an interactive command-line interface.
 
 Features:
@@ -310,7 +310,7 @@ class Wizard:
     """
     Interactive configuration wizard.
 
-    Guides users through creating a git-webhooks-server configuration file
+    Guides users through creating a gitwebhooks configuration file
     by collecting server, platform, and repository configuration parameters.
     """
 
@@ -487,7 +487,7 @@ class Wizard:
             print("端口号必须在 1-65535 之间")
 
         # Log file
-        default_log = "/var/log/git-webhooks-server.log"
+        default_log = "/var/log/gitwebhooks.log"
         log_file = input(f"日志文件路径 [默认: {default_log}]: ").strip()
         if not log_file:
             log_file = default_log

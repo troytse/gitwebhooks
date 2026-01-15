@@ -1,3 +1,3 @@
 # Unit Tests
 #
-# Unit tests for git-webhooks-server components.
+# Unit tests for gitwebhooks components.

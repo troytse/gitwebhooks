@@ -111,7 +111,7 @@ def install_service(force: bool = False, verbose: int = 0, dry_run: bool = False
         print()
         print('For migration from conda:', file=sys.stderr)
         print('  1. Deactivate your conda environment: conda deactivate', file=sys.stderr)
-        print('  2. Install using pipx: pipx install git-webhooks-server', file=sys.stderr)
+        print('  2. Install using pipx: pipx install gitwebhooks', file=sys.stderr)
         print('     OR create a venv: python3 -m venv ~/venv/gitwebhooks', file=sys.stderr)
         return 1
 
@@ -205,14 +205,14 @@ def enable_and_start_service() -> int:
     # Ask if user wants to enable and start
     if not ask_yes_no('Enable and start service? (Y/n) ', default=True):
         print('Service installed but not started')
-        print('Start manually: sudo systemctl start git-webhooks-server')
+        print('Start manually: sudo systemctl start gitwebhooks')
         return 0
 
     # Enable service
     print('Enabling service...')
     try:
         subprocess.run(
-            ['systemctl', 'enable', 'git-webhooks-server'],
+            ['systemctl', 'enable', 'gitwebhooks'],
             check=True,
             capture_output=True
         )
@@ -224,7 +224,7 @@ def enable_and_start_service() -> int:
     print('Starting service...')
     try:
         subprocess.run(
-            ['systemctl', 'start', 'git-webhooks-server'],
+            ['systemctl', 'start', 'gitwebhooks'],
             check=True,
             capture_output=True
         )
@@ -234,7 +234,7 @@ def enable_and_start_service() -> int:
 
     print()
     print('Installation complete!')
-    print('Service status: systemctl status git-webhooks-server')
+    print('Service status: systemctl status gitwebhooks')
 
     return 0
 
@@ -302,7 +302,7 @@ def stop_and_disable_service() -> None:
     print('Stopping service...')
     try:
         subprocess.run(
-            ['systemctl', 'stop', 'git-webhooks-server'],
+            ['systemctl', 'stop', 'gitwebhooks'],
             check=False,
             capture_output=True
         )
@@ -314,7 +314,7 @@ def stop_and_disable_service() -> None:
     print('Disabling service...')
     try:
         subprocess.run(
-            ['systemctl', 'disable', 'git-webhooks-server'],
+            ['systemctl', 'disable', 'gitwebhooks'],
             check=False,
             capture_output=True
         )

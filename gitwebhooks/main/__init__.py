@@ -1,6 +1,6 @@
 """CLI main function
 
-Command-line interface module providing compatibility with the original git-webhooks-server.py.
+Command-line interface module providing compatibility with the original gitwebhooks.py.
 """
 
 import argparse

@@ -1,6 +1,6 @@
-# Test Suite for git-webhooks-server
+# Test Suite for gitwebhooks
 #
-# This package contains the complete test suite for the git-webhooks-server project.
+# This package contains the complete test suite for the gitwebhooks project.
 #
 # Running Tests:
 #     python -m tests                    # Run all tests

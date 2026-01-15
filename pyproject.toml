@@ -58,10 +58,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/troytse/git-webhooks-server"
-Documentation = "https://github.com/troytse/git-webhooks-server#readme"
-Repository = "https://github.com/troytse/git-webhooks-server.git"
-Issues = "https://github.com/troytse/git-webhooks-server/issues"
+Homepage = "https://github.com/troytse/gitwebhooks"
+Documentation = "https://github.com/troytse/gitwebhooks#readme"
+Repository = "https://github.com/troytse/gitwebhooks.git"
+Issues = "https://github.com/troytse/gitwebhooks/issues"
 
 [project.scripts]
 gitwebhooks-cli = "gitwebhooks.main:main"
