@@ -42,7 +42,7 @@ sudo gitwebhooks-cli service uninstall
 # 方式1: 使用模块入口
 python3 -m gitwebhooks.cli -c /path/to/config.ini
 
-# 方式2: 使用 CLI 工具（使用默认配置）
+# 方式2: 使用 CLI 工具（自动查找配置文件）
 gitwebhooks-cli
 
 # 方式3: 指定配置文件
@@ -54,6 +54,14 @@ systemctl stop gitwebhooks
 systemctl restart gitwebhooks
 systemctl status gitwebhooks
 ```
+
+**配置文件自动查找**：
+- 不指定 `-c` 参数时，系统按优先级自动查找配置文件：
+  1. `~/.gitwebhooks.ini`（用户级，最高优先级）
+  2. `/usr/local/etc/gitwebhooks.ini`（本地级）
+  3. `/etc/gitwebhooks.ini`（系统级）
+- 启动时会显示正在使用的配置文件路径
+- 找不到配置文件时显示友好的错误消息
 
 ### 测试开发
 ```bash
@@ -292,6 +300,7 @@ gitwebhooks/
 - INI 配置文件，systemd 服务单元文件 (001-install-method-guidance)
 - Python 3.7+ (项目要求) + Python 标准库仅（无外部依赖） (001-fix-config-init-bug)
 - INI 配置文件 (configparser) (001-fix-config-init-bug)
+- Python 3.7+ (项目要求) + Python 标准库（pathlib, configparser, argparse） (001-config-priority)
 
 ## Recent Changes
 - 001-config-init-wizard: 添加 `config init` 交互式向导，支持配置级别选择、平台配置和仓库配置

@@ -251,9 +251,47 @@ pip uninstall gitwebhooks
 
 ## Usage
 
+### Configuration File Auto-Discovery
+
+The `gitwebhooks-cli` automatically searches for configuration files in the following order (priority):
+
+1. **User level**: `~/.gitwebhooks.ini` (highest priority)
+2. **Local level**: `/usr/local/etc/gitwebhooks.ini`
+3. **System level**: `/etc/gitwebhooks.ini` (lowest priority)
+
+You can run `gitwebhooks-cli` without specifying `-c` parameter, and it will automatically use the first existing configuration file.
+
+```bash
+# Auto-discover and use configuration file
+gitwebhooks-cli
+
+# The server will display which config file is being used
+# Using configuration file: /home/user/.gitwebhooks.ini
+```
+
+If you want to use a specific configuration file, use the `-c` parameter:
+
+```bash
+# Use a specific configuration file
+gitwebhooks-cli -c /path/to/custom.ini
+```
+
+If no configuration file is found, a friendly error message will display all searched paths:
+
+```
+Error: Configuration file not found.
+Searched paths:
+  1. /home/user/.gitwebhooks.ini
+  2. /usr/local/etc/gitwebhooks.ini
+  3. /etc/gitwebhooks.ini
+
+You can create a configuration file using:
+  gitwebhooks-cli config init
+```
+
 ### 1. Configure Repository
 
-Edit `~/.gitwebhook.ini`:
+Edit your configuration file (e.g., `~/.gitwebhooks.ini`):
 
 ```ini
 [your_name/repository]
@@ -267,7 +305,7 @@ cmd=git fetch --all && git reset --hard origin/master && git pull
 # If running as a service
 systemctl restart gitwebhooks
 
-# Or run directly:
+# Or run directly (auto-discovers config file):
 gitwebhooks-cli
 ```
 
