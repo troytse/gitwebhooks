@@ -251,9 +251,47 @@ pip uninstall gitwebhooks
 
 ## 使用
 
+### 配置文件自动查找
+
+`gitwebhooks-cli` 会自动按以下顺序（优先级）搜索配置文件：
+
+1. **用户级**：`~/.gitwebhooks.ini`（最高优先级）
+2. **本地级**：`/usr/local/etc/gitwebhooks.ini`
+3. **系统级**：`/etc/gitwebhooks.ini`（最低优先级）
+
+您可以直接运行 `gitwebhooks-cli` 而无需指定 `-c` 参数，系统会自动使用第一个存在的配置文件。
+
+```bash
+# 自动查找并使用配置文件
+gitwebhooks-cli
+
+# 服务器会显示正在使用的配置文件
+# Using configuration file: /home/user/.gitwebhooks.ini
+```
+
+如果需要使用特定的配置文件，可以使用 `-c` 参数：
+
+```bash
+# 使用指定的配置文件
+gitwebhooks-cli -c /path/to/custom.ini
+```
+
+如果找不到配置文件，会显示友好的错误消息并列出所有搜索路径：
+
+```
+Error: Configuration file not found.
+Searched paths:
+  1. /home/user/.gitwebhooks.ini
+  2. /usr/local/etc/gitwebhooks.ini
+  3. /etc/gitwebhooks.ini
+
+You can create a configuration file using:
+  gitwebhooks-cli config init
+```
+
 ### 1. 配置仓库
 
-编辑 `~/.gitwebhook.ini`：
+编辑您的配置文件（例如 `~/.gitwebhooks.ini`）：
 
 ```ini
 [your_name/repository]
@@ -267,7 +305,7 @@ cmd=git fetch --all && git reset --hard origin/master && git pull
 # 如果作为服务运行
 systemctl restart gitwebhooks
 
-# 或直接运行：
+# 或直接运行（自动查找配置文件）：
 gitwebhooks-cli
 ```
 

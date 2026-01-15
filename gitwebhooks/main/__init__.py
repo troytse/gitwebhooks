@@ -6,10 +6,11 @@ Command-line interface module providing compatibility with the original gitwebho
 import argparse
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from gitwebhooks.server import WebhookServer
 from gitwebhooks.utils.exceptions import ConfigurationError
+from gitwebhooks.utils.constants import CONFIG_SEARCH_PATHS
 
 # Try to import subcommands, may not be available in older versions
 try:
@@ -17,6 +18,56 @@ try:
     HAS_SUBCOMMANDS = True
 except ImportError:
     HAS_SUBCOMMANDS = False
+
+
+def find_config_file() -> Optional[str]:
+    """Find configuration file by priority order.
+
+    Searches for configuration files in the following order:
+    1. User level: ~/.gitwebhooks.ini
+    2. Local level: /usr/local/etc/gitwebhooks.ini
+    3. System level: /etc/gitwebhooks.ini
+
+    Returns:
+        Path string of the first existing configuration file, or None if not found.
+
+    Examples:
+        >>> find_config_file()  # doctest: +SKIP
+        '/home/user/.gitwebhooks.ini'
+        >>> find_config_file()  # doctest: +SKIP
+        None
+    """
+    for config_path in CONFIG_SEARCH_PATHS:
+        expanded_path = Path(config_path).expanduser().resolve()
+        if expanded_path.exists():
+            return str(expanded_path)
+    return None
+
+
+def format_config_error(searched_paths: List[Path]) -> str:
+    """Format user-friendly error message for missing configuration file.
+
+    Args:
+        searched_paths: List of paths that were searched.
+
+    Returns:
+        Formatted error message string.
+
+    Examples:
+        >>> paths = [Path('/home/user/.gitwebhooks.ini')]
+        >>> format_config_error(paths)  # doctest: +SKIP
+        'Error: Configuration file not found.\\nSearched paths:\\n  1. /home/user/.gitwebhooks.ini\\n\\nYou can create a configuration file using:\\n  gitwebhooks-cli config init'
+    """
+    lines = [
+        'Error: Configuration file not found.',
+        'Searched paths:'
+    ]
+    for i, path in enumerate(searched_paths, 1):
+        lines.append(f'  {i}. {path}')
+    lines.append('')
+    lines.append('You can create a configuration file using:')
+    lines.append('  gitwebhooks-cli config init')
+    return '\n'.join(lines)
 
 
 def main(argv: List[str] = None) -> int:
@@ -33,14 +84,18 @@ def main(argv: List[str] = None) -> int:
 
     Command Line Arguments:
         -h, --help      Show help message and exit
-        -c, --config    Specify configuration file path
+        -c, --config    Specify configuration file path (optional)
         service         Service management subcommands
         config          Configuration management subcommands
 
-    Default Config Path:
-        ~/.gitwebhook.ini
+    Config Discovery:
+        When -c is not specified, searches in order:
+        1. ~/.gitwebhooks.ini (user level)
+        2. /usr/local/etc/gitwebhooks.ini (local level)
+        3. /etc/gitwebhooks.ini (system level)
 
     Examples:
+        python3 -m gitwebhooks.main
         python3 -m gitwebhooks.main -c /path/to/config.ini
         gitwebhooks-cli --config /etc/webhooks.ini
         gitwebhooks-cli service install
@@ -48,9 +103,6 @@ def main(argv: List[str] = None) -> int:
     """
     if argv is None:
         argv = sys.argv[1:]
-
-    # Default configuration file path (changed to user home directory)
-    default_config = '~/.gitwebhook.ini'
 
     # Create main argument parser
     parser = argparse.ArgumentParser(
@@ -60,8 +112,8 @@ def main(argv: List[str] = None) -> int:
     )
     parser.add_argument(
         '-c', '--config',
-        default=default_config,
-        help='Path to INI configuration file (default: ~/.gitwebhook.ini)'
+        default=None,
+        help='Path to INI configuration file (default: auto-discover)'
     )
 
     # Add subcommands if available
@@ -80,15 +132,25 @@ def main(argv: List[str] = None) -> int:
     return args.func(args)
 
 
-def run_server(config_file: str) -> int:
+def run_server(config_file: Optional[str]) -> int:
     """Run the webhook server
 
     Args:
-        config_file: Path to configuration file
+        config_file: Path to configuration file, or None to auto-discover
 
     Returns:
         Exit code (0 = success, 1 = error)
     """
+    # Auto-discover config file if not specified
+    if config_file is None:
+        config_file = find_config_file()
+        if config_file is None:
+            # No config found - format error with all search paths
+            searched_paths = [Path(p).expanduser().resolve() for p in CONFIG_SEARCH_PATHS]
+            error_msg = format_config_error(searched_paths)
+            print(error_msg, file=sys.stderr)
+            return 1
+
     # Expand user path
     config_path = Path(config_file).expanduser()
 
@@ -96,6 +158,9 @@ def run_server(config_file: str) -> int:
     if not config_path.exists():
         print(f'Error: Configuration file not found: {config_path}', file=sys.stderr)
         return 1
+
+    # Print configuration file being used
+    print(f'Using configuration file: {config_path}')
 
     # Create and run server
     try:
