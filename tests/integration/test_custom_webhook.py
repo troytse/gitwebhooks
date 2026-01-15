@@ -109,7 +109,7 @@ class TestCustomWebhook(WebhookTestCase):
         Test that wrong header_token returns 401.
         """
         config_builder = TestConfigBuilder(self.temp_dir)
-        config_builder.set_platform_verify('custom', verify=False, secret="correct_secret")
+        config_builder.set_platform_verify('custom', verify=True, secret="correct_secret")
         config_builder.add_repository("team/repo", self.temp_dir,
                                      "echo 'test' > /dev/null")
         config_path = config_builder.build()

@@ -59,11 +59,10 @@ class TestSignatureVerification(unittest.TestCase):
         """
         Test Gitee HMAC-SHA256 signature calculation.
         """
-        payload = b'{"test": "data"}'
         secret = "test_secret"
         timestamp = 1705000000
 
-        signature = SignatureBuilder.gitee_signature(payload, secret, timestamp)
+        signature = SignatureBuilder.gitee_signature(secret, timestamp)
 
         # Should be Base64 encoded
         import base64
@@ -79,21 +78,20 @@ class TestSignatureVerification(unittest.TestCase):
         """
         Test Gitee signature verification.
         """
-        payload = b'{"test": "data"}'
         secret = "test_secret"
         timestamp = 1705000000
 
-        correct_sig = SignatureBuilder.gitee_signature(payload, secret, timestamp)
+        correct_sig = SignatureBuilder.gitee_signature(secret, timestamp)
 
         # Correct signature should verify
         self.assertTrue(
-            SignatureBuilder.verify_gitee_signature(payload, secret, timestamp, correct_sig)
+            SignatureBuilder.verify_gitee_signature(secret, timestamp, correct_sig)
         )
 
         # Wrong signature should fail
         wrong_sig = base64.b64encode(b"wrong_signature").decode()
         self.assertFalse(
-            SignatureBuilder.verify_gitee_signature(payload, secret, timestamp, wrong_sig)
+            SignatureBuilder.verify_gitee_signature(secret, timestamp, wrong_sig)
         )
 
     def test_gitlab_token_comparison(self):
@@ -207,11 +205,10 @@ class TestSignatureVerification(unittest.TestCase):
         """
         Test that different timestamps produce different Gitee signatures.
         """
-        payload = b'{"test": "data"}'
         secret = "test_secret"
 
-        sig1 = SignatureBuilder.gitee_signature(payload, secret, 1705000000)
-        sig2 = SignatureBuilder.gitee_signature(payload, secret, 1705000001)
+        sig1 = SignatureBuilder.gitee_signature(secret, 1705000000)
+        sig2 = SignatureBuilder.gitee_signature(secret, 1705000001)
 
         self.assertNotEqual(sig1, sig2)
 

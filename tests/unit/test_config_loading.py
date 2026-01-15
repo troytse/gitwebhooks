@@ -123,14 +123,13 @@ class TestConfigLoading(unittest.TestCase):
         is provided.
         """
         result = subprocess.run(
-            [sys.executable, '-m', 'gitwebhooks.cli', '-h'],
+            [sys.executable, '-m', 'gitwebhooks.main', '-h'],
             capture_output=True,
             timeout=5
         )
 
         # Should exit with code 0 (help displayed)
-        # Note: help() calls sys.exit(0) in the server code
-        self.assertIn(result.returncode, [0, 1])
+        self.assertEqual(result.returncode, 0)
 
         # Output should contain usage information
         output = result.stdout.decode('utf-8') + result.stderr.decode('utf-8')

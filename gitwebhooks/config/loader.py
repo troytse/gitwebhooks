@@ -98,15 +98,21 @@ class ConfigLoader:
 
         Note:
             Skips reserved section names: server, ssl, github, gitee, gitlab, custom
+            Skips repository sections with missing required options (logs warning)
         """
         configs = {}
         reserved_sections = self._get_reserved_sections()
 
         for section in self.parser.sections():
             if section not in reserved_sections:
-                repo_config = self.load_repository_config(section)
-                if repo_config is not None:
-                    configs[section] = repo_config
+                try:
+                    repo_config = self.load_repository_config(section)
+                    if repo_config is not None:
+                        configs[section] = repo_config
+                except (configparser.NoOptionError, ConfigurationError) as e:
+                    # Skip incomplete repository configurations
+                    import logging
+                    logging.warning('跳过不完整的仓库配置 [%s]: %s', section, e)
 
         return configs
 

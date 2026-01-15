@@ -76,6 +76,9 @@ class TestEdgeCases(WebhookTestCase):
     def test_missing_repo_config_section_handled(self):
         """
         Test when repo is found but cwd or cmd is missing.
+
+        Incomplete repository configurations are skipped with a warning.
+        Webhook requests for skipped repos return 404 Not Found.
         """
         import tempfile
         with tempfile.NamedTemporaryFile(mode='w', suffix='.ini', delete=False) as f:
@@ -85,6 +88,7 @@ class TestEdgeCases(WebhookTestCase):
             config_path = f.name
 
         try:
+            # Server should start (incomplete config is skipped)
             with TestServer(config_path) as server:
                 server.wait_for_ready()
 
@@ -95,8 +99,8 @@ class TestEdgeCases(WebhookTestCase):
                     payload=PayloadBuilder.github_push_event(repo="incomplete/repo")
                 )
 
-                # Should handle gracefully (200 but command may fail)
-                self.assertIn(response.status_code, [200, 500])
+                # Should return 404 because incomplete config was skipped
+                self.assertStatusCode(response, 404)
         finally:
             Path(config_path).unlink(missing_ok=True)
 

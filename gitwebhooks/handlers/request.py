@@ -185,27 +185,32 @@ class WebhookRequestHandler(BaseHTTPRequestHandler):
 
         Returns:
             Tuple of (provider, event)
-        """
-        headers_dict = dict(self.headers)
 
+        Note:
+            HTTP headers are case-insensitive per RFC 2616.
+            Uses get() method which is case-insensitive for HTTPMessage.
+        """
         # GitHub
-        if HEADER_GITHUB_EVENT in headers_dict:
-            return Provider.GITHUB, headers_dict.get(HEADER_GITHUB_EVENT)
+        github_event = self.headers.get(HEADER_GITHUB_EVENT)
+        if github_event is not None:
+            return Provider.GITHUB, github_event
 
         # Gitee
-        if HEADER_GITEE_EVENT in headers_dict:
-            return Provider.GITEE, headers_dict.get(HEADER_GITEE_EVENT)
+        gitee_event = self.headers.get(HEADER_GITEE_EVENT)
+        if gitee_event is not None:
+            return Provider.GITEE, gitee_event
 
         # GitLab
-        if HEADER_GITLAB_EVENT in headers_dict:
-            return Provider.GITLAB, headers_dict.get(HEADER_GITLAB_EVENT)
+        gitlab_event = self.headers.get(HEADER_GITLAB_EVENT)
+        if gitlab_event is not None:
+            return Provider.GITLAB, gitlab_event
 
         # Custom
         custom_config = self._provider_configs.get(Provider.CUSTOM)
         if custom_config and custom_config.header_name:
-            header_value = headers_dict.get(custom_config.header_name, '')
-            if header_value.startswith(custom_config.header_value):
-                event = headers_dict.get(custom_config.header_event) if custom_config.header_event else None
+            header_value = self.headers.get(custom_config.header_name, '')
+            if header_value and header_value.startswith(custom_config.header_value):
+                event = self.headers.get(custom_config.header_event) if custom_config.header_event else None
                 return Provider.CUSTOM, event
 
         # Unable to identify
