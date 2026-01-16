@@ -129,11 +129,20 @@ This will create a configuration file with secure permissions (0600).
 The service installation command automatically detects your installation type (pipx, venv, or system) and generates the appropriate service file.
 
 ```bash
-# Install and start as a systemd service
+# Install and start as a systemd service (interactive config level selection)
 sudo gitwebhooks-cli service install
+
+# Install with specific config level (skip interactive selection)
+sudo gitwebhooks-cli service install --config-level user    # User level (~/.gitwebhooks.ini)
+sudo gitwebhooks-cli service install --config-level local   # Local level (/usr/local/etc/gitwebhooks.ini)
+sudo gitwebhooks-cli service install --config-level system   # System level (/etc/gitwebhooks.ini)
+
+# Use custom config file (backward compatibility)
+sudo gitwebhooks-cli service install -c /path/to/config.ini
 
 # Preview service file without installing (dry-run mode)
 sudo gitwebhooks-cli service install --dry-run
+sudo gitwebhooks-cli service install --config-level local --dry-run  # Preview specific level
 
 # Install with verbose output
 sudo gitwebhooks-cli service install --verbose
@@ -147,10 +156,15 @@ sudo gitwebhooks-cli service install --force
 sudo gitwebhooks-cli service uninstall
 ```
 
+**Configuration levels**:
+- **user**: `~/.gitwebhooks.ini` - Single user configuration, highest priority
+- **local**: `/usr/local/etc/gitwebhooks.ini` - Local system configuration, medium priority
+- **system**: `/etc/gitwebhooks.ini` - Global system configuration, lowest priority
+
 **Service file auto-detection**:
 - **pipx installation**: Uses `gitwebhooks-cli` command directly
-- **venv/virtualenv**: Uses `python -m gitwebhooks.cli` with environment's Python
-- **System pip**: Uses system Python with `python -m gitwebhooks.cli`
+- **venv/virtualenv**: Uses `python -m gitwebhooks.main` with environment's Python
+- **System pip**: Uses system Python with `python -m gitwebhooks.main`
 - **conda**: Not supported - installation will be refused with clear error message
 
 ### Manual Installation

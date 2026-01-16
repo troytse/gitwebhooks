@@ -56,6 +56,11 @@ def register_service_subparser(subparsers):
         action='store_true',
         help='Preview service file without installing'
     )
+    install_parser.add_argument(
+        '--config-level',
+        choices=['user', 'local', 'system'],
+        help='Configuration file level (user/local/system). If not specified, will be prompted.'
+    )
     install_parser.set_defaults(func=cmd_install)
 
     # uninstall action

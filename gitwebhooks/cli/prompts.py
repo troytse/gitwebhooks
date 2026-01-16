@@ -4,7 +4,9 @@ Provides functions for interactive user input and validation.
 """
 
 import sys
-from typing import Any, Callable, Optional, Dict, List
+from typing import Any, Callable, Optional, Dict, List, Tuple
+
+from gitwebhooks.utils.constants import ConfigLevel
 
 
 # Question template for configuration initialization
@@ -273,3 +275,48 @@ def validate_text(value: str) -> str:
     if not value:
         raise ValueError('Input cannot be empty')
     return value
+
+
+def ask_config_level() -> ConfigLevel:
+    """Ask user to select configuration file level
+
+    Displays an interactive menu for selecting configuration file level
+    with descriptions of each option.
+
+    Returns:
+        Selected ConfigLevel enum value
+
+    Raises:
+        KeyboardInterrupt: If user confirms exit on Ctrl+C
+    """
+    print('Select configuration file level for the service:')
+    print('  1. User level (~/.gitwebhooks.ini) - Single user, highest priority')
+    print('  2. Local level (/usr/local/etc/gitwebhooks.ini) - Local system, medium priority')
+    print('  3. System level (/etc/gitwebhooks.ini) - Global system, lowest priority')
+    print()
+
+    choice_map = {
+        '1': ConfigLevel.USER,
+        '2': ConfigLevel.LOCAL,
+        '3': ConfigLevel.SYSTEM,
+    }
+
+    while True:
+        try:
+            response = input('Enter choice [1-3] (default: 1): ').strip()
+
+            # Use default if empty input
+            if not response:
+                return ConfigLevel.USER
+
+            # Validate and map response
+            if response in choice_map:
+                return choice_map[response]
+
+            # Invalid input
+            print('Invalid choice. Please enter a number between 1 and 3.')
+
+        except KeyboardInterrupt:
+            if ask_yes_no('Confirm exit? (y/N) ', default=False):
+                print('\nService installation cancelled')
+                sys.exit(0)

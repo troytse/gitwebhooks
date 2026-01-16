@@ -129,11 +129,20 @@ sudo gitwebhooks-cli config init system # 系统级（/etc/gitwebhooks.ini，需
 服务安装命令会自动检测您的安装类型（pipx、venv 或系统）并生成相应的服务文件。
 
 ```bash
-# 安装并启动为 systemd 服务
+# 安装并启动为 systemd 服务（交互式选择配置级别）
 sudo gitwebhooks-cli service install
+
+# 使用指定配置级别安装（跳过交互式选择）
+sudo gitwebhooks-cli service install --config-level user    # 用户级配置 (~/.gitwebhooks.ini)
+sudo gitwebhooks-cli service install --config-level local   # 本地级配置 (/usr/local/etc/gitwebhooks.ini)
+sudo gitwebhooks-cli service install --config-level system   # 系统级配置 (/etc/gitwebhooks.ini)
+
+# 使用自定义配置文件（向后兼容）
+sudo gitwebhooks-cli service install -c /path/to/config.ini
 
 # 预览服务文件但不安装（dry-run 模式）
 sudo gitwebhooks-cli service install --dry-run
+sudo gitwebhooks-cli service install --config-level local --dry-run  # 预览指定级别的配置
 
 # 安装并显示详细输出
 sudo gitwebhooks-cli service install --verbose
@@ -147,10 +156,15 @@ sudo gitwebhooks-cli service install --force
 sudo gitwebhooks-cli service uninstall
 ```
 
+**配置级别说明**：
+- **user（用户级）**：`~/.gitwebhooks.ini` - 单用户配置，最高优先级
+- **local（本地级）**：`/usr/local/etc/gitwebhooks.ini` - 本地系统配置，中等优先级
+- **system（系统级）**：`/etc/gitwebhooks.ini` - 全局系统配置，最低优先级
+
 **服务文件自动检测**：
 - **pipx 安装**：直接使用 `gitwebhooks-cli` 命令
-- **venv/virtualenv**：使用环境的 Python 执行 `python -m gitwebhooks.cli`
-- **系统 pip**：使用系统 Python 执行 `python -m gitwebhooks.cli`
+- **venv/virtualenv**：使用环境的 Python 执行 `python -m gitwebhooks.main`
+- **系统 pip**：使用系统 Python 执行 `python -m gitwebhooks.main`
 - **conda**：不支持 - 安装将被拒绝并显示明确错误消息
 
 ### 手动安装

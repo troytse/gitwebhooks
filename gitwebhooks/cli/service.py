@@ -7,6 +7,7 @@ import argparse
 import subprocess
 import sys
 from pathlib import Path
+from typing import Optional
 
 from gitwebhooks.utils.systemd import (
     check_systemd,
@@ -16,7 +17,8 @@ from gitwebhooks.utils.systemd import (
     detect_installation_type,
     InstallationType,
 )
-from gitwebhooks.cli.prompts import ask_yes_no
+from gitwebhooks.utils.constants import ConfigLevel
+from gitwebhooks.cli.prompts import ask_yes_no, ask_config_level
 
 
 # Error codes
@@ -33,6 +35,8 @@ def cmd_install(args: argparse.Namespace) -> int:
             - force: Force overwrite existing service
             - verbose: Verbosity level (0=normal, 1=verbose, 2=extra verbose)
             - dry_run: Preview mode without actual installation
+            - config: Path to configuration file (from global -c argument)
+            - config_level: Config level from --config-level argument
 
     Returns:
         Exit code (0 = success, 1 = error)
@@ -40,6 +44,19 @@ def cmd_install(args: argparse.Namespace) -> int:
     # Get verbose and dry_run from args
     verbose = getattr(args, 'verbose', 0)
     dry_run = getattr(args, 'dry_run', False)
+
+    # Get config path from global -c argument (backward compatibility)
+    config_path = getattr(args, 'config', None)
+    config_level = getattr(args, 'config_level', None)
+
+    # Check for conflicting options
+    if config_path and config_level:
+        print('Error: Conflicting options: --config-level and -c cannot be used together.', file=sys.stderr)
+        print()
+        print('Please use either:', file=sys.stderr)
+        print('  - gitwebhooks-cli service install --config-level <level>', file=sys.stderr)
+        print('  - gitwebhooks-cli service install -c <config-file>', file=sys.stderr)
+        return 1
 
     # For dry-run mode, skip root check
     if not dry_run:
@@ -76,16 +93,30 @@ def cmd_install(args: argparse.Namespace) -> int:
             print()
 
     # Perform installation
-    return install_service(force=args.force, verbose=verbose, dry_run=dry_run)
+    return install_service(
+        force=args.force,
+        verbose=verbose,
+        dry_run=dry_run,
+        config_level_override=config_level,
+        config_path_override=config_path
+    )
 
 
-def install_service(force: bool = False, verbose: int = 0, dry_run: bool = False) -> int:
+def install_service(
+    force: bool = False,
+    verbose: int = 0,
+    dry_run: bool = False,
+    config_level_override: Optional[str] = None,
+    config_path_override: Optional[str] = None
+) -> int:
     """Execute service installation logic
 
     Args:
         force: Force overwrite existing service
         verbose: Verbosity level (0=normal, 1=verbose, 2=extra verbose)
         dry_run: Preview mode without actual installation
+        config_level_override: Config level from command line argument (user/local/system)
+        config_path_override: Config path from -c argument (for backward compatibility)
 
     Returns:
         Exit code (0 = success, 1 = error)
@@ -124,13 +155,43 @@ def install_service(force: bool = False, verbose: int = 0, dry_run: bool = False
         print('Consider using pipx or venv for better isolation.', file=sys.stderr)
         print()
 
+    # Determine configuration level and path
+    config_level: ConfigLevel
+    config_path: str
+
+    if config_path_override:
+        # Backward compatibility: -c parameter takes precedence
+        config_path = config_path_override
+        # Map path to config level for display purposes
+        expanded_path = Path(config_path).expanduser()
+        if str(expanded_path) == str(Path('~/.gitwebhooks.ini').expanduser()):
+            config_level = ConfigLevel.USER
+        elif str(expanded_path) == '/usr/local/etc/gitwebhooks.ini':
+            config_level = ConfigLevel.LOCAL
+        elif str(expanded_path) == '/etc/gitwebhooks.ini':
+            config_level = ConfigLevel.SYSTEM
+        else:
+            # Custom path, default to USER for display
+            config_level = ConfigLevel.USER
+    elif config_level_override:
+        # Command-line --config-level parameter
+        try:
+            config_level = ConfigLevel.from_string(config_level_override)
+        except ValueError as e:
+            print(f'Error: {e}', file=sys.stderr)
+            return 1
+        config_path = str(config_level.get_config_path())
+    else:
+        # Interactive selection
+        config_level = ask_config_level()
+        config_path = str(config_level.get_config_path())
+
     # Get paths
     service_path = get_service_path()
-    config_path = '~/.gitwebhook.ini'
 
     # Generate service file based on installation type
     # For pipx: use cli_path directly
-    # For others: use python -m gitwebhooks.cli
+    # For others: use python -m gitwebhooks.main
     use_python_module = env.type != InstallationType.PIPX
 
     service_content = generate_service_file(
@@ -147,6 +208,9 @@ def install_service(force: bool = False, verbose: int = 0, dry_run: bool = False
         print(service_content)
         print('---')
         print()
+        if config_level_override or not config_path_override:
+            print(f'Configuration level: {config_level.value}')
+        print(f'Configuration path: {config_path}')
         print(f'Service file would be written to: {service_path}')
         print('Dry-run complete: No changes made.')
         return 0
@@ -173,6 +237,10 @@ def install_service(force: bool = False, verbose: int = 0, dry_run: bool = False
     except subprocess.CalledProcessError as e:
         print(f'Warning: systemctl daemon-reload failed: {e}', file=sys.stderr)
         # Continue anyway
+
+    # Display configuration file information
+    print()
+    print(f'Using configuration file: {config_path}')
 
     # Enable and start service
     return enable_and_start_service()

@@ -3,6 +3,9 @@
 Defines all constants used in the project.
 """
 
+from enum import Enum
+from pathlib import Path
+
 # HTTP Status Codes
 HTTP_OK = 200
 HTTP_BAD_REQUEST = 400
@@ -53,3 +56,49 @@ SENSITIVE_KEYWORDS = {"secret", "password", "token", "key", "passphrase"}
 # ANSI color codes for sensitive field highlighting
 COLOR_SENSITIVE = "\033[33m"  # Yellow
 COLOR_RESET = "\033[0m"
+
+
+class ConfigLevel(Enum):
+    """Configuration file level for service installation
+
+    Represents the three configuration file levels supported by gitwebhooks,
+    ordered by priority (highest to lowest).
+    """
+
+    USER = "user"          # ~/.gitwebhooks.ini (highest priority)
+    LOCAL = "local"        # /usr/local/etc/gitwebhooks.ini
+    SYSTEM = "system"      # /etc/gitwebhooks.ini (lowest priority)
+
+    def get_config_path(self) -> Path:
+        """Get the configuration file path for this level
+
+        Returns:
+            Path object pointing to the configuration file
+        """
+        paths = {
+            ConfigLevel.USER: Path(CONFIG_PATH_USER).expanduser(),
+            ConfigLevel.LOCAL: Path(CONFIG_PATH_LOCAL),
+            ConfigLevel.SYSTEM: Path(CONFIG_PATH_SYSTEM),
+        }
+        return paths[self]
+
+    @classmethod
+    def from_string(cls, value: str) -> 'ConfigLevel':
+        """Create ConfigLevel from string value
+
+        Args:
+            value: String value ('user', 'local', or 'system')
+
+        Returns:
+            ConfigLevel enum value
+
+        Raises:
+            ValueError: If value is not a valid config level
+        """
+        try:
+            return cls(value.lower())
+        except ValueError:
+            valid_values = ', '.join([e.value for e in cls])
+            raise ValueError(
+                f"Invalid config level '{value}'. Valid values are: {valid_values}"
+            )

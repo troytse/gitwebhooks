@@ -229,7 +229,7 @@ def generate_service_file(
         Service file content as string
     """
     if use_python_module and python_path:
-        exec_start = f"{python_path} -m gitwebhooks.cli -c {config_path}"
+        exec_start = f"{python_path} -m gitwebhooks.main -c {config_path}"
     else:
         exec_start = f"{cli_path} -c {config_path}"
 
