@@ -30,6 +30,9 @@ E_EXISTS = 1
 def cmd_install(args: argparse.Namespace) -> int:
     """Install systemd service (deprecated, use 'serve install' instead)
 
+    This is a wrapper that shows a deprecation warning before calling
+    the actual install_service function.
+
     Args:
         args: Parsed command-line arguments
             - force: Force overwrite existing service
@@ -41,67 +44,15 @@ def cmd_install(args: argparse.Namespace) -> int:
     Returns:
         Exit code (0 = success, 1 = error)
     """
-    # Show deprecation warning
+    # Show deprecation warning only when called directly via service command
     print('Warning: "service install" is deprecated. Use "serve install" instead.', file=sys.stderr)
     print()
-    # Get verbose and dry_run from args
-    verbose = getattr(args, 'verbose', 0)
-    dry_run = getattr(args, 'dry_run', False)
-
-    # Get config path from global -c argument (backward compatibility)
-    config_path = getattr(args, 'config', None)
-    config_level = getattr(args, 'config_level', None)
-
-    # Check for conflicting options
-    if config_path and config_level:
-        print('Error: Conflicting options: --config-level and -c cannot be used together.', file=sys.stderr)
-        print()
-        print('Please use either:', file=sys.stderr)
-        print('  - gitwebhooks-cli service install --config-level <level>', file=sys.stderr)
-        print('  - gitwebhooks-cli service install -c <config-file>', file=sys.stderr)
-        return 1
-
-    # For dry-run mode, skip root check
-    if not dry_run:
-        # Check root permission
-        if not check_root_permission():
-            print('Error: This operation requires root privileges', file=sys.stderr)
-            print('Please use: sudo gitwebhooks-cli service install', file=sys.stderr)
-            return E_PERM
-
-        # Check systemd availability
-        if not check_systemd():
-            print('Error: systemd is not supported on this system', file=sys.stderr)
-            return E_SYSTEMD
-
-        # Check if service already exists
-        service_path = get_service_path()
-        if service_path.exists():
-            if not args.force:
-                print(f'Error: Service already installed', file=sys.stderr)
-                print(f'Service file: {service_path}', file=sys.stderr)
-                print('Use --force to force overwrite', file=sys.stderr)
-                return E_EXISTS
-
-            # Confirm overwrite
-            if not confirm_overwrite():
-                print('Installation cancelled')
-                return 0
-    else:
-        # In dry-run mode, warn if service exists but continue
-        service_path = get_service_path()
-        if service_path.exists() and not args.force:
-            print(f'Notice: Service already exists at {service_path}', file=sys.stderr)
-            print('Previewing service file content (use --force to suppress this notice)...', file=sys.stderr)
-            print()
-
-    # Perform installation
     return install_service(
-        force=args.force,
-        verbose=verbose,
-        dry_run=dry_run,
-        config_level_override=config_level,
-        config_path_override=config_path
+        force=getattr(args, 'force', False),
+        verbose=getattr(args, 'verbose', 0),
+        dry_run=getattr(args, 'dry_run', False),
+        config_level_override=getattr(args, 'config_level', None),
+        config_path_override=getattr(args, 'config', None)
     )
 
 
@@ -313,6 +264,9 @@ def enable_and_start_service() -> int:
 def cmd_uninstall(args: argparse.Namespace) -> int:
     """Uninstall systemd service (deprecated, use 'serve uninstall' instead)
 
+    This is a wrapper that shows a deprecation warning before calling
+    the actual uninstall_service function.
+
     Args:
         args: Parsed command-line arguments
             - purge: Also remove configuration file
@@ -320,22 +274,10 @@ def cmd_uninstall(args: argparse.Namespace) -> int:
     Returns:
         Exit code (0 = success, 1 = error)
     """
-    # Show deprecation warning
+    # Show deprecation warning only when called directly via service command
     print('Warning: "service uninstall" is deprecated. Use "serve uninstall" instead.', file=sys.stderr)
     print()
-    # Check root permission
-    if not check_root_permission():
-        print('Error: This operation requires root privileges', file=sys.stderr)
-        print('Please use: sudo gitwebhooks-cli service uninstall', file=sys.stderr)
-        return E_PERM
-
-    # Check if service is installed
-    if not check_service_exists():
-        print('Error: Service not installed', file=sys.stderr)
-        return 1
-
-    # Perform uninstallation
-    return uninstall_service(args.purge)
+    return uninstall_service(purge=getattr(args, 'purge', False))
 
 
 def uninstall_service(purge: bool = False) -> int:
@@ -347,6 +289,17 @@ def uninstall_service(purge: bool = False) -> int:
     Returns:
         Exit code (0 = success, 1 = error)
     """
+    # Check root permission
+    if not check_root_permission():
+        print('Error: This operation requires root privileges', file=sys.stderr)
+        print('Please use: sudo gitwebhooks-cli serve uninstall', file=sys.stderr)
+        return E_PERM
+
+    # Check if service is installed
+    if not check_service_exists():
+        print('Error: Service not installed', file=sys.stderr)
+        return 1
+
     print('Uninstalling systemd service...')
 
     # Stop and disable service

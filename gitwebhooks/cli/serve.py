@@ -13,12 +13,7 @@ from gitwebhooks.utils.exceptions import ConfigurationError
 from gitwebhooks.utils.constants import CONFIG_SEARCH_PATHS
 
 # Import service management functions
-from gitwebhooks.cli.service import (
-    cmd_install as service_cmd_install,
-    cmd_uninstall as service_cmd_uninstall,
-    install_service,
-    uninstall_service,
-)
+from gitwebhooks.cli.service import install_service, uninstall_service
 
 # Import version display
 from gitwebhooks import __version__
@@ -48,11 +43,17 @@ def cmd_serve(args: argparse.Namespace) -> int:
     serve_action = getattr(args, 'serve_action', None)
 
     if serve_action == 'install':
-        # Delegate to service install command
-        return service_cmd_install(args)
+        # Call install_service directly (no deprecation warning)
+        return install_service(
+            force=getattr(args, 'force', False),
+            verbose=getattr(args, 'verbose', 0),
+            dry_run=getattr(args, 'dry_run', False),
+            config_level_override=getattr(args, 'config_level', None),
+            config_path_override=getattr(args, 'config', None)
+        )
     elif serve_action == 'uninstall':
-        # Delegate to service uninstall command
-        return service_cmd_uninstall(args)
+        # Call uninstall_service directly (no deprecation warning)
+        return uninstall_service(purge=getattr(args, 'purge', False))
     else:
         # Start server
         return start_server(args)
