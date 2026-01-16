@@ -223,15 +223,15 @@ def generate_service_file(
         cli_path: Path to gitwebhooks-cli executable
         config_path: Path to configuration file
         python_path: Python interpreter path (if using python -m mode)
-        use_python_module: If True, use 'python -m gitwebhooks.cli' format
+        use_python_module: If True, use 'python -m gitwebhooks.main' format
 
     Returns:
         Service file content as string
     """
     if use_python_module and python_path:
-        exec_start = f"{python_path} -m gitwebhooks.main -c {config_path}"
+        exec_start = f"{python_path} -m gitwebhooks.main serve -c {config_path}"
     else:
-        exec_start = f"{cli_path} -c {config_path}"
+        exec_start = f"{cli_path} serve -c {config_path}"
 
     return SERVICE_TEMPLATE.format(
         exec_start=exec_start

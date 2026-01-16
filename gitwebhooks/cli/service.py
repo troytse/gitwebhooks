@@ -28,7 +28,7 @@ E_EXISTS = 1
 
 
 def cmd_install(args: argparse.Namespace) -> int:
-    """Install systemd service
+    """Install systemd service (deprecated, use 'serve install' instead)
 
     Args:
         args: Parsed command-line arguments
@@ -41,6 +41,9 @@ def cmd_install(args: argparse.Namespace) -> int:
     Returns:
         Exit code (0 = success, 1 = error)
     """
+    # Show deprecation warning
+    print('Warning: "service install" is deprecated. Use "serve install" instead.', file=sys.stderr)
+    print()
     # Get verbose and dry_run from args
     verbose = getattr(args, 'verbose', 0)
     dry_run = getattr(args, 'dry_run', False)
@@ -308,7 +311,7 @@ def enable_and_start_service() -> int:
 
 
 def cmd_uninstall(args: argparse.Namespace) -> int:
-    """Uninstall systemd service
+    """Uninstall systemd service (deprecated, use 'serve uninstall' instead)
 
     Args:
         args: Parsed command-line arguments
@@ -317,6 +320,9 @@ def cmd_uninstall(args: argparse.Namespace) -> int:
     Returns:
         Exit code (0 = success, 1 = error)
     """
+    # Show deprecation warning
+    print('Warning: "service uninstall" is deprecated. Use "serve uninstall" instead.', file=sys.stderr)
+    print()
     # Check root permission
     if not check_root_permission():
         print('Error: This operation requires root privileges', file=sys.stderr)

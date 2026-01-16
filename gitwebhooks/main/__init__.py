@@ -19,6 +19,57 @@ try:
 except ImportError:
     HAS_SUBCOMMANDS = False
 
+# Global parser reference for help command
+_parser = None
+
+
+def get_parser() -> argparse.ArgumentParser:
+    """Get the main argument parser instance.
+
+    Returns:
+        The main ArgumentParser instance
+
+    Examples:
+        >>> parser = get_parser()
+        >>> isinstance(parser, argparse.ArgumentParser)
+        True
+    """
+    global _parser
+    if _parser is None:
+        _parser = create_parser()
+    return _parser
+
+
+def create_parser() -> argparse.ArgumentParser:
+    """Create and configure the main argument parser.
+
+    Returns:
+        Configured ArgumentParser instance
+
+    Examples:
+        >>> parser = create_parser()
+        >>> isinstance(parser, argparse.ArgumentParser)
+        True
+    """
+    # Create main argument parser (help disabled)
+    parser = argparse.ArgumentParser(
+        prog='gitwebhooks-cli',
+        description='Git Webhooks Server - Automated deployment webhook handler',
+        add_help=False
+    )
+    parser.add_argument(
+        '-c', '--config',
+        default=None,
+        help='Path to INI configuration file (default: auto-discover)'
+    )
+
+    # Add subcommands if available
+    if HAS_SUBCOMMANDS:
+        subparsers = parser.add_subparsers(dest='command', help='Subcommands')
+        register_subparsers(subparsers)
+
+    return parser
+
 
 def find_config_file() -> Optional[str]:
     """Find configuration file by priority order.
@@ -83,10 +134,11 @@ def main(argv: List[str] = None) -> int:
         SystemExit: Exit on error
 
     Command Line Arguments:
-        -h, --help      Show help message and exit
-        -c, --config    Specify configuration file path (optional)
-        service         Service management subcommands
-        config          Configuration management subcommands
+        -v, --version   Show version information and exit
+        -c, --config     Specify configuration file path (optional)
+        serve            Start webhook server or manage systemd service
+        config           Configuration management subcommands
+        help             Show help information
 
     Config Discovery:
         When -c is not specified, searches in order:
@@ -95,38 +147,58 @@ def main(argv: List[str] = None) -> int:
         3. /etc/gitwebhooks.ini (system level)
 
     Examples:
-        python3 -m gitwebhooks.main
-        python3 -m gitwebhooks.main -c /path/to/config.ini
-        gitwebhooks-cli --config /etc/webhooks.ini
-        gitwebhooks-cli service install
+        python3 -m gitwebhooks.main -v
+        python3 -m gitwebhooks.main serve
+        python3 -m gitwebhooks.main serve -c /path/to/config.ini
+        gitwebhooks-cli serve install
         gitwebhooks-cli config init
+        gitwebhooks-cli help
     """
     if argv is None:
         argv = sys.argv[1:]
 
-    # Create main argument parser
-    parser = argparse.ArgumentParser(
-        prog='gitwebhooks-cli',
-        description='Git Webhooks Server - Automated deployment webhook handler',
-        add_help=True
-    )
-    parser.add_argument(
-        '-c', '--config',
-        default=None,
-        help='Path to INI configuration file (default: auto-discover)'
-    )
+    # Pre-check for -v/--version parameters (takes priority over everything)
+    if '-v' in argv or '--version' in argv:
+        from gitwebhooks.main.version import print_version
+        print_version()
+        return 0
 
-    # Add subcommands if available
-    if HAS_SUBCOMMANDS:
-        subparsers = parser.add_subparsers(dest='command', help='Subcommands')
-        register_subparsers(subparsers)
+    # Check for -h/--help parameters and show error
+    if '-h' in argv or '--help' in argv:
+        print('Error: -h/--help parameters are not supported.', file=sys.stderr)
+        print('Use \'gitwebhooks-cli help\' or \'gitwebhooks-cli help <subcommand>\' instead.', file=sys.stderr)
+        return 1
 
-    # Parse arguments
-    args = parser.parse_args(argv)
+    # Create parser and parse arguments
+    parser = create_parser()
 
-    # If no subcommand, run server (backward compatible behavior)
-    if not hasattr(args, 'func'):
-        return run_server(args.config)
+    # Check if user provided a command (first argument without leading dash)
+    command = None
+    for i, arg in enumerate(argv):
+        if not arg.startswith('-'):
+            command = arg
+            break
+
+    # Try to parse arguments
+    try:
+        args = parser.parse_args(argv)
+    except SystemExit as e:
+        # argparse will call sys.exit on error, catch it to provide better error
+        if e.code != 0:
+            # Parsing failed, check if it's an unknown command
+            if command and command not in ['serve', 'config', 'help', 'service']:
+                print(f"Error: Unknown command '{command}'", file=sys.stderr)
+                print("Available commands: serve, config, help", file=sys.stderr)
+                print()
+                print("Use 'gitwebhooks-cli help' to see usage information", file=sys.stderr)
+            return 1
+        raise
+
+    # If no subcommand specified, show help (new default behavior)
+    if not hasattr(args, 'func') or args.func is None:
+        from gitwebhooks.cli.help import show_main_help
+        show_main_help(parser)
+        return 0
 
     # Execute subcommand
     return args.func(args)
