@@ -301,6 +301,10 @@ gitwebhooks/
 - Python 3.7+ (项目要求) + Python 标准库仅（无外部依赖） (001-fix-config-init-bug)
 - INI 配置文件 (configparser) (001-fix-config-init-bug)
 - Python 3.7+ (项目要求) + Python 标准库（pathlib, configparser, argparse） (001-config-priority)
+- Python 3.6+ (与项目要求一致，实际支持 3.6-3.14) + argparse (Python 标准库) (002-cli-commands-refactor)
+- N/A (CLI 重构，不涉及存储) (002-cli-commands-refactor)
+- Python 3.6+（项目要求），实际支持 3.6-3.14 + Python 标准库 `argparse`（命令行参数解析） (002-cli-commands-refactor)
+- N/A（CLI 重构，不涉及存储） (002-cli-commands-refactor)
 
 ## Recent Changes
 - 001-config-init-wizard: 添加 `config init` 交互式向导，支持配置级别选择、平台配置和仓库配置

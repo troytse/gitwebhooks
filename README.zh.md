@@ -130,30 +130,28 @@ sudo gitwebhooks-cli config init system # 系统级（/etc/gitwebhooks.ini，需
 
 ```bash
 # 安装并启动为 systemd 服务（交互式选择配置级别）
-sudo gitwebhooks-cli service install
+sudo gitwebhooks-cli serve install
 
 # 使用指定配置级别安装（跳过交互式选择）
-sudo gitwebhooks-cli service install --config-level user    # 用户级配置 (~/.gitwebhooks.ini)
-sudo gitwebhooks-cli service install --config-level local   # 本地级配置 (/usr/local/etc/gitwebhooks.ini)
-sudo gitwebhooks-cli service install --config-level system   # 系统级配置 (/etc/gitwebhooks.ini)
+sudo gitwebhooks-cli serve install --config-level user    # 用户级配置 (~/.gitwebhooks.ini)
+sudo gitwebhooks-cli serve install --config-level local   # 本地级配置 (/usr/local/etc/gitwebhooks.ini)
+sudo gitwebhooks-cli serve install --config-level system   # 系统级配置 (/etc/gitwebhooks.ini)
 
 # 使用自定义配置文件（向后兼容）
-sudo gitwebhooks-cli service install -c /path/to/config.ini
+sudo gitwebhooks-cli serve install -c /path/to/config.ini
 
 # 预览服务文件但不安装（dry-run 模式）
-sudo gitwebhooks-cli service install --dry-run
-sudo gitwebhooks-cli service install --config-level local --dry-run  # 预览指定级别的配置
+sudo gitwebhooks-cli serve install --dry-run
+sudo gitwebhooks-cli serve install --config-level local --dry-run  # 预览指定级别的配置
 
 # 安装并显示详细输出
-sudo gitwebhooks-cli service install --verbose
-sudo gitwebhooks-cli service install -v      # 基本详细程度
-sudo gitwebhooks-cli service install -vv     # 额外详细程度
+sudo gitwebhooks-cli serve install --verbose
 
 # 强制覆盖现有服务
-sudo gitwebhooks-cli service install --force
+sudo gitwebhooks-cli serve install --force
 
 # 卸载服务
-sudo gitwebhooks-cli service uninstall
+sudo gitwebhooks-cli serve uninstall
 ```
 
 **配置级别说明**：
@@ -182,7 +180,14 @@ sudo ln "$(pwd)/gitwebhooks-cli" /usr/local/bin/gitwebhooks-cli
 ### 验证安装
 
 ```bash
-gitwebhooks-cli --help
+# 显示版本
+gitwebhooks-cli -v
+
+# 显示帮助
+gitwebhooks-cli help
+
+# 查看配置
+gitwebhooks-cli config view
 ```
 
 ## 从系统 pip 安装迁移

@@ -31,16 +31,17 @@ verify = false
 
         monkeypatch.setenv('HOME', str(tmp_path))
 
-        # Run the CLI to check config discovery
+        # Run the CLI with -v to check it works (version doesn't need config)
         result = subprocess.run(
-            [sys.executable, '-m', 'gitwebhooks.main', '--help'],
+            [sys.executable, '-m', 'gitwebhooks.main', '-v'],
             capture_output=True,
             text=True,
             cwd=tmp_path
         )
 
-        # The help should work (no config needed for help)
-        assert result.returncode == 0 or 'gitwebhooks-cli' in result.stdout.lower()
+        # Version should work without config
+        assert result.returncode == 0
+        assert 'gitwebhooks-cli' in result.stdout.lower()
 
     def test_local_level_config_auto_discovery(self, tmp_path, monkeypatch):
         """Should auto-discover local level config when user config doesn't exist."""
@@ -68,12 +69,14 @@ port = 18080
         ]
 
         try:
+            # Use -v to verify CLI works
             result = subprocess.run(
-                [sys.executable, '-m', 'gitwebhooks.main', '--help'],
+                [sys.executable, '-m', 'gitwebhooks.main', '-v'],
                 capture_output=True,
                 text=True
             )
-            assert 'gitwebhooks-cli' in result.stdout.lower() or result.returncode == 0
+            assert result.returncode == 0
+            assert 'gitwebhooks-cli' in result.stdout.lower()
         finally:
             constants.CONFIG_SEARCH_PATHS = original_paths
 
@@ -102,12 +105,14 @@ port = 18080
         ]
 
         try:
+            # Use -v to verify CLI works
             result = subprocess.run(
-                [sys.executable, '-m', 'gitwebhooks.main', '--help'],
+                [sys.executable, '-m', 'gitwebhooks.main', '-v'],
                 capture_output=True,
                 text=True
             )
-            assert 'gitwebhooks-cli' in result.stdout.lower() or result.returncode == 0
+            assert result.returncode == 0
+            assert 'gitwebhooks-cli' in result.stdout.lower()
         finally:
             constants.CONFIG_SEARCH_PATHS = original_paths
 
@@ -172,15 +177,16 @@ class TestConfigErrorHandling:
         ]
 
         try:
+            # Use serve command to trigger config requirement
             result = subprocess.run(
-                [sys.executable, '-m', 'gitwebhooks.main'],
+                [sys.executable, '-m', 'gitwebhooks.main', 'serve'],
                 capture_output=True,
                 text=True
             )
-            # Should fail with error message
+            # Should fail with error message when trying to start server without config
             assert result.returncode != 0
-            stderr = result.stderr.lower()
-            assert 'configuration file not found' in stderr or 'error' in stderr
+            output = result.stdout.lower() + result.stderr.lower()
+            assert 'configuration file not found' in output or 'error' in output
         finally:
             constants.CONFIG_SEARCH_PATHS = original_paths
 
@@ -218,13 +224,15 @@ class TestConfigErrorHandling:
         constants.CONFIG_SEARCH_PATHS = [str(tmp_path / 'nonexistent.ini')]
 
         try:
+            # Use serve command to trigger config requirement
             result = subprocess.run(
-                [sys.executable, '-m', 'gitwebhooks.main'],
+                [sys.executable, '-m', 'gitwebhooks.main', 'serve'],
                 capture_output=True,
                 text=True
             )
-            stderr = result.stderr.lower()
-            assert 'config init' in stderr
+            # Should show help (new default behavior) which includes config init
+            output = result.stdout.lower() + result.stderr.lower()
+            assert 'config init' in output
         finally:
             constants.CONFIG_SEARCH_PATHS = original_paths
 

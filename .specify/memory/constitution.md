@@ -1,8 +1,8 @@
 <!--
 Sync Impact Report:
-Version change: 2.1.0 → 2.2.0
+Version change: 2.2.0 → 2.3.0
 Modified principles: N/A
-Added sections: Mandatory Release Validation (Development Workflow)
+Added sections: Task Execution Guidelines (Development Workflow)
 Removed sections: N/A
 Templates updated:
   - .specify/templates/plan-template.md: ✅ reviewed (no changes needed)
@@ -85,6 +85,31 @@ All git/svn commits MUST NOT contain AI-generated attribution signatures such as
 - Manual testing with actual Git platforms is acceptable given the project's simplicity
 - Changes MUST be tested against all supported platforms when platform logic is modified
 - Configuration file changes SHOULD be validated with `configparser` before deployment
+
+### Task Execution Guidelines
+
+**When implementing features with multiple subtasks, the Task tool MUST be used to execute independent subtasks in parallel where possible.**
+
+For complex multi-step work:
+
+1. **Use Task tool for subtasks**: When work can be decomposed into independent units, each unit SHOULD be executed via the Task tool with appropriate agent type
+2. **Pass necessary context**: Each Task invocation MUST include:
+   - Clear task description (3-5 words)
+   - Detailed prompt with full context
+   - Reference to constitution and relevant project documents
+   - Expected output format
+3. **Parallel execution**: When multiple independent tasks exist, they MUST be dispatched in parallel via a single message with multiple Task tool calls
+4. **Background tasks**: For long-running operations, use the `run_in_background` parameter
+
+**Task Agent Selection Guide**:
+
+| Agent Type | Use Case | Tools |
+|------------|----------|-------|
+| `general-purpose` | Complex research, code search, multi-step tasks | All tools |
+| `Explore` | Quick codebase exploration, finding files | All tools |
+| `Plan` | Implementation planning, architecture design | All tools |
+
+**Rationale**: Parallel task execution significantly reduces development time by leveraging concurrent processing. Passing full context (including constitution) ensures each subtask adheres to project principles and requirements. This approach is especially valuable for features with multiple independent components (e.g., implementing new platform support, adding multiple related features).
 
 ### Mandatory Release Validation
 
@@ -170,4 +195,4 @@ For day-to-day development activities, refer to `CLAUDE.md` for:
 - Code style and formatting guidelines
 - Project structure and file organization
 
-**Version**: 2.2.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-14
+**Version**: 2.3.0 | **Ratified**: 2026-01-12 | **Last Amended**: 2026-01-16

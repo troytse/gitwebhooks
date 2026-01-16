@@ -130,30 +130,28 @@ The service installation command automatically detects your installation type (p
 
 ```bash
 # Install and start as a systemd service (interactive config level selection)
-sudo gitwebhooks-cli service install
+sudo gitwebhooks-cli serve install
 
 # Install with specific config level (skip interactive selection)
-sudo gitwebhooks-cli service install --config-level user    # User level (~/.gitwebhooks.ini)
-sudo gitwebhooks-cli service install --config-level local   # Local level (/usr/local/etc/gitwebhooks.ini)
-sudo gitwebhooks-cli service install --config-level system   # System level (/etc/gitwebhooks.ini)
+sudo gitwebhooks-cli serve install --config-level user    # User level (~/.gitwebhooks.ini)
+sudo gitwebhooks-cli serve install --config-level local   # Local level (/usr/local/etc/gitwebhooks.ini)
+sudo gitwebhooks-cli serve install --config-level system   # System level (/etc/gitwebhooks.ini)
 
 # Use custom config file (backward compatibility)
-sudo gitwebhooks-cli service install -c /path/to/config.ini
+sudo gitwebhooks-cli serve install -c /path/to/config.ini
 
 # Preview service file without installing (dry-run mode)
-sudo gitwebhooks-cli service install --dry-run
-sudo gitwebhooks-cli service install --config-level local --dry-run  # Preview specific level
+sudo gitwebhooks-cli serve install --dry-run
+sudo gitwebhooks-cli serve install --config-level local --dry-run  # Preview specific level
 
 # Install with verbose output
-sudo gitwebhooks-cli service install --verbose
-sudo gitwebhooks-cli service install -v      # Basic verbosity
-sudo gitwebhooks-cli service install -vv     # Extra verbosity
+sudo gitwebhooks-cli serve install --verbose
 
 # Force overwrite existing service
-sudo gitwebhooks-cli service install --force
+sudo gitwebhooks-cli serve install --force
 
 # Uninstall the service
-sudo gitwebhooks-cli service uninstall
+sudo gitwebhooks-cli serve uninstall
 ```
 
 **Configuration levels**:
@@ -182,7 +180,14 @@ sudo ln "$(pwd)/gitwebhooks-cli" /usr/local/bin/gitwebhooks-cli
 ### Verify Installation
 
 ```bash
-gitwebhooks-cli --help
+# Show version
+gitwebhooks-cli -v
+
+# Show help
+gitwebhooks-cli help
+
+# View configuration
+gitwebhooks-cli config view
 ```
 
 ## Migrating from System pip Installation
