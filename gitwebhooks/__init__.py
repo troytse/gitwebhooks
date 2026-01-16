@@ -3,7 +3,7 @@
 Automated deployment server supporting GitHub, Gitee, GitLab, and custom webhooks.
 """
 
-__version__ = '2.3.1'
+__version__ = '2.4.0'
 
 # Export main classes for convenient import paths
 from .server import WebhookServer
