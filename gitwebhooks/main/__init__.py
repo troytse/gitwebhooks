@@ -186,7 +186,7 @@ def main(argv: List[str] = None) -> int:
         # argparse will call sys.exit on error, catch it to provide better error
         if e.code != 0:
             # Parsing failed, check if it's an unknown command
-            if command and command not in ['serve', 'config', 'help', 'service']:
+            if command and command not in ['serve', 'config', 'help']:
                 print(f"Error: Unknown command '{command}'", file=sys.stderr)
                 print("Available commands: serve, config, help", file=sys.stderr)
                 print()

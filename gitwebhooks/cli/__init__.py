@@ -3,7 +3,6 @@
 Provides subcommand registration and implementation for gitwebhooks-cli.
 """
 
-from gitwebhooks.cli.service import cmd_install, cmd_uninstall
 from gitwebhooks.cli.config import cmd_init, cmd_view
 from gitwebhooks.cli.help import cmd_help
 from gitwebhooks.cli.serve import cmd_serve
@@ -26,9 +25,6 @@ def register_subparsers(subparsers):
 
     # Register config subcommand
     register_config_subparser(subparsers)
-
-    # Register service subcommand (deprecated, for backward compatibility)
-    register_service_subparser(subparsers)
 
 
 def register_serve_subparser(subparsers):
@@ -109,57 +105,6 @@ def register_help_subparser(subparsers):
         help='Subcommand to show help for (serve, config)'
     )
     help_parser.set_defaults(func=cmd_help)
-
-
-def register_service_subparser(subparsers):
-    """Register service subcommand and its actions (deprecated)
-
-    Args:
-        subparsers: argparse subparsers object
-
-    Returns:
-        None
-    """
-    service_parser = subparsers.add_parser(
-        'service',
-        add_help=False,
-        help='Manage systemd service installation (deprecated, use "serve" instead)'
-    )
-    service_subparsers = service_parser.add_subparsers(dest='service_action')
-
-    # install action
-    install_parser = service_subparsers.add_parser('install', add_help=False)
-    install_parser.add_argument(
-        '--force',
-        action='store_true',
-        help='Force overwrite existing service'
-    )
-    install_parser.add_argument(
-        '-v', '--verbose',
-        action='count',
-        default=0,
-        help='Increase verbosity (can be used: -v, -vv)'
-    )
-    install_parser.add_argument(
-        '--dry-run',
-        action='store_true',
-        help='Preview service file without installing'
-    )
-    install_parser.add_argument(
-        '--config-level',
-        choices=['user', 'local', 'system'],
-        help='Configuration file level (user/local/system). If not specified, will be prompted.'
-    )
-    install_parser.set_defaults(func=cmd_install)
-
-    # uninstall action
-    uninstall_parser = service_subparsers.add_parser('uninstall', add_help=False)
-    uninstall_parser.add_argument(
-        '--purge',
-        action='store_true',
-        help='Also remove configuration file'
-    )
-    uninstall_parser.set_defaults(func=cmd_uninstall)
 
 
 def register_config_subparser(subparsers):

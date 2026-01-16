@@ -212,7 +212,7 @@ cp ~/.gitwebhook.ini ~/.gitwebhook.ini.backup
 ```bash
 sudo systemctl stop gitwebhooks
 sudo systemctl disable gitwebhooks
-sudo gitwebhooks-cli service uninstall
+sudo gitwebhooks-cli serve uninstall
 ```
 
 ### 步骤 4：使用推荐方式安装
@@ -249,7 +249,7 @@ gitwebhooks-cli config init
 ### 步骤 6：重新安装服务
 
 ```bash
-sudo gitwebhooks-cli service install
+sudo gitwebhooks-cli serve install
 ```
 
 ### 步骤 7：验证
@@ -262,7 +262,7 @@ sudo systemctl status gitwebhooks
 
 ```bash
 # 卸载 systemd 服务（如果已安装）
-sudo gitwebhooks-cli service uninstall --purge
+sudo gitwebhooks-cli serve uninstall --purge
 
 # 卸载包
 pip uninstall gitwebhooks

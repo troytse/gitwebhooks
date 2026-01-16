@@ -212,7 +212,7 @@ cp ~/.gitwebhook.ini ~/.gitwebhook.ini.backup
 ```bash
 sudo systemctl stop gitwebhooks
 sudo systemctl disable gitwebhooks
-sudo gitwebhooks-cli service uninstall
+sudo gitwebhooks-cli serve uninstall
 ```
 
 ### Step 4: Install using the recommended method
@@ -249,7 +249,7 @@ gitwebhooks-cli config init
 ### Step 6: Reinstall the service
 
 ```bash
-sudo gitwebhooks-cli service install
+sudo gitwebhooks-cli serve install
 ```
 
 ### Step 7: Verify
@@ -262,7 +262,7 @@ sudo systemctl status gitwebhooks
 
 ```bash
 # Uninstall systemd service (if installed)
-sudo gitwebhooks-cli service uninstall --purge
+sudo gitwebhooks-cli serve uninstall --purge
 
 # Remove the package
 pip uninstall gitwebhooks

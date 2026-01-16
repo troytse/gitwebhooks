@@ -1,9 +1,8 @@
-"""Service installation CLI commands
+"""Service installation module
 
 Provides systemd service installation and removal functionality.
 """
 
-import argparse
 import subprocess
 import sys
 from pathlib import Path
@@ -25,35 +24,6 @@ from gitwebhooks.cli.prompts import ask_yes_no, ask_config_level
 E_PERM = 1
 E_SYSTEMD = 1
 E_EXISTS = 1
-
-
-def cmd_install(args: argparse.Namespace) -> int:
-    """Install systemd service (deprecated, use 'serve install' instead)
-
-    This is a wrapper that shows a deprecation warning before calling
-    the actual install_service function.
-
-    Args:
-        args: Parsed command-line arguments
-            - force: Force overwrite existing service
-            - verbose: Verbosity level (0=normal, 1=verbose, 2=extra verbose)
-            - dry_run: Preview mode without actual installation
-            - config: Path to configuration file (from global -c argument)
-            - config_level: Config level from --config-level argument
-
-    Returns:
-        Exit code (0 = success, 1 = error)
-    """
-    # Show deprecation warning only when called directly via service command
-    print('Warning: "service install" is deprecated. Use "serve install" instead.', file=sys.stderr)
-    print()
-    return install_service(
-        force=getattr(args, 'force', False),
-        verbose=getattr(args, 'verbose', 0),
-        dry_run=getattr(args, 'dry_run', False),
-        config_level_override=getattr(args, 'config_level', None),
-        config_path_override=getattr(args, 'config', None)
-    )
 
 
 def install_service(
@@ -259,25 +229,6 @@ def enable_and_start_service() -> int:
     print('Service status: systemctl status gitwebhooks')
 
     return 0
-
-
-def cmd_uninstall(args: argparse.Namespace) -> int:
-    """Uninstall systemd service (deprecated, use 'serve uninstall' instead)
-
-    This is a wrapper that shows a deprecation warning before calling
-    the actual uninstall_service function.
-
-    Args:
-        args: Parsed command-line arguments
-            - purge: Also remove configuration file
-
-    Returns:
-        Exit code (0 = success, 1 = error)
-    """
-    # Show deprecation warning only when called directly via service command
-    print('Warning: "service uninstall" is deprecated. Use "serve uninstall" instead.', file=sys.stderr)
-    print()
-    return uninstall_service(purge=getattr(args, 'purge', False))
 
 
 def uninstall_service(purge: bool = False) -> int:
