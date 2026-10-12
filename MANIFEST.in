@@ -1,7 +1,8 @@
 include README.md
 include README.zh.md
 include LICENSE
-include CLAUDE.md
+include AGENTS.md
+include CONSTITUTION.md
 include *.editorconfig
 include *.sample
 recursive-include doc *.png

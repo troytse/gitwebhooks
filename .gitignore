@@ -34,7 +34,9 @@ ENV/
 env/
 
 # Configuration files (user-specific)
-.gitwebhook.ini
+.gitwebhooks.ini
+gitwebhooks.ini
+!gitwebhooks.ini.sample
 
 # IDE
 .vscode/
@@ -51,8 +53,3 @@ Thumbs.db
 *.tmp
 *.bak
 *.backup
-
-# SpecKit working directories
-specs/
-*.plan.md~
-*.spec.md~

@@ -760,7 +760,7 @@ class Wizard:
         print("后续步骤:")
         print(f"  1. 检查配置文件内容: gitwebhooks-cli config view {path}")
         print(f"  2. 启动服务器: gitwebhooks-cli -c {path}")
-        print("  3. 或安装为服务: sudo gitwebhooks-cli service install")
+        print("  3. 或安装为服务: sudo gitwebhooks-cli serve install")
 
     def _cleanup(self) -> None:
         """

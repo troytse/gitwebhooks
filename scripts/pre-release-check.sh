@@ -60,7 +60,9 @@ echo ""
 echo "Step 4: Running critical tests..."
 
 # Test CLI entry point
-if ! check_step "CLI entry point (gitwebhooks-cli)" "gitwebhooks-cli --help"; then
+# NOTE: -h/--help are intentionally rejected by gitwebhooks-cli; the help
+# subcommand is the supported entry point (see gitwebhooks/main/__init__.py).
+if ! check_step "CLI entry point (gitwebhooks-cli)" "gitwebhooks-cli help"; then
     echo -e "${RED}ERROR: CLI entry point not working!${NC}"
     deactivate
     rm -rf "$TEMP_VENV"
@@ -69,15 +71,15 @@ if ! check_step "CLI entry point (gitwebhooks-cli)" "gitwebhooks-cli --help"; th
 fi
 
 # Test subcommands
-if ! check_step "CLI service subcommand" "gitwebhooks-cli service --help"; then
-    echo -e "${RED}ERROR: service subcommand not working!${NC}"
+if ! check_step "CLI serve subcommand" "gitwebhooks-cli help serve"; then
+    echo -e "${RED}ERROR: serve subcommand not working!${NC}"
     deactivate
     rm -rf "$TEMP_VENV"
     rm -rf /tmp/gitwebhooks-build
     exit 1
 fi
 
-if ! check_step "CLI config subcommand" "gitwebhooks-cli config --help"; then
+if ! check_step "CLI config subcommand" "gitwebhooks-cli help config"; then
     echo -e "${RED}ERROR: config subcommand not working!${NC}"
     deactivate
     rm -rf "$TEMP_VENV"
