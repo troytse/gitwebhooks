@@ -3,6 +3,7 @@ include README.zh.md
 include LICENSE
 include AGENTS.md
 include CONSTITUTION.md
+include CHANGELOG.md
 include *.editorconfig
 include *.sample
 recursive-include doc *.png

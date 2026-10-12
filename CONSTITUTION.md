@@ -234,8 +234,10 @@ standing instructions 分层如下，**冲突时以上级为准**：
 - **必须**：版本号在 `pyproject.toml` 与 `gitwebhooks/__init__.py` 的 `__version__` **两处同步**；两处不一致视为 P1 缺陷。
 
   > 这是一处已知的双源风险（无自动同步机制）。改版本时必须两处都改，并在提交前 `grep` 复核。
-- **必须**：发布流程 = ① 跑 `pre-release-check.sh` → ② 两处改版本号 → ③ 行为变更时更新两个 README → ④ 打语义化版本 tag → ⑤ 构建并上传。
+- **必须**：发布流程 = ① 在 `CHANGELOG.md` 的「未发布」小节写完本次变更 → ② 两处改版本号 → ③ 把「未发布」条目移入新版本小节并填上日期 → ④ 行为变更时更新两个 README → ⑤ 跑 `pre-release-check.sh` → ⑥ 打语义化版本 tag → ⑦ 构建并上传。
+- **必须**：`CHANGELOG.md` 保持 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 结构；每个已发布版本都有条目，条目用中文描述**用户可感知**的变更，不写轮次日志与过程叙述。
 - **禁止**：未跑校验脚本就上传 PyPI。
+- **禁止**：发布新版本而不更新 `CHANGELOG.md`。
 
 ---
 

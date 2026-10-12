@@ -64,6 +64,7 @@ utils/             常量、异常、命令执行、systemd 辅助
 gitwebhooks-cli              # Bash 包装脚本：自动定位包并以 python3 -m gitwebhooks.main 运行
 pyproject.toml               # 打包、版本号（源 1）、入口点 gitwebhooks.main:main
 MANIFEST.in                  # sdist 清单
+CHANGELOG.md                 # 更新日志（Keep a Changelog；发布时必须更新）
 gitwebhooks.ini.sample       # 配置模板（改配置项须同步）
 scripts/pre-release-check.sh # 发布前校验（构建 + 隔离环境安装 + CLI 冒烟）
 gitwebhooks/
@@ -262,7 +263,7 @@ tests/unit/cli/test_init_wizard.py
 2. **禁止反复猜测试错**：遇报错先查权威来源（Python 官方文档、`README*.md`、本宪章）确认根因，再最小复现验证；
 3. **最小改动**：只改任务相关代码，拒绝过度抽象（YAGNI / KISS）；
 4. **匹配现有风格**：命名、目录、抽象层级与周边代码一致；注释 / docstring 语言**按层就近一致**（核心模块英文、CLI 交互层中文，见宪章 §2.1），代码标识符一律英文，commit 用**中文**；
-5. **同步文档**：用户可见行为变更 → 两个 README；架构 / 命令变更 → 本文档；命令或配置项增删 → 核对 §「门禁纪律」的引用点清单；
+5. **同步文档**：用户可见行为变更 → 两个 README **+ `CHANGELOG.md` 的「未发布」小节**；架构 / 命令变更 → 本文档；命令或配置项增删 → 核对 §「门禁纪律」的引用点清单；
 6. **零依赖**：不引入运行时第三方依赖（`dependencies` 保持为空）；
 7. **版本双源**：改版本号必须同时改 `pyproject.toml` 与 `gitwebhooks/__init__.py`，提交前 `grep` 复核。
 
@@ -286,6 +287,7 @@ tests/unit/cli/test_init_wizard.py
 | 文档 | 内容 |
 |------|------|
 | [`CONSTITUTION.md`](./CONSTITUTION.md) | **编码宪章（最高准则）**：适用范围、架构不变量、安全、测试、合规分级、审查矩阵 |
+| [`CHANGELOG.md`](./CHANGELOG.md) | **更新日志**（Keep a Changelog）：各版本的用户可感知变更；发布时必须更新 |
 | [`AGENTS.md`](./AGENTS.md)（本文档） | Agent 入口：架构、命令、门禁、陷阱 |
 | [`README.md`](./README.md) | 用户手册（英文）：安装、配置、使用、发布 |
 | [`README.zh.md`](./README.zh.md) | 用户手册（中文） |

@@ -1,0 +1,177 @@
+# 更新日志 (Changelog)
+
+本文件记录本项目所有值得注意的变更。
+
+格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
+版本号遵循 [语义化版本 (Semantic Versioning)](https://semver.org/lang/zh-CN/)。
+
+变更类型：`Added / 新增`、`Changed / 变更`、`Deprecated / 弃用`、`Removed / 移除`、
+`Fixed / 修复`、`Security / 安全`。
+
+> **关于历史条目**：本文件自 v2.4.1 起正式维护。v2.4.1 之前没有 git tag，
+> 早期条目由提交历史整理而成，日期取该版本最后一次提交的日期；
+> 版本切分以历史上的 `chore: 发布版本 X` 提交为准，可能与当时 PyPI 上的上传时点存在偏差。
+
+---
+
+## [未发布 / Unreleased]
+
+<!-- 发布新版本时：把本节的条目移动到新的版本号小节，并更新下方链接。 -->
+
+## [2.4.1] - 2026-10-12
+
+### Fixed / 修复
+
+- **`-h` / `--help` 现在遵循标准 Unix 约定**：在主命令与每个子命令层级都可用，
+  输出到 stdout，退出码为 `0`。此前它会打印 `Error: -h/--help parameters are not supported.`
+  并以退出码 `1` 结束。
+- 帮助文本改为**由 argparse 从解析器定义生成**，`help <命令>` 与 `<命令> --help`
+  输出完全一致；删除 `cli/help.py` 中重复维护的手写帮助文案。
+- 修正文档中已失效的命令引用：
+  - 启动服务器必须带 `serve` 子命令（`./gitwebhooks-cli serve -c file.ini`）；
+    原文档写作 `./gitwebhooks-cli -c file.ini`，实际只会打印帮助。
+  - 模块入口是 `python3 -m gitwebhooks.main`（`gitwebhooks.cli` 无 `__main__.py`）。
+  - README 结构树删除不存在的 `cli.py` 与 `install.sh`。
+  - `cli/init_wizard.py` 的完成提示、`scripts/pre-release-check.sh` 的 CLI 检查
+    此前仍指向已移除的 `service` 子命令（导致发布前检查实际失效）。
+
+### Changed / 变更
+
+- `-v` / `--version` 注册为 argparse 参数，因此会出现在 `--help` 中；
+  不再由 `main()` 的预检查拦截（该预检查还会让 `serve -v` 意外打印版本号）。
+- 新增 `tests/unit/cli/test_help.py`（基于 `unittest`）覆盖各层级 `help`/`version`
+  的退出码、输出流与 `help <cmd>` ≡ `<cmd> --help` 的一致性。
+
+### 工程与治理 / Tooling & Governance
+
+- 迁移到 DSH 管理：新增 `CONSTITUTION.md`（项目编码宪章）与
+  `.dsh/skills/code-review`（代码审查技能）；`CLAUDE.md` 由 `AGENTS.md` 取代。
+- 清理其他 agent 工具残留：`.claude/`、`.specify/`、`.gitignore` 中的 SpecKit 段落、
+  4 个空的 `tests/test_*` 目录。
+- 修正 `.gitignore` 中拼错的配置文件名（`.gitwebhook.ini` → `.gitwebhooks.ini`），
+  避免用户本地配置与密钥被误提交。
+
+## [2.4.0] - 2026-01-16
+
+### Removed / 移除
+
+- 彻底移除 `service` 子命令及其向后兼容代码；systemd 服务管理改由
+  `serve install` / `serve uninstall` 承担（`gitwebhooks/cli/service.py` 保留为内部实现模块）。
+
+## [2.3.1] - 2026-01-16
+
+### Fixed / 修复
+
+- 修复 `serve` 命令显示弃用警告的问题。
+- 恢复被误删的 `gitwebhooks-cli` 脚本。
+
+## [2.3.0] - 2026-01-16
+
+### Added / 新增
+
+- 服务安装时的配置级别选择：`serve install --config-level user|local|system`。
+
+### Changed / 变更
+
+- 重构 CLI 命令结构，使其符合标准 Unix 工具规范。
+
+> 注：本次发布提交（`chore: 发布版本 2.3.0`）中 `pyproject.toml` 的版本号仍为 `2.2.0`，
+> 版本号是在紧随其后的 `chore: 更新 pyproject.toml 版本号到 2.3.0` 中才更新的。
+
+## [2.2.0] - 2026-01-15
+
+### Added / 新增
+
+- 配置文件优先级自动查找：未指定 `-c` 时依次查找
+  `~/.gitwebhooks.ini` → `/usr/local/etc/gitwebhooks.ini` → `/etc/gitwebhooks.ini`。
+
+## [2.1.4] - 2026-01-15
+
+### Changed / 变更
+
+- 统一项目命名为 `gitwebhooks`。
+
+### Fixed / 修复
+
+- 修复多个测试与实现问题。
+
+## [2.1.3] - 2026-01-14
+
+### Fixed / 修复
+
+- 修复配置初始化向导的多个问题。
+- 恢复被误删的 `constitution.md`。
+
+## [2.1.2] - 2026-01-14
+
+### Added / 新增
+
+- 发布前验证流程：`scripts/pre-release-check.sh`（构建 + 隔离环境安装 + CLI 冒烟）。
+
+### Fixed / 修复
+
+- 修复 CLI 入口点配置：`gitwebhooks.cli:main` → `gitwebhooks.main:main`。
+
+## [2.1.1] - 2026-01-14
+
+### Fixed / 修复
+
+- 修正 README 中的包名（`git-webhooks-server` → `gitwebhooks`）。
+
+## [2.1.0] - 2026-01-14
+
+### Added / 新增
+
+- 安装方法指导与服务文件自适应功能。
+
+## [2.0.0] - 2026-01-14
+
+首个发布到 PyPI 的版本，将原单文件实现重构为模块化包。
+
+### Added / 新增
+
+- 模块化包结构 `gitwebhooks/`：`models/`、`config/`、`auth/`、`handlers/`、`utils/`、`logging/`。
+- 完整测试套件（单元测试 + 集成测试）。
+- CLI 子命令取代 `install.sh`：`config init`（交互式配置向导）、`config view`（查看配置，敏感字段高亮）。
+
+### Changed / 变更
+
+- 安装方式简化为原地运行模式。
+- 源码按模块拆分，所有源码注释统一为英文。
+
+### Fixed / 修复
+
+- 修复 Gitee webhook 签名验证算法。
+- 修复 `install.sh --uninstall` 参数不生效的问题。
+- 修复服务模板与安装脚本缺少 `WorkingDirectory` 的问题。
+- 修复服务文件创建问题，并增加详细模式。
+
+### Removed / 移除
+
+- 移除旧的单文件实现与 `install.sh`。
+
+---
+
+## 2.0.0 之前（未发布到 PyPI）
+
+2020–2022 年间为单文件实现（`git-webhooks-server.py`），已具备以下能力：
+
+- 支持 GitHub、Gitee、GitLab 与自定义 webhook 源。
+- 按 Header 识别平台；支持签名 / token / 密码验证。
+- 支持指定需要处理的事件类型（`handle_events`）。
+- 自定义 webhook 通过 `identifier_path` 提取仓库标识。
+- 支持 SSL。
+- 修复重启后服务无法启动的问题。
+
+[未发布 / Unreleased]: https://gitee.com/holyhi/git-webhooks-server/compare/v2.4.1...HEAD
+[2.4.1]: https://pypi.org/project/gitwebhooks/2.4.1/
+[2.4.0]: https://pypi.org/project/gitwebhooks/2.4.0/
+[2.3.1]: https://pypi.org/project/gitwebhooks/2.3.1/
+[2.3.0]: https://pypi.org/project/gitwebhooks/2.3.0/
+[2.2.0]: https://pypi.org/project/gitwebhooks/2.2.0/
+[2.1.4]: https://pypi.org/project/gitwebhooks/2.1.4/
+[2.1.3]: https://pypi.org/project/gitwebhooks/2.1.3/
+[2.1.2]: https://pypi.org/project/gitwebhooks/2.1.2/
+[2.1.1]: https://pypi.org/project/gitwebhooks/2.1.1/
+[2.1.0]: https://pypi.org/project/gitwebhooks/2.1.0/
+[2.0.0]: https://pypi.org/project/gitwebhooks/2.0.0/

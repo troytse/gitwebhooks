@@ -14,6 +14,7 @@
   - [自定义](#自定义)
 - [配置](#配置)
 - [项目结构](#项目结构)
+- [更新日志](#更新日志)
 
 ## 简介
 
@@ -482,6 +483,7 @@ gitwebhooks/
 ├── scripts/                  # pre-release-check.sh
 ├── tests/                    # 测试套件
 ├── CONSTITUTION.md           # 编码宪章（最高准则）
+├── CHANGELOG.md              # 更新日志（Keep a Changelog）
 └── AGENTS.md                 # Agent 指南（完整文件树）
 ```
 
@@ -520,7 +522,7 @@ python3 -m unittest discover tests/
 此脚本会验证：
 - 包能成功构建
 - CLI 入口点正常工作（`gitwebhooks-cli`）
-- 所有子命令正常工作（`service`、`config`）
+- 所有子命令正常工作（`serve`、`config`）
 - 模块导入正常工作
 
 只有在所有检查通过后，才能进行发布：
@@ -532,6 +534,12 @@ python3 -m build
 # 上传到 PyPI
 python3 -m twine upload dist/*
 ```
+
+## 更新日志
+
+各版本的用户可感知变更记录在 [CHANGELOG.md](CHANGELOG.md)
+（遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/) 与
+[语义化版本](https://semver.org/lang/zh-CN/)）。
 
 ## 许可证
 

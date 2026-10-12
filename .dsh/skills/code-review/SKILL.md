@@ -102,6 +102,7 @@ git diff master...HEAD
 - [ ] README 配置示例与 `gitwebhooks.ini.sample` 一致？
 - [ ] 配置项增删是否同步了 `gitwebhooks.ini.sample`、`RESERVED_SECTIONS`、两个 README？
 - [ ] `AGENTS.md` 的文件结构 / 命令 / 已知基线是否因本次改动而过时？
+- [ ] **`CHANGELOG.md`**：用户可感知的变更是否写进「未发布 / Unreleased」小节？发布时是否已移入新版本小节并填上日期？条目是否描述**用户可感知**的变更（而非轮次日志、过程叙述、门禁回执）？
 - [ ] 相对链接与 `§N` 交叉引用是否仍然有效（本技能、宪章、AGENTS.md 之间）？
 
 ### G. 治理文档「误导条款」核对

@@ -14,6 +14,7 @@
   - [Custom](#custom)
 - [Configuration](#configuration)
 - [Project Structure](#project-structure)
+- [Changelog](#changelog)
 
 ## Introduction
 
@@ -482,6 +483,7 @@ gitwebhooks/
 ├── scripts/                  # pre-release-check.sh
 ├── tests/                    # Test suite
 ├── CONSTITUTION.md           # Coding charter (highest authority)
+├── CHANGELOG.md              # Release history (Keep a Changelog)
 └── AGENTS.md                 # Agent guide (full file tree)
 ```
 
@@ -520,7 +522,7 @@ python3 -m unittest discover tests/
 This script validates:
 - Package builds successfully
 - CLI entry point works (`gitwebhooks-cli`)
-- All subcommands work (`service`, `config`)
+- All subcommands work (`serve`, `config`)
 - Module imports work correctly
 
 Only after all checks pass, proceed with publishing:
@@ -532,6 +534,12 @@ python3 -m build
 # Upload to PyPI
 python3 -m twine upload dist/*
 ```
+
+## Changelog
+
+All notable changes per release are documented in [CHANGELOG.md](CHANGELOG.md)
+(following [Keep a Changelog](https://keepachangelog.com/) and
+[Semantic Versioning](https://semver.org/)).
 
 ## License
 
