@@ -6,7 +6,6 @@ Tests for covering edge cases and error handling paths.
 
 import unittest
 import sys
-import time
 from pathlib import Path
 
 # Add parent directory to path
@@ -170,18 +169,28 @@ class TestEdgeCases(WebhookTestCase):
             for t in threads:
                 t.join()
 
-            time.sleep(1)
-
             # All requests should get 200
             for status in results:
                 self.assertEqual(status, 200)
 
+            # The command must have run (marker appears once the async work lands)
+            self.assertTrue(self.wait_for_file(marker_file),
+                            "concurrent webhooks did not trigger the command")
+
     def test_large_command_output_handled(self):
         """
-        Test that commands with large output are handled.
+        Test that a command emitting far more than the OS pipe buffer to
+        stdout still completes.
+
+        NOTE: the command must write to stdout, NOT redirect into a file.
+        Redirecting hides the very pipe this test exists to exercise - the
+        previous version redirected into a file and therefore passed even
+        while large-output commands were blocking forever.
         """
-        large_output_file = Path(self.temp_dir) / "large_output.txt"
-        cmd = f"yes | head -n 10000 > {large_output_file}"
+        marker_file = Path(self.temp_dir) / ".large_output_done"
+        # ~400 KB to stdout, comfortably past any pipe buffer (Linux 64 KiB,
+        # macOS 16-64 KiB).
+        cmd = f"yes | head -c 400000; touch {marker_file}"
 
         config_builder = TestConfigBuilder(self.temp_dir)
         config_builder.set_platform_verify('github', verify=False)
@@ -200,10 +209,10 @@ class TestEdgeCases(WebhookTestCase):
 
             self.assertStatusCode(response, 200)
 
-            time.sleep(2)
-
-            # Output file should exist
-            self.assertTrue(large_output_file.exists())
+            self.assertTrue(
+                self.wait_for_file(marker_file, timeout=30),
+                "command blocked while writing large output to stdout"
+            )
 
     def test_log_file_directory_not_exists(self):
         """

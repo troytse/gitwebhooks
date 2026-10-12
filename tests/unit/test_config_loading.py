@@ -59,7 +59,7 @@ class TestConfigLoading(unittest.TestCase):
 
             # Run server with nonexistent config
             result = subprocess.run(
-                [sys.executable, '-m', 'gitwebhooks.cli', '-c', nonexistent_config],
+                [sys.executable, '-m', 'gitwebhooks.main', 'serve', '-c', nonexistent_config],
                 capture_output=True,
                 timeout=5
             )
@@ -81,7 +81,7 @@ class TestConfigLoading(unittest.TestCase):
 
         try:
             result = subprocess.run(
-                [sys.executable, '-m', 'gitwebhooks.cli', '-c', invalid_config],
+                [sys.executable, '-m', 'gitwebhooks.main', 'serve', '-c', invalid_config],
                 capture_output=True,
                 timeout=5
             )

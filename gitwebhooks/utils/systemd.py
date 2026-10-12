@@ -185,23 +185,6 @@ def detect_installation_type(cli_path: Optional[str] = None) -> InstallationEnvi
     )
 
 
-def check_systemd() -> bool:
-    """Check if systemctl is available
-
-    Returns:
-        True if systemctl command exists, False otherwise
-    """
-    try:
-        result = subprocess.run(
-            ['which', 'systemctl'],
-            capture_output=True,
-            timeout=5
-        )
-        return result.returncode == 0
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        return False
-
-
 def check_root_permission() -> bool:
     """Check if running with root privileges
 
@@ -245,30 +228,3 @@ def get_service_path() -> Path:
         Path to service file location
     """
     return Path('/etc/systemd/system/gitwebhooks.service')
-
-
-def get_cli_path() -> str:
-    """Get the absolute path to gitwebhooks-cli
-
-    Returns:
-        Absolute path to gitwebhooks-cli executable
-
-    Note:
-        This assumes the CLI is installed in /usr/local/bin
-        or available in the system PATH.
-    """
-    # Try to find gitwebhooks-cli in PATH
-    try:
-        result = subprocess.run(
-            ['which', 'gitwebhooks-cli'],
-            capture_output=True,
-            text=True,
-            timeout=5
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        pass
-
-    # Fallback to standard location
-    return '/usr/local/bin/gitwebhooks-cli'

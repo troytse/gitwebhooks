@@ -6,7 +6,6 @@ Provides server startup and systemd service management functionality.
 import argparse
 import sys
 from pathlib import Path
-from typing import Optional
 
 from gitwebhooks.server import WebhookServer
 from gitwebhooks.utils.exceptions import ConfigurationError
@@ -72,6 +71,10 @@ def start_server(args: argparse.Namespace) -> int:
     # Get config path from args
     config_file = getattr(args, 'config', None)
 
+    # Import here to avoid circular dependency (see gitwebhooks/cli/help.py).
+    # These live in gitwebhooks.main - do not re-implement them here.
+    from gitwebhooks.main import find_config_file, format_config_error
+
     # Print version
     print(f'gitwebhooks-cli {__version__}')
 
@@ -112,41 +115,3 @@ def start_server(args: argparse.Namespace) -> int:
         print(f'Error: {e}', file=sys.stderr)
         return 1
 
-
-def find_config_file() -> Optional[str]:
-    """Find configuration file by priority order.
-
-    Searches for configuration files in the following order:
-    1. User level: ~/.gitwebhooks.ini
-    2. Local level: /usr/local/etc/gitwebhooks.ini
-    3. System level: /etc/gitwebhooks.ini
-
-    Returns:
-        Path string of the first existing configuration file, or None if not found.
-    """
-    for config_path in CONFIG_SEARCH_PATHS:
-        expanded_path = Path(config_path).expanduser().resolve()
-        if expanded_path.exists():
-            return str(expanded_path)
-    return None
-
-
-def format_config_error(searched_paths: list) -> str:
-    """Format user-friendly error message for missing configuration file.
-
-    Args:
-        searched_paths: List of paths that were searched.
-
-    Returns:
-        Formatted error message string.
-    """
-    lines = [
-        'Error: Configuration file not found.',
-        'Searched paths:'
-    ]
-    for i, path in enumerate(searched_paths, 1):
-        lines.append(f'  {i}. {path}')
-    lines.append('')
-    lines.append('You can create a configuration file using:')
-    lines.append('  gitwebhooks-cli config init')
-    return '\n'.join(lines)

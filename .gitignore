@@ -28,6 +28,7 @@ dmypy.json
 *.log
 .env
 .env.*
+*.env
 .venv
 venv/
 ENV/

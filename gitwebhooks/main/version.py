@@ -3,8 +3,6 @@
 Provides version information display functionality for gitwebhooks-cli.
 """
 
-import sys
-
 
 def print_version() -> None:
     """Print version information and exit.

@@ -5,13 +5,11 @@ Creates and runs the HTTP server, handles webhook requests.
 
 import logging
 import ssl
-import sys
 from http.server import HTTPServer
 from typing import Optional
 
 from gitwebhooks.config.loader import ConfigLoader
 from gitwebhooks.config.registry import ConfigurationRegistry
-from gitwebhooks.config.server import ServerConfig
 from gitwebhooks.handlers.request import WebhookRequestHandler
 from gitwebhooks.logging.setup import setup_logging
 from gitwebhooks.utils.exceptions import ConfigurationError

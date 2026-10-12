@@ -155,7 +155,10 @@ class TestServer:
         try:
             # Set ready event AFTER server starts listening
             self._ready_event.set()
-            self._server.serve_forever()
+            # Short poll interval: shutdown() blocks until the loop next
+            # checks its flag, so the default 0.5s would be paid by every
+            # integration test's teardown.
+            self._server.serve_forever(poll_interval=0.01)
         except Exception:
             self._running = False
             self._ready_event.clear()
@@ -222,167 +225,24 @@ class TestServer:
         import socket
         import time
 
-        start_time = time.time()
-
         # First wait for the ready event (server thread started)
         if not self._ready_event.wait(timeout=timeout):
             return False
 
-        # Give server a bit more time to actually start listening
-        time.sleep(0.2)
-
-        # Then verify port is actually accepting connections
-        port = self.port
-        end_time = start_time + timeout
-
-        while time.time() < end_time:
+        # Poll the port instead of sleeping a fixed amount. The listening
+        # socket is bound in _create_server(), so a connection is accepted as
+        # soon as the socket exists; the previous unconditional
+        # sleep(0.2) + sleep(0.05) was paid by every integration test.
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     s.settimeout(0.1)
-                    result = s.connect_ex(('127.0.0.1', port))
-                    if result == 0:
-                        # Give a small extra delay for server to be fully ready
-                        time.sleep(0.05)
+                    if s.connect_ex(('127.0.0.1', self.port)) == 0:
                         return True
-            except Exception:
+            except OSError:
                 pass
-            time.sleep(0.1)
-
-        return False
-
-    def __enter__(self):
-        """Context manager entry - starts the server."""
-        self.start()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit - stops the server."""
-        self.stop()
-
-
-class TestServerProcess:
-    """
-    Alternative test server manager that runs the server in a subprocess.
-
-    This approach provides better isolation but is slower than the
-    thread-based approach. Use this when you need complete isolation
-    between tests.
-
-    Usage:
-        server = TestServerProcess(config_path="/path/to/test.ini")
-        server.start()
-        server.wait_for_ready()
-        # Run tests...
-        server.stop()
-    """
-
-    def __init__(self, config_path: str, port: Optional[int] = None):
-        """
-        Initialize test server process.
-
-        Args:
-            config_path: Path to configuration file
-            port: Override port (None to use config file port)
-        """
-        self.config_path = config_path
-        self._port_override = port
-        self._process = None
-        self._config = None
-
-    @property
-    def port(self) -> int:
-        """
-        Get the server port.
-
-        Returns:
-            int: Server port number
-        """
-        if self._port_override:
-            return self._port_override
-        if self._config:
-            return self._config.getint('server', 'port')
-        # Load config to get port
-        config = configparser.ConfigParser()
-        config.read(self.config_path)
-        self._config = config
-        return config.getint('server', 'port')
-
-    @property
-    def is_running(self) -> bool:
-        """
-        Check if server process is running.
-
-        Returns:
-            bool: True if process is running
-        """
-        return self._process is not None and self._process.poll() is None
-
-    def start(self):
-        """
-        Start the server in a subprocess.
-
-        Raises:
-            RuntimeError: If server is already running
-        """
-        if self.is_running:
-            raise RuntimeError("Server is already running")
-
-        import subprocess
-
-        # Build command using gitwebhooks-cli
-        # The CLI wrapper expects to be run from project root
-        project_root = Path(__file__).parent.parent.parent
-        cli_script = project_root / "gitwebhooks-cli"
-        cmd = [sys.executable, "-m", "gitwebhooks.cli", "-c", self.config_path]
-
-        # Start process from project root directory
-        self._process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            cwd=str(project_root)
-        )
-
-    def stop(self):
-        """
-        Stop the server process.
-
-        Sends SIGTERM and waits for process to finish.
-        """
-        if self._process:
-            self._process.terminate()
-            try:
-                self._process.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                self._process.kill()
-                self._process.wait()
-
-    def wait_for_ready(self, timeout: float = 5.0) -> bool:
-        """
-        Wait for server to be ready by checking if port is listening.
-
-        Args:
-            timeout: Maximum time to wait in seconds
-
-        Returns:
-            bool: True if server is ready, False if timeout
-        """
-        import socket
-
-        start_time = time.time()
-        port = self.port
-
-        while time.time() - start_time < timeout:
-            try:
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                    s.settimeout(0.1)
-                    result = s.connect_ex(('127.0.0.1', port))
-                    if result == 0:
-                        return True
-            except Exception:
-                pass
-            time.sleep(0.1)
+            time.sleep(0.005)
 
         return False
 

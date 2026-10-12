@@ -15,7 +15,7 @@ import unittest
 from pathlib import Path
 
 # Make the package importable when this file is run directly
-sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from gitwebhooks.utils.executor import execute_deployment
 

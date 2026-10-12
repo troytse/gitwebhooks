@@ -5,7 +5,6 @@ Defines configuration-related dataclasses.
 
 import configparser
 from dataclasses import dataclass
-from pathlib import Path
 from typing import List
 
 from gitwebhooks.models.provider import Provider

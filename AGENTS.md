@@ -10,7 +10,7 @@
 |----|----|
 | 语言 | Python（`requires-python = ">=3.7"`，classifiers 覆盖 3.7–3.14） |
 | 运行时依赖 | **无**（仅标准库；`pyproject.toml` 的 `dependencies = []` 是硬约定） |
-| 开发依赖 | `pytest`、`pytest-cov`（可选，仅作测试运行器） |
+| 开发依赖 | `pytest`、`pytest-cov`（dev extra；**全量测试套件的运行器**） |
 | 代码规模 | ~4.9k 行（`gitwebhooks/`） |
 | 配置格式 | INI（`configparser`） |
 | HTTP | 标准库 `http.server` |
@@ -113,7 +113,7 @@ tests/
 ├── unit/                    # 单元测试（unit/cli/ 为 CLI 子命令测试）
 ├── integration/             # 端到端 webhook / 配置发现 / 命令执行
 ├── fixtures/                # 各平台 payload 与签名构造器
-└── utils/                   # 测试辅助（HTTP 客户端、服务器管理、证书生成）
+└── utils/                   # 测试辅助（HTTP 客户端、线程内测试服务器）
 doc/                         # README 截图（二进制资源）
 .dsh/skills/                 # DSH 项目技能（项目唯一技能来源）
 ```
@@ -196,21 +196,24 @@ python3 -m build && python3 -m twine upload dist/*
 
 ## 测试与质量门禁
 
-**项目自带 runner（无需 pytest，推荐）**：
+**全量测试（权威，必须用这个）** — 先装 dev extra：
 
 ```bash
-python3 -m tests            # 全量
+pip install -e ".[dev]"     # 含 pytest
+python3 -m pytest tests/    # 226 个测试全跑，约 10 秒
+```
+
+**零依赖子集 runner**（`unittest`，**不是**全量）：
+
+```bash
+python3 -m tests            # 只跑到不依赖 pytest 的模块（当前 128 个）
 python3 -m tests -q         # 仅摘要
 python3 -m tests -f         # 失败即停
 python3 -m tests -v         # 详细
-python3 -m tests unit       # 只跑单元测试（也可传 integration）
 ```
 
-**pytest 驱动（可选，需自行安装 `pytest`）**：
-
-```bash
-python3 -m pytest tests/
-```
+> ⚠️ `python3 -m tests` 跑不到 `tests/unit/test_main.py` 等 7 个 pytest 风格模块
+> （当前约 98 个测试），因此**不能**用它声称「测试全通过」。
 
 **语法静态校验**：
 
@@ -220,27 +223,18 @@ python3 -m compileall -q gitwebhooks
 
 ### 门禁纪律
 
-- 交付前至少跑 `python3 -m compileall -q gitwebhooks` + 爆炸半径内测试；
+- 交付前跑 `python3 -m compileall -q gitwebhooks` + **全量** `python3 -m pytest tests/`；
 - **如实区分**「本机真跑过 / 只做了静态检查 / 未执行」；声称通过时给出**实际计数**（跑了多少 / 失败 / 跳过）；
 - **禁止吞输出**（`>/dev/null`、`2>/dev/null`、`-q` 用于可能失败的命令）；
 - CLI 子命令增删时，**必须**核对全部引用点：`cli/__init__.py` 注册、`cli/help.py`、`README.md`、`README.zh.md`、`scripts/pre-release-check.sh`、相关测试。
 
-### ⚠️ 已知测试基线偏差
+### 测试基线
 
-以下 7 个测试模块直接 `import pytest`，**在未安装 pytest 的环境下整体无法导入**（报 `ModuleNotFoundError`）：
+**`python3 -m pytest tests/`（Python 3.14）**：`226 passed`，约 10 秒，**0 挂起**。
 
-```
-tests/unit/test_main.py                    tests/unit/test_prompts_config_level.py
-tests/unit/test_config_level.py            tests/unit/test_service_install_context.py
-tests/unit/test_install_service_logic.py   tests/integration/test_config_discovery.py
-tests/unit/cli/test_init_wizard.py
-```
+**`python3 -m tests`（无 pytest）**：`Ran 128 tests`，7 个 error（那 7 个 pytest 风格模块整体无法导入）。这些 error 是**子集 runner 的已知限制**，不是代码缺陷。
 
-**基线（2026-10-12 实测，Python 3.14，无 pytest）**：`Ran 128 tests`，**0 failures + 7 errors**。
-- 7 个 error = 上述 pytest 导入失败（模块整体无法导入，不是因为断言失败）；
-- **0 failures**：此前的 `test_help_display_with_h_argument` 失败已修复（`-h` 现按标准约定返回码 0）。
-
-判定改动是否引入回归时，**必须与此基线对比**：新增 failure 才算回归；7 个 error 是既有环境缺陷，不得当作新缺陷，也不得隐去不报。宪章 §6.1 要求新测试用 `unittest` 编写，不新增 pytest 依赖。
+判定改动是否引入回归时，必须以**全量 pytest 结果**为准。
 
 ## 代码审查
 
@@ -274,7 +268,8 @@ tests/unit/cli/test_init_wizard.py
 | **`serve` vs `service`** | 独立 `service` 子命令已移除；systemd 管理是 `serve install` / `serve uninstall`。`cli/service.py` 是内部实现模块，不是子命令。 |
 | **版本双源** | `pyproject.toml` 与 `gitwebhooks/__init__.py` 各存一份版本号，无自动同步；`main/version.py` 从包 `__version__` 读取。 |
 | **两处平台注册** | 新增平台须同时改 `handlers/factory.py` 与 `auth/factory.py`，并加 `handlers/<p>.py` 与 `auth/<p>.py`；漏一处会「识别了平台但无法验证」。 |
-| **pytest 依赖** | 7 个测试模块 `import pytest` 导致无 pytest 环境整体导入失败（见上「已知测试基线偏差」）。新测试用 `unittest`。 |
+| **测试挂起（P0）** | 历史上两处：① `sys.exit` 被 mock 成 no-op ⇒ `while True` 无限重试；② patch 了 `gitwebhooks.main.WebhookServer`，但 `cmd_serve` 用的是 `gitwebhooks.cli.serve.WebhookServer` ⇒ **真实启动服务器**。测试若卡住，先查这两类。 |
+| **测试因「恰好成立」而通过** | 例：用 `main([])` 断言返回码，实际走的是「打印帮助」分支；`-m gitwebhooks.cli` 恒返回 1（模块不存在），却让「配置缺失返回 1」的断言通过。断言必须对应被测行为。 |
 | **配置常量分散风险** | 路径列表、Header 名、状态码、敏感字段关键词的唯一出处是 `utils/constants.py`；别处硬编码即漂移。 |
 | **命令执行信任边界** | `execute_deployment` 使用 `shell=True`。安全前提是「命令只来自本地配置文件」——**禁止**把请求体内容拼进命令。 |
 | **禁止创建无人读取的管道** | `stdout=PIPE` 而不读 ⇒ 输出超过管道缓冲区（Linux 64 KiB）后命令**永久阻塞**（「推送后没反应、无报错、无日志尾」）。当前实现用守护线程合并排空 `stdout`/`stderr` 并 `wait()` 回收；改动此处**必须**保持「有消费者 + 有回收」，回归测试见 `tests/unit/test_executor.py`。 |

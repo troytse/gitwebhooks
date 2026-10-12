@@ -232,14 +232,14 @@ class TestGitHubWebhook(WebhookTestCase):
             )
 
             # Should find the repo and execute command
-            # Check for marker file created by command
-            import time
-            time.sleep(0.5)  # Give time for async command to execute
-            marker = Path(self.temp_dir) / ".marker"
-            # May or may not exist depending on async execution timing
-            # The key is that response wasn't a "repo not found" error
             self.assertNotEqual(response.status_code, 404,
                               "Repository should be found by full_name")
+
+            # The configured command must actually run
+            self.assertTrue(
+                self.wait_for_file(Path(self.temp_dir) / ".marker"),
+                "repository command did not execute"
+            )
 
     def test_ping_event_handling(self):
         """

@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Optional
 
 from gitwebhooks.utils.systemd import (
-    check_systemd,
     check_root_permission,
     generate_service_file,
     get_service_path,
@@ -177,15 +176,6 @@ def check_service_exists() -> bool:
         True if service file exists, False otherwise
     """
     return get_service_path().exists()
-
-
-def confirm_overwrite() -> bool:
-    """Ask user to confirm overwrite
-
-    Returns:
-        True if user confirms, False otherwise
-    """
-    return ask_yes_no('Service already exists, overwrite? (y/N) ', default=False)
 
 
 def enable_and_start_service() -> int:

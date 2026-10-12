@@ -32,11 +32,15 @@ verify = false
         monkeypatch.setenv('HOME', str(tmp_path))
 
         # Run the CLI with -v to check it works (version doesn't need config)
+        # cwd is the temp dir, so expose the repo root on PYTHONPATH to keep
+        # `gitwebhooks` importable when it is not installed.
+        repo_root = str(Path(__file__).resolve().parents[2])
         result = subprocess.run(
             [sys.executable, '-m', 'gitwebhooks.main', '-v'],
             capture_output=True,
             text=True,
-            cwd=tmp_path
+            cwd=tmp_path,
+            env={**os.environ, 'PYTHONPATH': repo_root}
         )
 
         # Version should work without config

@@ -166,12 +166,12 @@ class TestMainFunction:
         config_file.write_text('[server]\nport = 18080\n')
         monkeypatch.setenv('HOME', str(tmp_path))
 
-        with patch('gitwebhooks.main.WebhookServer') as mock_server:
+        with patch('gitwebhooks.cli.serve.WebhookServer') as mock_server:
             mock_instance = MagicMock()
             mock_server.return_value = mock_instance
             mock_instance.run.side_effect = KeyboardInterrupt()  # Exit immediately
 
-            result = main([])
+            result = main(['serve'])
 
         assert result == 0
 
@@ -183,7 +183,7 @@ class TestMainFunction:
 
         with patch('gitwebhooks.utils.constants.CONFIG_SEARCH_PATHS',
                    [str(tmp_path / 'nonexistent1.ini'), str(tmp_path / 'nonexistent2.ini')]):
-            result = main([])
+            result = main(['serve'])
 
         assert result == 1
         captured = capsys.readouterr()
@@ -195,12 +195,12 @@ class TestMainFunction:
         config_file = tmp_path / 'custom.ini'
         config_file.write_text('[server]\nport = 18080\n')
 
-        with patch('gitwebhooks.main.WebhookServer') as mock_server:
+        with patch('gitwebhooks.cli.serve.WebhookServer') as mock_server:
             mock_instance = MagicMock()
             mock_server.return_value = mock_instance
             mock_instance.run.side_effect = KeyboardInterrupt()
 
-            result = main(['-c', str(config_file)])
+            result = main(['serve', '-c', str(config_file)])
 
         assert result == 0
         captured = capsys.readouterr()
@@ -211,12 +211,12 @@ class TestMainFunction:
         config_file = tmp_path / 'custom.ini'
         config_file.write_text('[server]\nport = 18080\n')
 
-        with patch('gitwebhooks.main.WebhookServer') as mock_server:
+        with patch('gitwebhooks.cli.serve.WebhookServer') as mock_server:
             mock_instance = MagicMock()
             mock_server.return_value = mock_instance
             mock_instance.run.side_effect = KeyboardInterrupt()
 
-            result = main(['--config', str(config_file)])
+            result = main(['serve', '--config', str(config_file)])
 
         assert result == 0
 
@@ -224,7 +224,7 @@ class TestMainFunction:
         """Should return 1 when explicitly specified config doesn't exist."""
         nonexistent = tmp_path / 'does_not_exist.ini'
 
-        result = main(['-c', str(nonexistent)])
+        result = main(['serve', '-c', str(nonexistent)])
 
         assert result == 1
         captured = capsys.readouterr()

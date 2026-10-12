@@ -7,6 +7,7 @@ This module provides common test fixtures used across all test modules.
 import tempfile
 import socket
 import shutil
+import time
 from pathlib import Path
 from typing import Generator
 
@@ -388,6 +389,39 @@ class WebhookTestCase(unittest.TestCase):
         """
         self.assertEqual(response.status_code, expected,
                         f"Expected status {expected}, got {response.status_code}")
+
+    def wait_until(self, predicate, timeout: float = 10.0, interval: float = 0.02):
+        """
+        Poll predicate until it returns a truthy value or timeout expires.
+
+        Replaces fixed time.sleep() waits: returns as soon as the condition
+        holds (usually a few ms) instead of always paying the full delay, and
+        fails on timeout rather than racing a fixed delay.
+
+        Args:
+            predicate: Callable returning a truthy value when the wait is done
+            timeout: Maximum time to wait, in seconds
+            interval: Delay between polls, in seconds
+
+        Returns:
+            The predicate's truthy result, or its last (falsy) result on timeout
+        """
+        deadline = time.monotonic() + timeout
+        while True:
+            result = predicate()
+            if result:
+                return result
+            if time.monotonic() >= deadline:
+                return result
+            time.sleep(interval)
+
+    def wait_for_file(self, path, timeout: float = 10.0):
+        """Wait until a file/directory exists. Returns True on success."""
+        return bool(self.wait_until(lambda: Path(path).exists(), timeout))
+
+    def wait_for_log_contains(self, log_path: str, text: str, timeout: float = 10.0):
+        """Wait until the log file contains text. Returns True on success."""
+        return bool(self.wait_until(lambda: text in read_log_file(log_path), timeout))
 
     def assertRepositoryExecuted(self, repo_name: str, temp_dir: str):
         """

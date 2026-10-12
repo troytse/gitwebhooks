@@ -16,17 +16,23 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Check step function
+# Check step function.
+# Output is captured rather than discarded: quiet on success, but the full
+# output is printed on failure, where it is the only clue (see CONSTITUTION §6.2).
 check_step() {
     local name="$1"
     local command="$2"
 
     echo -n "Checking $name... "
-    if eval "$command" > /dev/null 2>&1; then
+    local output
+    if output=$(eval "$command" 2>&1); then
         echo -e "${GREEN}PASS${NC}"
         return 0
     else
         echo -e "${RED}FAIL${NC}"
+        echo "--- command: $command"
+        echo "$output"
+        echo "---"
         return 1
     fi
 }
@@ -34,7 +40,7 @@ check_step() {
 # 1. Check if package builds successfully
 echo "Step 1: Building package..."
 cd "$PROJECT_ROOT"
-if ! python3 -m build --outdir /tmp/gitwebhooks-build . > /dev/null 2>&1; then
+if ! python3 -m build --outdir /tmp/gitwebhooks-build .; then
     echo -e "${RED}Build failed!${NC}"
     exit 1
 fi
@@ -46,13 +52,18 @@ echo "Step 2: Creating test environment..."
 TEMP_VENV=$(mktemp -d)
 python3 -m venv "$TEMP_VENV"
 source "$TEMP_VENV/bin/activate"
-pip install --upgrade pip > /dev/null 2>&1
+pip install --upgrade pip || { echo -e "${RED}pip upgrade failed${NC}"; exit 1; }
 echo -e "${GREEN}Test environment created${NC}"
 echo ""
 
 # 3. Install the built package
 echo "Step 3: Installing built package..."
-pip install /tmp/gitwebhooks-build/gitwebhooks-*.tar.gz > /dev/null 2>&1
+if ! pip install /tmp/gitwebhooks-build/gitwebhooks-*.tar.gz; then
+    echo -e "${RED}Package install failed!${NC}"
+    deactivate
+    rm -rf "$TEMP_VENV" /tmp/gitwebhooks-build
+    exit 1
+fi
 echo -e "${GREEN}Package installed${NC}"
 echo ""
 

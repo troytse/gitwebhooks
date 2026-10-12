@@ -30,7 +30,7 @@ Refactoring Plan (future task):
 import os
 import re
 from dataclasses import dataclass
-from typing import Optional, List, Dict
+from typing import Optional, Dict
 import configparser
 
 

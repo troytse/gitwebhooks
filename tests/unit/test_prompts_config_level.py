@@ -65,17 +65,22 @@ class TestAskConfigLevel:
 
     @patch('gitwebhooks.cli.prompts.input')
     @patch('gitwebhooks.cli.prompts.ask_yes_no')
-    @patch('gitwebhooks.cli.prompts.sys.exit')
     def test_ask_config_level_keyboard_interrupt_confirms(
-        self, mock_exit, mock_yes_no, mock_input
+        self, mock_yes_no, mock_input
     ):
-        """Test ask_config_level with KeyboardInterrupt confirming exit"""
+        """Test ask_config_level with KeyboardInterrupt confirming exit
+
+        NOTE: sys.exit must NOT be mocked here. Patching it turns the exit into
+        a no-op, so the `while True` loop raises KeyboardInterrupt again and
+        spins forever (this test used to hang the whole suite).
+        """
         mock_input.side_effect = KeyboardInterrupt()
         mock_yes_no.return_value = True
 
-        ask_config_level()
+        with pytest.raises(SystemExit) as exc_info:
+            ask_config_level()
 
-        mock_exit.assert_called_once_with(0)
+        assert exc_info.value.code == 0
 
     @patch('gitwebhooks.cli.prompts.input')
     @patch('gitwebhooks.cli.prompts.ask_yes_no')

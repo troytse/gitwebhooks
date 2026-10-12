@@ -76,8 +76,10 @@ standing instructions 分层如下，**冲突时以上级为准**：
 - **必须**：消除魔法数字与魔法字符串，提取为 `utils/constants.py` 中的常量或类常量；HTTP 状态码、Header 名、消息文案一律走常量。
 - **建议**：单文件不超过 **400 行**；超过时按语义边界拆分（独立类型 > 独立函数组 > 辅助逻辑）。
 
-  > **已知存量偏差（基线，非许可）**：`gitwebhooks/cli/init_wizard.py`（779 行）、`gitwebhooks/cli/service.py`（352 行）、`gitwebhooks/cli/prompts.py`（322 行）超过 400 行。
-  > 这些文件**不允许继续变大**；触及它们时应评估拆分，拆分须作为独立任务登记，不得夹带在无关改动里。
+  > **已知存量偏差（基线，非许可）**：`gitwebhooks/cli/init_wizard.py`（779 行）超过 400 行。
+  > 该文件**不允许继续变大**；触及它时应评估拆分，拆分须作为独立任务登记，不得夹带在无关改动里。
+  >
+  > 复核口径：`find gitwebhooks -name '*.py' | xargs wc -l | awk '$1>400'`（本清单必须与命令输出一致；写入前先跑一次）。
 
 ### 1.3 命名与目录
 
@@ -200,9 +202,12 @@ standing instructions 分层如下，**冲突时以上级为准**：
 ### 6.1 框架与覆盖
 
 - **必须**：测试位于 `tests/`，单元测试在 `tests/unit/`，端到端 / 集成测试在 `tests/integration/`，共享夹具在 `tests/fixtures/`，测试工具在 `tests/utils/`。
-- **必须**：测试可同时被 `unittest` 与 `pytest` 驱动——**导入了 `pytest` 的测试文件属于已知偏差**，不得新增；新测试统一用 `unittest.TestCase` 编写（`pytest` 仅作为可选的运行器）。
-
-  > **已知存量偏差**：`tests/unit/test_main.py`、`tests/unit/test_config_level.py`、`tests/unit/test_install_service_logic.py`、`tests/unit/test_service_install_context.py`、`tests/unit/test_prompts_config_level.py`、`tests/unit/cli/test_init_wizard.py`、`tests/integration/test_config_discovery.py` 直接 `import pytest`，导致无 pytest 环境下 **7 个测试模块整体无法导入**。修复方向是移除 `pytest` 依赖（改用 `unittest`），作为独立任务登记。
+- **必须**：**完整测试套件 = `python3 -m pytest tests/`**（`pytest` 是 `pyproject.toml` 已声明的 dev extra）。开发环境应先 `pip install -e ".[dev]"`。
+- **必须**：`python3 -m tests` 是**零依赖子集运行器**（仅 `unittest`），不是完整套件——**禁止**把它当作「测试全通过」的依据。
+- **禁止**：**测试静默不运行**。若某模块因缺少可选依赖无法导入，运行器与实际报告**必须**明确指出被跳过的模块与原因；「跑完没报错」不得掩盖「有一半测试从未执行」。
+- **必须**：新测试优先用 `unittest.TestCase`（零依赖可跑）；使用 `pytest` 风格（`tmp_path`/`monkeypatch`/`capsys`/`parametrize`）的模块属于**完整套件的一部分**，必须能在 `pytest` 下跑通。
+- **禁止**：任何形式的测试挂起（死循环、真实启动服务器、等待真实 stdin）。每个测试必须能在秒级完成；发现挂起视为 P0。
+- **必须**：测试**禁止**因「断言恰好也成立」而通过——断言必须对应被测行为（例：用 `main([])` 断言返回码，实际走的却是「打印帮助」分支）。
 
 - **必须**：Bug 修复附带**能复现该 bug 的测试**（先 Red 后 Green）。
 - **必须**：修改平台逻辑时，覆盖该平台的签名验证（成功 + 失败）与仓库识别路径。
@@ -223,14 +228,14 @@ standing instructions 分层如下，**冲突时以上级为准**：
 
 | 目的 | 命令 | 说明 |
 |------|------|------|
-| 全量测试 | `python3 -m tests` | 项目自带 runner（`unittest` 驱动） |
-| 静默测试 | `python3 -m tests -q` | 仅输出摘要 |
+| **全量测试（权威）** | `python3 -m pytest tests/` | 226 个测试全跑；需 `pip install -e ".[dev]"` |
+| 零依赖子集 | `python3 -m tests` | 项目自带 runner（`unittest`），**跑不到** pytest 风格的模块 |
+| 静默子集 | `python3 -m tests -q` | 仅输出摘要 |
 | 失败即停 | `python3 -m tests -f` | 快速定位 |
-| pytest 驱动（可选） | `python3 -m pytest tests/` | 需另装 `pytest`；非必需路径 |
 | 语法检查 | `python3 -m compileall -q gitwebhooks` | 快速静态校验 |
 
-- **必须**：交付前至少跑通 `python3 -m compileall -q gitwebhooks` 与爆炸半径内的测试。
-- **禁止**：以「pytest 未安装」为由跳过测试并声称通过（见 §6.2）。
+- **必须**：交付前至少跑通 `python3 -m compileall -q gitwebhooks` 与**全量** `python3 -m pytest tests/`。
+- **禁止**：以「pytest 未安装」为由跳过测试并声称通过（见 §6.2）；此时应如实报告「只跑了子集」。
 
 ### 7.2 发布
 

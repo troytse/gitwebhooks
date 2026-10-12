@@ -7,7 +7,6 @@ in the correct working directory.
 
 import unittest
 import sys
-import time
 from pathlib import Path
 import os
 
@@ -57,11 +56,8 @@ class TestCommandExecution(WebhookTestCase):
             # Should get 200 OK
             self.assertStatusCode(response, 200)
 
-            # Wait for async command to complete
-            time.sleep(1)
-
             # Verify marker file was created (command executed)
-            self.assertTrue(marker_file.exists(),
+            self.assertTrue(self.wait_for_file(marker_file),
                           f"Command did not execute: marker file not found at {marker_file}")
 
     def test_large_command_output_does_not_block(self):
@@ -101,13 +97,8 @@ class TestCommandExecution(WebhookTestCase):
             )
             self.assertStatusCode(response, 200)
 
-            # Bounded poll instead of a fixed sleep
-            deadline = time.time() + 30
-            while time.time() < deadline and not marker_file.exists():
-                time.sleep(0.2)
-
             self.assertTrue(
-                marker_file.exists(),
+                self.wait_for_file(marker_file, timeout=30),
                 "deploy command never finished: it blocked writing to an unread pipe"
             )
 
@@ -144,13 +135,11 @@ class TestCommandExecution(WebhookTestCase):
             # Should still return 200 (non-blocking execution)
             self.assertStatusCode(response, 200)
 
-            # Wait for async execution
-            time.sleep(1)
-
-            # Check log contains warning about execution failure
-            log_content = self._read_log_file(log_file)
-            # The log may contain "Execution failed" or similar warning
-            # At minimum, response should be 200
+            # The failure must be visible in the log (exit code + output tail)
+            self.assertTrue(
+                self.wait_for_log_contains(log_file, 'Deployment failed (exit 1)'),
+                "command failure was not logged"
+            )
 
     def test_unknown_repo_logged_warning(self):
         """
@@ -184,9 +173,10 @@ class TestCommandExecution(WebhookTestCase):
                          f"Unexpected status: {response.status_code}")
 
             # Check log for warning
-            time.sleep(0.5)
-            log_content = self._read_log_file(log_file)
-            # May contain "No repository setting" or similar
+            self.assertTrue(
+                self.wait_for_log_contains(log_file, 'No repository configuration'),
+                "missing repository configuration was not logged"
+            )
 
     def test_nonexistent_directory_logged_error(self):
         """
@@ -221,8 +211,10 @@ class TestCommandExecution(WebhookTestCase):
             self.assertStatusCode(response, 200)
 
             # Check log for error
-            time.sleep(0.5)
-            log_content = self._read_log_file(log_file)
+            self.assertTrue(
+                self.wait_for_log_contains(log_file, 'Execution failed'),
+                "bad working directory was not logged"
+            )
 
     def test_marker_file_created_on_success(self):
         """
@@ -254,11 +246,8 @@ class TestCommandExecution(WebhookTestCase):
 
             self.assertStatusCode(response, 200)
 
-            # Wait for command execution
-            time.sleep(1)
-
             # Verify marker file exists
-            self.assertTrue(marker_file.exists(),
+            self.assertTrue(self.wait_for_file(marker_file),
                           f"Marker file not created at {marker_file}")
 
     def test_command_with_output(self):
@@ -289,11 +278,8 @@ class TestCommandExecution(WebhookTestCase):
 
             self.assertStatusCode(response, 200)
 
-            # Wait for command execution
-            time.sleep(1)
-
             # Verify output file exists
-            self.assertTrue(output_file.exists(),
+            self.assertTrue(self.wait_for_file(output_file),
                           f"Output file not created at {output_file}")
 
             # Check content
@@ -320,13 +306,20 @@ class TestCommandExecution(WebhookTestCase):
 
             client = TestWebhookClient("127.0.0.1", server.port)
 
+            def count_so_far():
+                """Current counter value (0 if the file is absent/unreadable)."""
+                try:
+                    return int(counter_file.read_text().strip())
+                except (OSError, ValueError):
+                    return 0
+
             # Send first webhook
             response1 = client.send_webhook(
                 headers={"X-GitHub-Event": "push"},
                 payload=PayloadBuilder.github_push_event(repo="test/repo")
             )
             self.assertStatusCode(response1, 200)
-            time.sleep(1)
+            self.wait_until(lambda: count_so_far() >= 1)
 
             # Send second webhook
             response2 = client.send_webhook(
@@ -334,7 +327,7 @@ class TestCommandExecution(WebhookTestCase):
                 payload=PayloadBuilder.github_push_event(repo="test/repo")
             )
             self.assertStatusCode(response2, 200)
-            time.sleep(1)
+            self.wait_until(lambda: count_so_far() >= 2)
 
             # Send third webhook
             response3 = client.send_webhook(
@@ -342,7 +335,10 @@ class TestCommandExecution(WebhookTestCase):
                 payload=PayloadBuilder.github_push_event(repo="test/repo")
             )
             self.assertStatusCode(response3, 200)
-            time.sleep(1)
+            self.assertTrue(
+                self.wait_until(lambda: count_so_far() >= 3),
+                "not all three webhooks triggered their command"
+            )
 
             # Verify counter is 3
             self.assertTrue(counter_file.exists())

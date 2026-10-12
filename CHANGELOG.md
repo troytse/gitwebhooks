@@ -20,6 +20,27 @@
 
 ### Fixed / 修复
 
+- **测试套件会永久挂起**（全量 `pytest` 跑不完——是「卡死」不是「慢」）。两处根因：
+  ① `test_ask_config_level_keyboard_interrupt_confirms` 把 `sys.exit` mock 成 no-op，
+  导致 `while True` 无限重试；② `test_main_*` 把 `gitwebhooks.main.WebhookServer` 打桩，
+  但 `cmd_serve` 实际使用 `gitwebhooks.cli.serve.WebhookServer`，于是**真的启动了服务器**。
+- **测试套件运行时间**约 55 秒降到约 10 秒。主因是每个集成测试都要等
+  `serve_forever()` 默认 0.5 秒的 `poll_interval` 才完成 teardown；另有 17 处固定
+  `time.sleep()`（合计约 12 秒）与每次服务器启动固定 0.25 秒等待。现改为条件轮询
+  （`WebhookTestCase.wait_until` / `wait_for_file` / `wait_for_log_contains`）。
+- 修复若干**从未真正运行过**的测试（此前因缺少 pytest 而整体无法导入）：
+  - `tests/unit/test_main.py` 3 个用例断言的是重构前的 CLI（无子命令即启动服务器）；
+  - `tests/unit/test_install_service_logic.py` 导入了已被删除的 `cmd_install`；
+  - `tests/integration/test_config_discovery.py` 在 `cwd=tmp_path` 下未传 `PYTHONPATH`，
+    且自身推算仓库根路径多了一层。
+- `tests/unit/test_config_loading.py` 用 `python -m gitwebhooks.cli`（该模块不可执行）
+  断言返回码 1，属于**因错误原因通过**；改用 `python -m gitwebhooks.main serve`，
+  现在真正验证配置缺失 / 非法 INI 的处理。
+- `tests/integration/test_edge_cases.py::test_large_command_output_handled` 名为「大输出」，
+  实际把输出**重定向进文件**，从未经过管道——正是它让管道阻塞缺陷长期未被发现。
+- `.gitignore` 现在覆盖 `*.env`（此前 `secret.env` 等不会被忽略）。
+- `scripts/pre-release-check.sh` 不再吞掉全部输出（原先连构建与安装都 `>/dev/null 2>&1`，
+  失败时没有任何线索）；现为成功静默、失败打印完整输出。
 - **部署命令输出超过管道缓冲区后会永久卡死**（表现为「推送后没反应、无报错、无日志尾」）。
   `execute_deployment` 原先用 `stdout=PIPE, stderr=PIPE` 启动命令却**从不读取**这两个管道，
   且 `Popen` 对象被直接丢弃 ⇒ 进程一直留在 `subprocess._active`、**管道读端永不释放**，
@@ -33,9 +54,24 @@
 
 ### Changed / 变更
 
+- **完整测试套件改用 `python3 -m pytest tests/`**（`pytest` 本就是 `pyproject.toml` 的
+  dev extra），共 226 个测试；`python3 -m tests` 明确为**零依赖子集运行器**（128 个），
+  不再被当作「测试全通过」的依据。宪章 §6.1 / §7.1 同步更新。
+- 去除 `gitwebhooks/cli/serve.py` 中与 `gitwebhooks/main/__init__.py` 重复的
+  `find_config_file` 与 `format_config_error`（两份实现已漂移），改为复用后者。
 - `execute_deployment` 现在返回排空输出的工作线程（`Optional[threading.Thread]`），
   便于调用方按需 join；原有调用方忽略返回值即可，行为不变。
 - 部署输出逐行记入日志（DEBUG 级），失败时把尾部重新以 WARNING 级输出。
+
+### Removed / 移除
+
+- 死代码清理（宪章 §3.2「零死代码」）：
+  - 10 个未使用的 import；
+  - 9 个无任何引用的函数：`check_systemd`、`get_cli_path`、`confirm_overwrite`、
+    `ask_question`、`validate_address`、`validate_path`、`validate_bool`、`validate_text`；
+  - `tests/utils/server_manager.py` 的 `TestServerProcess` 死类（同时含未使用的
+    `cli_script` 变量、指向不可执行模块的 `-m gitwebhooks.cli`，以及同款「创建未读管道」缺陷）；
+  - 无引用的测试工具 `tests/utils/certificate_generator.py` 与 `tests/utils/coverage_runner.py`。
 
 ## [2.4.1] - 2026-10-12
 
