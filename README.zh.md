@@ -20,7 +20,7 @@
 
 轻量级 Git webhook 自动部署服务器。
 
-- 使用 Python 3.6+ 实现（仅标准库）
+- 使用 Python 3.7+ 实现（仅标准库）
 - 支持 Github、Gitee、Gitlab 及自定义仓库
 - 支持为不同仓库指定工作目录和命令
 - 可安装为 Systemd 服务
@@ -50,7 +50,7 @@ gitwebhooks/
 
 ### 前置要求
 
-- Python 3.6 或更高版本
+- Python 3.7 或更高版本
 - pip（Python 包管理器）
 - sudo/root 权限（用于安装 systemd 服务）
 

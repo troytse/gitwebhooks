@@ -20,7 +20,7 @@
 
 A lightweight Git webhook server for automated deployment.
 
-- Implemented with Python 3.6+ (standard library only)
+- Implemented with Python 3.7+ (standard library only)
 - Supports Github, Gitee, Gitlab, and custom repositories
 - Custom working directory and command for different repositories
 - Installable as a Systemd service
@@ -50,7 +50,7 @@ gitwebhooks/
 
 ### Prerequisites
 
-- Python 3.6 or higher
+- Python 3.7 or higher
 - pip (Python package manager)
 - sudo/root access (for systemd service installation)
 

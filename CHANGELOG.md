@@ -27,6 +27,9 @@
   `composer install`、`git reset --hard`、`npm ci`、`docker build` 等输出量足以触发。
   现由守护线程持续排空 stdout/stderr（合并读取）并在结束后 `wait()` 回收子进程。
 - 部署失败（非 0 退出码）现在会记录退出码与输出尾部，此前完全无迹可查。
+- 声明的最低 Python 版本修正为 **3.7**（原为 `>=3.6` 并带 3.6 分类器）。
+  包在 import 阶段即依赖 `dataclasses`（Python 3.7+ 才有），此前 3.6 用户会安装成功、
+  但 `import gitwebhooks` 必然失败。
 
 ### Changed / 变更
 

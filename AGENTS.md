@@ -8,7 +8,7 @@
 
 | 项 | 值 |
 |----|----|
-| 语言 | Python（`requires-python = ">=3.6"`，classifiers 覆盖至 3.14） |
+| 语言 | Python（`requires-python = ">=3.7"`，classifiers 覆盖 3.7–3.14） |
 | 运行时依赖 | **无**（仅标准库；`pyproject.toml` 的 `dependencies = []` 是硬约定） |
 | 开发依赖 | `pytest`、`pytest-cov`（可选，仅作测试运行器） |
 | 代码规模 | ~4.9k 行（`gitwebhooks/`） |
