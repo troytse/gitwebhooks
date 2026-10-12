@@ -504,11 +504,11 @@ python3 -m gitwebhooks.main serve -c gitwebhooks.ini.sample
 ### Running Tests
 
 ```bash
-# Using pytest
+# Full suite (authoritative; requires the dev extra: pip install -e ".[dev]")
 python3 -m pytest tests/
 
-# Or using unittest
-python3 -m unittest discover tests/
+# Zero-dependency subset runner (unittest only; skips the pytest-style modules)
+python3 -m tests
 ```
 
 ### Releasing to PyPI

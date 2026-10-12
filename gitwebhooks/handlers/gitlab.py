@@ -6,7 +6,6 @@ Handles webhook requests from GitLab.
 from typing import Optional
 
 from gitwebhooks.handlers.base import WebhookHandler
-from gitwebhooks.models.provider import Provider
 from gitwebhooks.models.request import WebhookRequest
 from gitwebhooks.models.result import SignatureVerificationResult
 from gitwebhooks.config.models import ProviderConfig
@@ -19,10 +18,6 @@ class GitlabHandler(WebhookHandler):
 
     def __init__(self):
         self._verifier = VerifierFactory.create_gitlab_verifier()
-
-    def get_provider(self) -> Provider:
-        """Return Provider.GITLAB"""
-        return Provider.GITLAB
 
     def verify_signature(self, request: WebhookRequest,
                         config: ProviderConfig) -> SignatureVerificationResult:

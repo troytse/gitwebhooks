@@ -11,7 +11,7 @@
 | 语言 | Python（`requires-python = ">=3.7"`，classifiers 覆盖 3.7–3.14） |
 | 运行时依赖 | **无**（仅标准库；`pyproject.toml` 的 `dependencies = []` 是硬约定） |
 | 开发依赖 | `pytest`、`pytest-cov`（dev extra；**全量测试套件的运行器**） |
-| 代码规模 | 4.6k 行（`gitwebhooks/`，4582 行） |
+| 代码规模 | 4.6k 行（`gitwebhooks/`，4570 行） |
 | 配置格式 | INI（`configparser`） |
 | HTTP | 标准库 `http.server` |
 | 打包 | `setuptools`，可发布 PyPI，亦支持原地从源码运行 |

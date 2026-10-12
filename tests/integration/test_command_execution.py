@@ -344,14 +344,6 @@ class TestCommandExecution(WebhookTestCase):
             count = int(counter_file.read_text().strip())
             self.assertEqual(count, 3, "Command should execute 3 times")
 
-    def _read_log_file(self, log_path: str) -> str:
-        """Read log file content."""
-        try:
-            with open(log_path, 'r') as f:
-                return f.read()
-        except FileNotFoundError:
-            return ""
-
 
 if __name__ == '__main__':
     unittest.main()

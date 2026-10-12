@@ -6,7 +6,6 @@ Handles webhook requests from custom webhook sources.
 from typing import Optional
 
 from gitwebhooks.handlers.base import WebhookHandler
-from gitwebhooks.models.provider import Provider
 from gitwebhooks.models.request import WebhookRequest
 from gitwebhooks.models.result import SignatureVerificationResult
 from gitwebhooks.config.models import ProviderConfig
@@ -19,15 +18,13 @@ class CustomHandler(WebhookHandler):
     def __init__(self):
         self._verifier = None  # Created dynamically based on configuration
 
-    def get_provider(self) -> Provider:
-        """Return Provider.CUSTOM"""
-        return Provider.CUSTOM
-
     def verify_signature(self, request: WebhookRequest,
                         config: ProviderConfig) -> SignatureVerificationResult:
         """Verify custom token"""
-        # Create verifier (verification enabled depends on whether header_token is configured)
-        verify_enabled = bool(config.header_token)
+        # Enable verification based on config.verify only. Deriving it from the
+        # header NAME being non-empty meant an explicitly empty `header_token`
+        # silently disabled verification even with verify=true (§5.3).
+        verify_enabled = bool(config.verify)
         if not self._verifier:
             self._verifier = VerifierFactory.create_custom_verifier(verify_enabled)
 

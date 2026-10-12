@@ -55,6 +55,15 @@
   `signature == secret`，当配置里 `secret` 为空且请求未带 token 时 `'' == ''` 成立，
   于是 `verify=True` 形同虚设——而未认证的 webhook 会触发部署命令（任意 shell）。
   `github` 验证器本就有 `if not secret` 保护，现三者也补上同样的保护。
+- **声明支持的 Python 3.7 / 3.8 实际无法启动 CLI**：`cli/init_wizard.py` 用了
+  PEP 585 的 `tuple[bool, str]` 注解（3.9+ 才有），且没有 `from __future__ import annotations`；
+  该模块在 `main → cli → cli.config → init_wizard` 链上被无条件导入，故 3.7/3.8 上
+  `gitwebhooks-cli` 直接 `TypeError: 'type' object is not subscriptable`。改用 `typing.Tuple`。
+- **`custom` 在 `header_token` 显式留空时静默跳过验证**：`verify_enabled` 由「Header 名是否非空」
+  推导，因此 `verify=true` + `header_token=` 会让验证器无条件返回成功（违反宪章 §5.3）。
+  现改为由 `config.verify` 决定：`verify=false` 才放行，`verify=true` 必须真正校验。
+- `[ssl] enable` 写错（如 `maybe`）原先被静默当作「未启用 SSL」；现抛 `ConfigurationError`。
+- pipx 自动探测用了过时的 venv 名 `gitwebhooks-server`（包名是 `gitwebhooks`），该分支实际不可达。
 - `serve uninstall --purge` 删错文件：`cli/service.py` 写的是 `~/.gitwebhook.ini`（少一个 s），
   与真实路径 `~/.gitwebhooks.ini` 不符，导致配置文件从未被清理。
 - 配置错误不再抛原生异常：`[ssl] enable=true` 但缺 `key_file`/`cert_file` 时原先冒泡
@@ -68,7 +77,7 @@
 ### Changed / 变更
 
 - **完整测试套件改用 `python3 -m pytest tests/`**（`pytest` 本就是 `pyproject.toml` 的
-  dev extra），共 226 个测试；`python3 -m tests` 明确为**零依赖子集运行器**（128 个），
+  dev extra），共 228 个测试；`python3 -m tests` 明确为**零依赖子集运行器**（128 个），
   不再被当作「测试全通过」的依据。宪章 §6.1 / §7.1 同步更新。
 - 去除 `gitwebhooks/cli/serve.py` 中与 `gitwebhooks/main/__init__.py` 重复的
   `find_config_file` 与 `format_config_error`（两份实现已漂移），改为复用后者。
@@ -79,6 +88,9 @@
   （原先硬编码 `'X-Hub-Signature'` 等字面量）；`config/loader.py` 的保留节名改用
   `RESERVED_SECTIONS`；`cli/service.py` 与 `cli/init_wizard.py` 的配置路径改用
   `CONFIG_PATH_USER/LOCAL/SYSTEM`，不再各自硬编码路径列表。
+- 交互向导的配置级别菜单文案改用 `CONFIG_PATH_*` 常量（原先硬编码三个路径，已与常量漂移）。
+- README 的测试命令改为 `python3 -m pytest tests/`（完整套件）；原先写 `python3 -m unittest discover tests/`，
+  在未装 pytest 的环境下会报 5 个导入错误并退出非 0，且它并不是完整套件。
 - 测试辅助类 `TestServer` / `TestConfigBuilder` / `TestWebhookClient` 加 `__test__ = False`，
   消除 pytest 的 26 条 `PytestCollectionWarning`。
 - `execute_deployment` 的 `shell=True` 处补上信任边界注释（宪章 §5.2 要求）。
@@ -98,6 +110,10 @@
   - 4 个无引用常量：`prompts.QUESTIONS`、`prompts.PLATFORM_QUESTIONS`、
     `service.E_SYSTEMD`、`service.E_EXISTS`；
   - 生产与测试中共 20 处未使用的 import（上一轮只清理了生产侧 10 处）。
+  - 第二轮（独立复查发现）：`WebhookHandler.get_provider` 及 4 个平台覆写、
+    `tests/conftest.py` 的 5 个未被调用的辅助函数、`_read_log_file`、
+    9 个 `PayloadBuilder` 方法与 `generate_invalid_signature`、
+    14 个无引用的 fixture 常量，以及由此产生的 5 处 `Provider` 孤儿 import。
 
 ## [2.4.1] - 2026-10-12
 

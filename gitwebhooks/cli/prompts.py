@@ -5,7 +5,12 @@ Provides functions for interactive user input and validation.
 
 import sys
 
-from gitwebhooks.utils.constants import ConfigLevel
+from gitwebhooks.utils.constants import (
+    CONFIG_PATH_LOCAL,
+    CONFIG_PATH_SYSTEM,
+    CONFIG_PATH_USER,
+    ConfigLevel,
+)
 
 
 # Question template for configuration initialization
@@ -89,9 +94,9 @@ def ask_config_level() -> ConfigLevel:
         KeyboardInterrupt: If user confirms exit on Ctrl+C
     """
     print('Select configuration file level for the service:')
-    print('  1. User level (~/.gitwebhooks.ini) - Single user, highest priority')
-    print('  2. Local level (/usr/local/etc/gitwebhooks.ini) - Local system, medium priority')
-    print('  3. System level (/etc/gitwebhooks.ini) - Global system, lowest priority')
+    print(f'  1. User level ({CONFIG_PATH_USER}) - Single user, highest priority')
+    print(f'  2. Local level ({CONFIG_PATH_LOCAL}) - Local system, medium priority')
+    print(f'  3. System level ({CONFIG_PATH_SYSTEM}) - Global system, lowest priority')
     print()
 
     choice_map = {

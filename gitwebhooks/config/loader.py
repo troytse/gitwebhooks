@@ -158,9 +158,15 @@ class ConfigLoader:
             - cert_file: SSL certificate file path
         """
         try:
-            if not self.parser.getboolean('ssl', 'enable'):
-                return None
-        except (configparser.NoSectionError, ValueError):
+            ssl_enabled = self.parser.getboolean('ssl', 'enable')
+        except configparser.NoSectionError:
+            return None
+        except ValueError as e:
+            raise ConfigurationError(
+                f"Invalid [ssl] enable: {self.parser.get('ssl', 'enable')!r} is not a boolean"
+            ) from e
+
+        if not ssl_enabled:
             return None
 
         ssl_config = {'enable': True}

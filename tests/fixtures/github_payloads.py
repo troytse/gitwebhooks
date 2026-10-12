@@ -10,77 +10,10 @@ from typing import Dict, Any, Optional
 
 
 # Standard GitHub push event payload
-GITHUB_PUSH_PAYLOAD = {
-    "ref": "refs/heads/main",
-    "before": "a108b6712c4255e38fb5c07fd3ff90c4b2af4cf3",
-    "after": "b3c8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8",
-    "repository": {
-        "id": 1296269,
-        "node_id": "MDEwOlJlcG9zaXRvcnkxMjk2MjY5",
-        "name": "Hello-World",
-        "full_name": "octocat/Hello-World",
-        "owner": {
-            "login": "octocat",
-            "id": 1,
-            "node_id": "MDQ6VXNlcjE=",
-            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
-            "type": "User"
-        },
-        "private": False,
-        "description": "This your first repo!",
-        "fork": False
-    },
-    "pusher": {
-        "name": "octocat",
-        "email": "octocat@github.com"
-    },
-    "sender": {
-        "login": "octocat",
-        "id": 1,
-        "node_id": "MDQ6VXNlcjE=",
-        "type": "User"
-    }
-}
 
 # GitHub release event payload
-GITHUB_RELEASE_PAYLOAD = {
-    "action": "published",
-    "release": {
-        "id": 1,
-        "tag_name": "v1.0.0",
-        "name": "v1.0.0",
-        "draft": False,
-        "prerelease": False
-    },
-    "repository": {
-        "id": 1296269,
-        "name": "Hello-World",
-        "full_name": "octocat/Hello-World",
-        "owner": {
-            "login": "octocat",
-            "id": 1
-        }
-    },
-    "sender": {
-        "login": "octocat",
-        "id": 1
-    }
-}
 
 # GitHub ping event payload
-GITHUB_PING_PAYLOAD = {
-    "zen": "Keep it logically awesome.",
-    "hook_id": 12345678,
-    "repository": {
-        "id": 1296269,
-        "name": "Hello-World",
-        "full_name": "octocat/Hello-World",
-        "owner": {
-            "login": "octocat",
-            "id": 1
-        }
-    }
-}
 
 
 class PayloadBuilder:
@@ -216,42 +149,5 @@ class PayloadBuilder:
                     "login": repo.split('/')[0],
                     "id": 1
                 }
-            }
-        }
-
-    @staticmethod
-    def github_create_event(
-        repo: str = "octocat/Hello-World",
-        ref_type: str = "branch",
-        ref: str = "main"
-    ) -> Dict[str, Any]:
-        """
-        Build a GitHub create event payload.
-
-        Args:
-            repo: Repository full name
-            ref_type: Type of ref created (branch, tag)
-            ref: Name of ref
-
-        Returns:
-            dict: GitHub create event payload
-        """
-        owner, name = repo.split('/', 1) if '/' in repo else (repo, repo)
-
-        return {
-            "ref": ref,
-            "ref_type": ref_type,
-            "repository": {
-                "id": 1296269,
-                "name": name,
-                "full_name": repo,
-                "owner": {
-                    "login": owner,
-                    "id": 1
-                }
-            },
-            "sender": {
-                "login": owner,
-                "id": 1
             }
         }

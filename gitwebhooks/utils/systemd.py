@@ -99,7 +99,7 @@ def detect_installation_type(cli_path: Optional[str] = None) -> InstallationEnvi
 
     Detection priority order:
     1. CONDA - Check CONDA_PREFIX environment variable (must reject)
-    2. PIPX - Check if ~/.local/pipx/venvs/gitwebhooks-server exists
+    2. PIPX - Check if ~/.local/pipx/venvs/gitwebhooks exists
     3. VENV - Check sys.base_prefix != sys.prefix and pyvenv.cfg exists
     4. VIRTUALENV - Check sys.real_prefix attribute
     5. SYSTEM_PIP - Default fallback
@@ -143,7 +143,7 @@ def detect_installation_type(cli_path: Optional[str] = None) -> InstallationEnvi
         )
 
     # Check pipx
-    pipx_venv = Path.home() / '.local' / 'pipx' / 'venvs' / 'gitwebhooks-server'
+    pipx_venv = Path.home() / '.local' / 'pipx' / 'venvs' / 'gitwebhooks'
     if pipx_venv.exists():
         detection_methods.append('pipx venv directory')
         return InstallationEnvironment(

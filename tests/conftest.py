@@ -42,62 +42,7 @@ def temp_dir() -> Generator[str, None, None]:
         yield temp
     finally:
         shutil.rmtree(temp, ignore_errors=True)
-
-
-def free_port() -> Generator[int, None, None]:
-    """
-    Provide a free port for testing.
-
-    Yields:
-        int: A free port number
-    """
-    port = get_free_port()
-    yield port
     # Port is released automatically when socket closes
-
-
-def temp_config(content: str) -> Generator[str, None, None]:
-    """
-    Create a temporary config file with the given content.
-
-    Args:
-        content: INI config file content
-
-    Yields:
-        str: Path to temporary config file
-    """
-    temp = tempfile.NamedTemporaryFile(
-        mode='w',
-        suffix='.ini',
-        prefix='test_config_',
-        delete=False
-    )
-    try:
-        temp.write(content)
-        temp.flush()
-        temp.close()
-        yield temp.name
-    finally:
-        Path(temp.name).unlink(missing_ok=True)
-
-
-def temp_log_file() -> Generator[str, None, None]:
-    """
-    Create a temporary log file for testing.
-
-    Yields:
-        str: Path to temporary log file
-    """
-    temp = tempfile.NamedTemporaryFile(
-        suffix='.log',
-        prefix='test_log_',
-        delete=False
-    )
-    temp.close()
-    try:
-        yield temp.name
-    finally:
-        Path(temp.name).unlink(missing_ok=True)
 
 
 def read_log_file(log_path: str) -> str:
@@ -118,41 +63,6 @@ def read_log_file(log_path: str) -> str:
 
 
 # Default test configuration template
-DEFAULT_TEST_CONFIG = """[server]
-address = 127.0.0.1
-port = {port}
-log_file = {log_file}
-
-[ssl]
-enable = false
-
-[github]
-handle_events = push
-verify = false
-secret = test_secret
-
-[gitee]
-handle_events = Push Hook
-verify = false
-secret = test_secret
-
-[gitlab]
-handle_events = push
-verify = false
-secret = test_secret
-
-[custom]
-header_name = X-Custom-Header
-header_value = Custom-Git-Hookshot
-identifier_path = project.path_with_namespace
-handle_events = push
-verify = false
-secret = test_secret
-
-[test/repo1]
-cwd = {temp_dir}/repo1
-cmd = touch {temp_dir}/repo1/.test_marker && echo "success"
-"""
 
 
 class TestConfigBuilder:
@@ -423,27 +333,3 @@ class WebhookTestCase(unittest.TestCase):
     def wait_for_log_contains(self, log_path: str, text: str, timeout: float = 10.0):
         """Wait until the log file contains text. Returns True on success."""
         return bool(self.wait_until(lambda: text in read_log_file(log_path), timeout))
-
-    def assertRepositoryExecuted(self, repo_name: str, temp_dir: str):
-        """
-        Assert that repository command was executed.
-
-        Args:
-            repo_name: Repository name
-            temp_dir: Temporary directory containing marker files
-        """
-        marker_path = Path(temp_dir) / f"{repo_name.replace('/', '_')}" / ".test_marker"
-        self.assertTrue(marker_path.exists(),
-                       f"Repository {repo_name} command did not execute (marker not found)")
-
-    def assertLogFileContains(self, log_path: str, text: str):
-        """
-        Assert that log file contains specific text.
-
-        Args:
-            log_path: Path to log file
-            text: Text to search for
-        """
-        content = read_log_file(log_path)
-        self.assertIn(text, content,
-                     f"Log file does not contain expected text: {text}")

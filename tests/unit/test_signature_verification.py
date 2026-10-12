@@ -212,8 +212,6 @@ class TestSignatureVerification(unittest.TestCase):
         self.assertNotEqual(sig1, sig2)
 
 
-if __name__ == '__main__':
-    unittest.main()
 
 
 class TestEmptySecretIsRejected(unittest.TestCase):
@@ -250,3 +248,6 @@ class TestEmptySecretIsRejected(unittest.TestCase):
             with self.subTest(platform=name):
                 self.assertTrue(verifier.verify(b'', 'tok', 'tok').is_valid)
                 self.assertFalse(verifier.verify(b'', 'wrong', 'tok').is_valid)
+
+if __name__ == '__main__':
+    unittest.main()

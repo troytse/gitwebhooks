@@ -6,7 +6,6 @@ Defines the abstract interface for webhook handlers.
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from gitwebhooks.models.provider import Provider
 from gitwebhooks.models.request import WebhookRequest
 from gitwebhooks.models.result import SignatureVerificationResult
 from gitwebhooks.config.models import ProviderConfig
@@ -18,15 +17,6 @@ class WebhookHandler(ABC):
 
     All platform-specific handlers must inherit from this class and implement all abstract methods.
     """
-
-    @abstractmethod
-    def get_provider(self) -> Provider:
-        """Return the provider type supported by this handler
-
-        Returns:
-            Provider enum value
-        """
-        pass
 
     @abstractmethod
     def verify_signature(self, request: WebhookRequest,

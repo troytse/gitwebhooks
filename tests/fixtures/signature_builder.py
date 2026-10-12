@@ -198,16 +198,6 @@ class SignatureBuilder:
         """
         return hmac.compare_digest(token, token_header)
 
-    @staticmethod
-    def generate_invalid_signature() -> str:
-        """
-        Generate an invalid signature for testing.
-
-        Returns:
-            str: An invalid signature string
-        """
-        return "sha1=invalid_signature_1234567890abcdef"
-
 
 class SignatureError(Exception):
     """Exception raised for signature-related errors."""

@@ -16,7 +16,6 @@ it should still be validated for security.
 from typing import Optional
 
 from gitwebhooks.handlers.base import WebhookHandler
-from gitwebhooks.models.provider import Provider
 from gitwebhooks.models.request import WebhookRequest
 from gitwebhooks.models.result import SignatureVerificationResult
 from gitwebhooks.config.models import ProviderConfig
@@ -30,10 +29,6 @@ class GiteeHandler(WebhookHandler):
 
     def __init__(self):
         self._verifier = VerifierFactory.create_gitee_verifier()
-
-    def get_provider(self) -> Provider:
-        """Return Provider.GITEE"""
-        return Provider.GITEE
 
     def verify_signature(self, request: WebhookRequest,
                         config: ProviderConfig) -> SignatureVerificationResult:

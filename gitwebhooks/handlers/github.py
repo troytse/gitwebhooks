@@ -6,7 +6,6 @@ Handles webhook requests from GitHub.
 from typing import Optional
 
 from gitwebhooks.handlers.base import WebhookHandler
-from gitwebhooks.models.provider import Provider
 from gitwebhooks.models.request import WebhookRequest
 from gitwebhooks.models.result import SignatureVerificationResult
 from gitwebhooks.config.models import ProviderConfig
@@ -19,10 +18,6 @@ class GithubHandler(WebhookHandler):
 
     def __init__(self):
         self._verifier = VerifierFactory.create_github_verifier()
-
-    def get_provider(self) -> Provider:
-        """Return Provider.GITHUB"""
-        return Provider.GITHUB
 
     def verify_signature(self, request: WebhookRequest,
                         config: ProviderConfig) -> SignatureVerificationResult:

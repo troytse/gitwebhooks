@@ -504,11 +504,11 @@ python3 -m gitwebhooks.main serve -c gitwebhooks.ini.sample
 ### 运行测试
 
 ```bash
-# 使用 pytest
+# 全量套件（权威；需先装 dev extra：pip install -e ".[dev]"）
 python3 -m pytest tests/
 
-# 或使用 unittest
-python3 -m unittest discover tests/
+# 零依赖子集 runner（仅 unittest；会跳过 pytest 风格的模块）
+python3 -m tests
 ```
 
 ### 发布到 PyPI

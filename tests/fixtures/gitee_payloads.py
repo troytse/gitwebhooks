@@ -10,67 +10,10 @@ from typing import Dict, Any, Optional
 
 
 # Standard Gitee push event payload
-GITEE_PUSH_PAYLOAD = {
-    "ref": "refs/heads/master",
-    "before": "0000000000000000000000000000000000000000",
-    "after": "b3c8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8",
-    "repository": {
-        "id": 12345,
-        "name": "test-repo",
-        "full_name": "user/test-repo",
-        "namespace": "user",
-        "path_with_namespace": "user/test-repo",
-        "url": "git@gitee.com:user/test-repo.git",
-        "description": "Test repository"
-    },
-    "pusher": {
-        "name": "user",
-        "email": "user@example.com"
-    },
-    "sender": {
-        "id": 123,
-        "username": "user",
-        "email": "user@example.com"
-    }
-}
 
 # Gitee tag push event payload
-GITEE_TAG_PUSH_PAYLOAD = {
-    "ref": "refs/tags/v1.0.0",
-    "before": "0000000000000000000000000000000000000000",
-    "after": "a1b2c3d4e5f6789012345678901234567890abcd",
-    "repository": {
-        "id": 12345,
-        "name": "test-repo",
-        "full_name": "user/test-repo",
-        "namespace": "user"
-    },
-    "pusher": {
-        "name": "user",
-        "email": "user@example.com"
-    },
-    "sender": {
-        "username": "user"
-    }
-}
 
 # Gitee merge request event payload
-GITEE_MR_PAYLOAD = {
-    "object_kind": "merge_request",
-    "event_type": "Merge Request Hook",
-    "repository": {
-        "name": "test-repo",
-        "url": "git@gitee.com:user/test-repo.git",
-        "description": "Test repository",
-        "homepage": "https://gitee.com/user/test-repo"
-    },
-    "object_attributes": {
-        "id": 1,
-        "target_branch": "master",
-        "source_branch": "feature",
-        "title": "Test MR"
-    }
-}
 
 
 class PayloadBuilder:
@@ -133,42 +76,6 @@ class PayloadBuilder:
         }
 
         return payload
-
-    @staticmethod
-    def gitee_tag_push_event(
-        repo: str = "user/test-repo",
-        tag: str = "v1.0.0"
-    ) -> Dict[str, Any]:
-        """
-        Build a Gitee tag push event payload.
-
-        Args:
-            repo: Repository full name
-            tag: Tag name
-
-        Returns:
-            dict: Gitee tag push event payload
-        """
-        namespace, name = repo.split('/', 1) if '/' in repo else (repo, repo)
-
-        return {
-            "ref": f"refs/tags/{tag}",
-            "before": "0000000000000000000000000000000000000000",
-            "after": "a1b2c3d4e5f6789012345678901234567890abcd",
-            "repository": {
-                "id": 12345,
-                "name": name,
-                "full_name": repo,
-                "namespace": namespace
-            },
-            "pusher": {
-                "name": namespace,
-                "email": f"{namespace}@example.com"
-            },
-            "sender": {
-                "username": namespace
-            }
-        }
 
     @staticmethod
     def gitee_merge_request_event(

@@ -30,7 +30,7 @@ Refactoring Plan (future task):
 import os
 import re
 from dataclasses import dataclass
-from typing import Optional, Dict
+from typing import Dict, Optional, Tuple
 import configparser
 
 from gitwebhooks.utils.constants import (
@@ -207,7 +207,7 @@ def validate_port(value: str) -> bool:
         return False
 
 
-def validate_event_input(value: str) -> tuple[bool, str]:
+def validate_event_input(value: str) -> Tuple[bool, str]:
     """
     验证事件名称输入。
 
