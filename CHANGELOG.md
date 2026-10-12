@@ -18,6 +18,16 @@
 
 <!-- 发布新版本时：把本节的条目移动到新的版本号小节，并更新下方链接。 -->
 
+## [2.4.2] - 2026-10-12
+
+> ### ⚠️ 升级注意事项（行为变更）
+>
+> 本版修复了一个认证绕过。**若你的配置是 `verify=true` 但 `secret` 留空，或在 custom 平台把 `header_token` 显式留空，升级后这些请求会被拒绝（401）**——
+> 这在旧版是「静默放行」，也就是任何人只要不带 token 就能触发你的部署命令。
+> 升级后请为每个平台配置真实的 `secret`；确实不需要验证时请显式设 `verify=false`。
+>
+> 另外 `[ssl] enable` 写非布尔值（如 `maybe`）从「静默当作关闭」改为直接报错退出。
+
 ### Fixed / 修复
 
 - **测试套件会永久挂起**（全量 `pytest` 跑不完——是「卡死」不是「慢」）。两处根因：
@@ -260,7 +270,8 @@
 - 支持 SSL。
 - 修复重启后服务无法启动的问题。
 
-[未发布 / Unreleased]: https://gitee.com/holyhi/git-webhooks-server/compare/v2.4.1...HEAD
+[未发布 / Unreleased]: https://gitee.com/holyhi/git-webhooks-server/compare/v2.4.2...HEAD
+[2.4.2]: https://pypi.org/project/gitwebhooks/2.4.2/
 [2.4.1]: https://pypi.org/project/gitwebhooks/2.4.1/
 [2.4.0]: https://pypi.org/project/gitwebhooks/2.4.0/
 [2.3.1]: https://pypi.org/project/gitwebhooks/2.3.1/
