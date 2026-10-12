@@ -235,7 +235,7 @@ class WebhookRequestHandler(BaseHTTPRequestHandler):
             message: Response body
         """
         self.send_response(status_code)
-        self.send_header('Content-Type', 'text/plain')
+        self.send_header(HEADER_CONTENT_TYPE, 'text/plain')
         self.end_headers()
         self.wfile.write(message)
 

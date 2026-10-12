@@ -15,14 +15,17 @@ from gitwebhooks.utils.systemd import (
     detect_installation_type,
     InstallationType,
 )
-from gitwebhooks.utils.constants import ConfigLevel
+from gitwebhooks.utils.constants import (
+    CONFIG_PATH_LOCAL,
+    CONFIG_PATH_SYSTEM,
+    CONFIG_PATH_USER,
+    ConfigLevel,
+)
 from gitwebhooks.cli.prompts import ask_yes_no, ask_config_level
 
 
 # Error codes
 E_PERM = 1
-E_SYSTEMD = 1
-E_EXISTS = 1
 
 
 def install_service(
@@ -87,11 +90,11 @@ def install_service(
         config_path = config_path_override
         # Map path to config level for display purposes
         expanded_path = Path(config_path).expanduser()
-        if str(expanded_path) == str(Path('~/.gitwebhooks.ini').expanduser()):
+        if str(expanded_path) == str(Path(CONFIG_PATH_USER).expanduser()):
             config_level = ConfigLevel.USER
-        elif str(expanded_path) == '/usr/local/etc/gitwebhooks.ini':
+        elif str(expanded_path) == CONFIG_PATH_LOCAL:
             config_level = ConfigLevel.LOCAL
-        elif str(expanded_path) == '/etc/gitwebhooks.ini':
+        elif str(expanded_path) == CONFIG_PATH_SYSTEM:
             config_level = ConfigLevel.SYSTEM
         else:
             # Custom path, default to USER for display
@@ -328,7 +331,10 @@ def handle_config_cleanup(purge: bool) -> None:
     Returns:
         None
     """
-    config_path = Path('~/.gitwebhook.ini').expanduser()
+    # Single source of truth for the user-level config path (see constants.py).
+    # A hardcoded '~/.gitwebhook.ini' (missing "s") used to make
+    # `serve uninstall --purge` delete the wrong file - or nothing at all.
+    config_path = Path(CONFIG_PATH_USER).expanduser()
 
     if not purge:
         return

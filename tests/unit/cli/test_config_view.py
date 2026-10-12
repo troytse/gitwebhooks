@@ -17,7 +17,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from gitwebhooks.cli.config import (
     locate_config_file,
-    cmd_view,
     format_config_header,
     format_config_content,
     is_sensitive_key,
@@ -25,8 +24,6 @@ from gitwebhooks.cli.config import (
     format_sensitive_field
 )
 from gitwebhooks.utils.constants import (
-    CONFIG_SEARCH_PATHS,
-    SENSITIVE_KEYWORDS,
     COLOR_SENSITIVE,
     COLOR_RESET
 )

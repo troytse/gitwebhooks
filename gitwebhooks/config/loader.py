@@ -9,6 +9,7 @@ from typing import Dict, Optional
 
 from gitwebhooks.config.models import ProviderConfig, RepositoryConfig
 from gitwebhooks.models.provider import Provider
+from gitwebhooks.utils.constants import RESERVED_SECTIONS
 from gitwebhooks.utils.exceptions import ConfigurationError
 
 
@@ -122,7 +123,7 @@ class ConfigLoader:
         Returns:
             Set of reserved section names
         """
-        return {'server', 'ssl', 'github', 'gitee', 'gitlab', 'custom'}
+        return RESERVED_SECTIONS
 
     def get_server_config(self) -> Dict[str, any]:
         """Get server configuration
@@ -133,9 +134,16 @@ class ConfigLoader:
             - port: Listen port
             - log_file: Log file path
         """
+        try:
+            port = self.parser.getint('server', 'port', fallback=6789)
+        except ValueError as e:
+            raise ConfigurationError(
+                f"Invalid [server] port: {self.parser.get('server', 'port')!r} is not an integer"
+            ) from e
+
         return {
             'address': self.parser.get('server', 'address', fallback='0.0.0.0'),
-            'port': self.parser.getint('server', 'port', fallback=6789),
+            'port': port,
             'log_file': self.parser.get('server', 'log_file', fallback='').strip(),
         }
 
@@ -155,11 +163,15 @@ class ConfigLoader:
         except (configparser.NoSectionError, ValueError):
             return None
 
-        return {
-            'enable': True,
-            'key_file': self.parser.get('ssl', 'key_file'),
-            'cert_file': self.parser.get('ssl', 'cert_file'),
-        }
+        ssl_config = {'enable': True}
+        for option in ('key_file', 'cert_file'):
+            value = self.parser.get('ssl', option, fallback='').strip()
+            if not value:
+                raise ConfigurationError(
+                    f"SSL is enabled but '{option}' is missing in the [ssl] section"
+                )
+            ssl_config[option] = value
+        return ssl_config
 
     def validate_repository_configs(self) -> None:
         """Validate all repository configurations

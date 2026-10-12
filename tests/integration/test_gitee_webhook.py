@@ -7,10 +7,7 @@ including signature verification and password authentication.
 
 import unittest
 import sys
-import json
-import time
 from pathlib import Path
-import tempfile
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

@@ -5,7 +5,6 @@ Tests the ask_config_level() function in prompts.py.
 
 import pytest
 from unittest.mock import patch
-from io import StringIO
 
 from gitwebhooks.cli.prompts import ask_config_level
 from gitwebhooks.utils.constants import ConfigLevel

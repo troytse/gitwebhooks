@@ -22,6 +22,7 @@ from gitwebhooks.models.result import SignatureVerificationResult
 from gitwebhooks.config.models import ProviderConfig
 from gitwebhooks.auth.factory import VerifierFactory
 from gitwebhooks.utils.exceptions import SignatureValidationError, UnsupportedEventError
+from gitwebhooks.utils.constants import HEADER_GITEE_TIMESTAMP, HEADER_GITEE_TOKEN
 
 
 class GiteeHandler(WebhookHandler):
@@ -49,8 +50,8 @@ class GiteeHandler(WebhookHandler):
         Returns:
             SignatureVerificationResult instance
         """
-        signature = request.headers.get('X-Gitee-Token')
-        timestamp = request.headers.get('X-Gitee-Timestamp')
+        signature = request.headers.get(HEADER_GITEE_TOKEN)
+        timestamp = request.headers.get(HEADER_GITEE_TIMESTAMP)
 
         # Always validate if signature/token is provided
         if signature is None:
@@ -87,7 +88,7 @@ class GiteeHandler(WebhookHandler):
 
         # Step 2: Verify signature or password
         # For Gitee, we always validate if token is provided
-        signature = request.headers.get('X-Gitee-Token')
+        signature = request.headers.get(HEADER_GITEE_TOKEN)
         if signature is not None:
             result = self.verify_signature(request, config)
             if not result.is_valid:

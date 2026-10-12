@@ -11,6 +11,7 @@ from gitwebhooks.models.request import WebhookRequest
 from gitwebhooks.models.result import SignatureVerificationResult
 from gitwebhooks.config.models import ProviderConfig
 from gitwebhooks.auth.factory import VerifierFactory
+from gitwebhooks.utils.constants import HEADER_GITHUB_SIGNATURE
 
 
 class GithubHandler(WebhookHandler):
@@ -26,7 +27,7 @@ class GithubHandler(WebhookHandler):
     def verify_signature(self, request: WebhookRequest,
                         config: ProviderConfig) -> SignatureVerificationResult:
         """Verify GitHub HMAC-SHA1 signature"""
-        signature = request.headers.get('X-Hub-Signature')
+        signature = request.headers.get(HEADER_GITHUB_SIGNATURE)
         return self._verifier.verify(request.payload, signature, config.secret)
 
     def extract_repository(self, request: WebhookRequest,

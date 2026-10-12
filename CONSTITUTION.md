@@ -76,7 +76,7 @@ standing instructions 分层如下，**冲突时以上级为准**：
 - **必须**：消除魔法数字与魔法字符串，提取为 `utils/constants.py` 中的常量或类常量；HTTP 状态码、Header 名、消息文案一律走常量。
 - **建议**：单文件不超过 **400 行**；超过时按语义边界拆分（独立类型 > 独立函数组 > 辅助逻辑）。
 
-  > **已知存量偏差（基线，非许可）**：`gitwebhooks/cli/init_wizard.py`（779 行）超过 400 行。
+  > **已知存量偏差（基线，非许可）**：`gitwebhooks/cli/init_wizard.py`（785 行）超过 400 行。
   > 该文件**不允许继续变大**；触及它时应评估拆分，拆分须作为独立任务登记，不得夹带在无关改动里。
   >
   > 复核口径：`find gitwebhooks -name '*.py' | xargs wc -l | awk '$1>400'`（本清单必须与命令输出一致；写入前先跑一次）。
@@ -134,6 +134,15 @@ standing instructions 分层如下，**冲突时以上级为准**：
 - **必须**：命令 / 子命令被移除时，同步清理**所有**引用点（`cli/__init__.py` 注册、`cli/help.py` 文案、README 两个语言版本、`scripts/pre-release-check.sh`、相关测试）。
 
   > 存量偏差：`scripts/pre-release-check.sh` 曾校验已被移除的 `service` 子命令，属于此类漏改；该引用已修正为 `serve`。
+
+- **必须（扫描口径）**：死代码扫描**必须覆盖类体内的成员与方法**以及**模块级常量**，不能只扫模块顶层的 `def`/`class`。本项目曾因只扫顶层而漏掉 10 处（工厂方法、注册表 getter、未引用常量）。
+- **已知误报（不判违规）**：`BaseHTTPRequestHandler` 按名字分发的 `do_GET` / `do_POST` / `do_HEAD` / `log_message` / `handle`——静态扫描看不到框架分发，**不得**据此判为死代码。
+- **已登记跟踪（经判定为有意保留的公开 API，非死代码）**：
+  - `gitwebhooks/main/__init__.py` 的 `run_server`——与 `cli/serve.py` 的 `start_server` 重复，仅被测试覆盖，**应在后续独立改动中收敛为一处**；
+  - `gitwebhooks/models/config.py` 的 `ServiceInstallContext`——仅被测试覆盖；
+  - `gitwebhooks/utils/systemd.py` 的 `InstallationType.UNKNOWN`——枚举完备性。
+
+  这三项**不得再增加**；新增同类项必须在此登记，否则视为死代码。
 
 ### 3.3 领域惯例（核心不变量）
 
@@ -228,7 +237,7 @@ standing instructions 分层如下，**冲突时以上级为准**：
 
 | 目的 | 命令 | 说明 |
 |------|------|------|
-| **全量测试（权威）** | `python3 -m pytest tests/` | 226 个测试全跑；需 `pip install -e ".[dev]"` |
+| **全量测试（权威）** | `python3 -m pytest tests/` | 228 个测试全跑；需 `pip install -e ".[dev]"` |
 | 零依赖子集 | `python3 -m tests` | 项目自带 runner（`unittest`），**跑不到** pytest 风格的模块 |
 | 静默子集 | `python3 -m tests -q` | 仅输出摘要 |
 | 失败即停 | `python3 -m tests -f` | 快速定位 |

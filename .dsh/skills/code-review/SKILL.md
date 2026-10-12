@@ -43,7 +43,7 @@ git diff master...HEAD
 | `scripts/pre-release-check.sh` | 改动涉及 CLI 入口 / 子命令 / 打包 / 版本时 |
 | `gitwebhooks/utils/constants.py` | 改动涉及 Header、状态码、路径、敏感字段时 |
 
-> 大文件纪律：`gitwebhooks/cli/init_wizard.py`（779 行）用 `grep` + 带 `offset`/`limit` 的 read 定位后再读，不要整文件读入下结论。
+> 大文件纪律：`gitwebhooks/cli/init_wizard.py`（785 行）用 `grep` + 带 `offset`/`limit` 的 read 定位后再读，不要整文件读入下结论。
 
 ## 3. 审查清单（每项结论必须带 `file:line`）
 
@@ -64,7 +64,7 @@ git diff master...HEAD
 - [ ] `server.py` 只做编排（识别 → 验证 → 查表 → 派发），平台专属逻辑在 `handlers/<platform>.py`。
 - [ ] 依赖方向单向，`models/`、`config/`、`auth/`、`handlers/` 之间无循环导入。
 - [ ] 交互式逻辑留在 `cli/`，未被业务层调用；`cli/service.py` 是内部模块而非子命令。
-- [ ] 单文件未超过 400 行；**未扩大**宪章 §1.2 已标注的存量偏差（`init_wizard.py` 779 / `service.py` 352 / `prompts.py` 322）。
+- [ ] 单文件未超过 400 行；**未扩大**宪章 §1.2 已标注的存量偏差（当前只有 `init_wizard.py` 785 行超限；复核命令见宪章 §1.2）。
 - [ ] 圈复杂度 ≤ 10、嵌套 ≤ 3、方法 ≤ 80 行、参数 ≤ 5 个。
 - [ ] 私有方法用**单下划线**前缀（非双下划线，dunder 除外）；公有 API 无下划线。
 

@@ -80,6 +80,9 @@ def execute_deployment(repo_name: str, cwd: str, cmd: str) -> Optional[threading
     """
     logging.info('[%s] Executing: %s', repo_name, cmd)
 
+    # TRUST BOUNDARY: shell=True is safe only because `cmd` comes
+    # exclusively from the local INI configuration ([owner/repo] cmd).
+    # NEVER interpolate webhook request data into this command.
     try:
         proc = subprocess.Popen(
             cmd,

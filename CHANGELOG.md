@@ -51,6 +51,19 @@
 - 声明的最低 Python 版本修正为 **3.7**（原为 `>=3.6` 并带 3.6 分类器）。
   包在 import 阶段即依赖 `dataclasses`（Python 3.7+ 才有），此前 3.6 用户会安装成功、
   但 `import gitwebhooks` 必然失败。
+- **安全：空 secret 会放行未认证请求**。`gitlab` / `gitee` / `custom` 三个验证器直接比较
+  `signature == secret`，当配置里 `secret` 为空且请求未带 token 时 `'' == ''` 成立，
+  于是 `verify=True` 形同虚设——而未认证的 webhook 会触发部署命令（任意 shell）。
+  `github` 验证器本就有 `if not secret` 保护，现三者也补上同样的保护。
+- `serve uninstall --purge` 删错文件：`cli/service.py` 写的是 `~/.gitwebhook.ini`（少一个 s），
+  与真实路径 `~/.gitwebhooks.ini` 不符，导致配置文件从未被清理。
+- 配置错误不再抛原生异常：`[ssl] enable=true` 但缺 `key_file`/`cert_file` 时原先冒泡
+  `configparser.NoOptionError`，`[server] port` 非整数时冒泡 `ValueError`；现均转为
+  带明确说明的 `ConfigurationError`。
+- `gitwebhooks.ini.sample` 现在可直接运行：原先 `[ssl] enable=true` 配占位证书路径、
+  且 `log_file=/var/log/...` 非 root 不可写，导致文档推荐的「从源码运行」命令必定失败。
+- README 中的 `~/.gitwebhook.ini` / `~/.gitwebhook.log` 拼写错误（共 12 处，中英各 6），
+  以及交互向导的默认日志路径同款拼写错误。
 
 ### Changed / 变更
 
@@ -62,16 +75,29 @@
 - `execute_deployment` 现在返回排空输出的工作线程（`Optional[threading.Thread]`），
   便于调用方按需 join；原有调用方忽略返回值即可，行为不变。
 - 部署输出逐行记入日志（DEBUG 级），失败时把尾部重新以 WARNING 级输出。
+- **常量集中（宪章 §1.2/§1.3）**：各 handler 改为使用 `utils/constants.py` 的 Header 常量
+  （原先硬编码 `'X-Hub-Signature'` 等字面量）；`config/loader.py` 的保留节名改用
+  `RESERVED_SECTIONS`；`cli/service.py` 与 `cli/init_wizard.py` 的配置路径改用
+  `CONFIG_PATH_USER/LOCAL/SYSTEM`，不再各自硬编码路径列表。
+- 测试辅助类 `TestServer` / `TestConfigBuilder` / `TestWebhookClient` 加 `__test__ = False`，
+  消除 pytest 的 26 条 `PytestCollectionWarning`。
+- `execute_deployment` 的 `shell=True` 处补上信任边界注释（宪章 §5.2 要求）。
 
 ### Removed / 移除
 
 - 死代码清理（宪章 §3.2「零死代码」）：
   - 10 个未使用的 import；
-  - 9 个无任何引用的函数：`check_systemd`、`get_cli_path`、`confirm_overwrite`、
+  - 8 个无任何引用的函数：`check_systemd`、`get_cli_path`、`confirm_overwrite`、
     `ask_question`、`validate_address`、`validate_path`、`validate_bool`、`validate_text`；
   - `tests/utils/server_manager.py` 的 `TestServerProcess` 死类（同时含未使用的
     `cli_script` 变量、指向不可执行模块的 `-m gitwebhooks.cli`，以及同款「创建未读管道」缺陷）；
   - 无引用的测试工具 `tests/utils/certificate_generator.py` 与 `tests/utils/coverage_runner.py`。
+  - 6 个无引用的类方法：`VerifierFactory.get_verifier`、`HandlerFactory.from_headers`、
+    `ConfigurationRegistry.get_provider_config` / `get_repository_config` / `has_repository`、
+    `WebhookRequest.repo_identifier`；
+  - 4 个无引用常量：`prompts.QUESTIONS`、`prompts.PLATFORM_QUESTIONS`、
+    `service.E_SYSTEMD`、`service.E_EXISTS`；
+  - 生产与测试中共 20 处未使用的 import（上一轮只清理了生产侧 10 处）。
 
 ## [2.4.1] - 2026-10-12
 

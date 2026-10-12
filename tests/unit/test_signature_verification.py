@@ -6,7 +6,6 @@ Tests for verifying signature calculation and verification logic.
 
 import unittest
 import sys
-import json
 import base64
 from pathlib import Path
 
@@ -215,3 +214,39 @@ class TestSignatureVerification(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestEmptySecretIsRejected(unittest.TestCase):
+    """An empty secret must never let a request through.
+
+    Regression: gitlab/gitee/custom compared `signature == secret` directly, so
+    `'' == ''` returned success when `secret` was empty and the request carried
+    no token - turning `verify=True` into a no-op. Since a verified webhook runs
+    an arbitrary shell command, that is an unauthenticated code-execution path.
+    """
+
+    def _verifiers(self):
+        from gitwebhooks.auth.gitlab import GitlabTokenVerifier
+        from gitwebhooks.auth.gitee import GiteeSignatureVerifier
+        from gitwebhooks.auth.custom import CustomTokenVerifier
+
+        return {
+            'gitlab': GitlabTokenVerifier(),
+            'gitee': GiteeSignatureVerifier(),
+            'custom': CustomTokenVerifier(True),
+        }
+
+    def test_empty_secret_rejects_instead_of_accepting(self):
+        for name, verifier in self._verifiers().items():
+            with self.subTest(platform=name):
+                result = verifier.verify(b'', '', '')
+                self.assertFalse(
+                    result.is_valid,
+                    f"{name}: empty secret accepted an empty token",
+                )
+
+    def test_real_secret_still_verifies(self):
+        for name, verifier in self._verifiers().items():
+            with self.subTest(platform=name):
+                self.assertTrue(verifier.verify(b'', 'tok', 'tok').is_valid)
+                self.assertFalse(verifier.verify(b'', 'wrong', 'tok').is_valid)

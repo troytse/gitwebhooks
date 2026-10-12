@@ -9,8 +9,6 @@ import unittest
 import sys
 import json
 from pathlib import Path
-import tempfile
-import os
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -18,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from tests.conftest import WebhookTestCase, TestConfigBuilder
 from tests.utils.http_client import TestWebhookClient
 from tests.utils.server_manager import TestServer
-from tests.fixtures.github_payloads import PayloadBuilder, GITHUB_PUSH_PAYLOAD
+from tests.fixtures.github_payloads import PayloadBuilder
 from tests.fixtures.signature_builder import SignatureBuilder
 
 

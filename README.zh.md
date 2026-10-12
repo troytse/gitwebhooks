@@ -205,7 +205,7 @@ sudo pip uninstall gitwebhooks
 ### 步骤 2：备份配置（如果存在）
 
 ```bash
-cp ~/.gitwebhook.ini ~/.gitwebhook.ini.backup
+cp ~/.gitwebhooks.ini ~/.gitwebhooks.ini.backup
 ```
 
 ### 步骤 3：停止并卸载服务（如果已安装）
@@ -242,7 +242,7 @@ pip install gitwebhooks
 
 ```bash
 # 如果备份了配置文件
-cp ~/.gitwebhook.ini.backup ~/.gitwebhook.ini
+cp ~/.gitwebhooks.ini.backup ~/.gitwebhooks.ini
 # 或创建新的配置
 gitwebhooks-cli config init
 ```
@@ -380,7 +380,7 @@ secret=123456
 
 ## 配置
 
-默认配置文件位置：`~/.gitwebhook.ini`
+默认配置文件位置：`~/.gitwebhooks.ini`
 
 ### 初始化配置
 
@@ -419,7 +419,7 @@ NO_COLOR=1 gitwebhooks-cli config view
 [server]
 address=0.0.0.0          # 监听地址
 port=6789                # 监听端口
-log_file=~/.gitwebhook.log  # 日志文件（空值=仅标准输出）
+log_file=~/.gitwebhooks.log  # 日志文件（空值=仅标准输出）
 ```
 
 ### SSL 配置（可选）

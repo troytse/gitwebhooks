@@ -164,6 +164,7 @@ class TestConfigBuilder:
         builder.add_repository("owner/repo", cwd, cmd)
         config_path = builder.build()
     """
+    __test__ = False  # not a test class: pytest must not collect it
 
     def __init__(self, temp_dir: str):
         """

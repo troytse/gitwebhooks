@@ -76,6 +76,7 @@ class TestWebhookClient:
         )
         assert response.status_code == 200
     """
+    __test__ = False  # not a test class: pytest must not collect it
 
     def __init__(self, host: str, port: int, use_ssl: bool = False,
                  timeout: int = 10):

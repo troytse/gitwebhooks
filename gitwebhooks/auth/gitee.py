@@ -51,6 +51,12 @@ class GiteeSignatureVerifier(SignatureVerifier):
         if signature is None:
             return SignatureVerificationResult.failure('Missing signature or password')
 
+        # An empty secret means verification is not actually configured.
+        # Without this guard an empty token would match and let an
+        # unauthenticated request through (which would run the deploy command).
+        if not secret:
+            return SignatureVerificationResult.failure('Secret not configured')
+
         # Step 1: Try password validation first (direct comparison)
         if hmac.compare_digest(signature, secret):
             return SignatureVerificationResult.success()

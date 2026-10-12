@@ -20,7 +20,6 @@ if str(_project_root) not in sys.path:
 
 # Import from gitwebhooks package
 from gitwebhooks.server import WebhookServer
-from gitwebhooks.handlers.request import WebhookRequestHandler
 
 
 class TestServer:
@@ -42,6 +41,7 @@ class TestServer:
             server.wait_for_ready()
             # Run tests...
     """
+    __test__ = False  # not a test class: pytest must not collect it
 
     def __init__(self, config_path: str, port: Optional[int] = None):
         """
@@ -106,7 +106,6 @@ class TestServer:
         The server is created but not started. The actual serve_forever()
         call happens in the background thread.
         """
-        from http.server import HTTPServer
 
         # Load config
         self._config = self._load_config()

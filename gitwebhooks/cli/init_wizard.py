@@ -16,7 +16,7 @@ Validation Functions:
 - _get_platform_default_event: Returns platform-specific default event
 
 TECHNICAL DEBT:
-This module (768 lines) exceeds the Constitution's recommended 400 line limit.
+This module (785 lines) exceeds the Constitution's recommended 400 line limit.
 This is acceptable because the module contains the complete interactive wizard
 logic including platform selection, repository configuration, event configuration,
 and file generation.
@@ -33,6 +33,12 @@ from dataclasses import dataclass
 from typing import Optional, Dict
 import configparser
 
+from gitwebhooks.utils.constants import (
+    CONFIG_PATH_LOCAL,
+    CONFIG_PATH_SYSTEM,
+    CONFIG_PATH_USER,
+)
+
 
 # =============================================================================
 # Module Constants
@@ -40,15 +46,15 @@ import configparser
 
 CONFIG_LEVELS = {
     'system': {
-        'path': '/etc/gitwebhooks.ini',
+        'path': CONFIG_PATH_SYSTEM,
         'requires_root': True
     },
     'local': {
-        'path': '/usr/local/etc/gitwebhooks.ini',
+        'path': CONFIG_PATH_LOCAL,
         'requires_root': True
     },
     'user': {
-        'path': '~/.gitwebhooks.ini',
+        'path': CONFIG_PATH_USER,
         'requires_root': False
     }
 }

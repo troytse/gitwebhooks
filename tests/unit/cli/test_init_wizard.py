@@ -7,12 +7,7 @@ Tests the configuration initialization wizard functionality including:
 - INI file generation logic
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-import os
-import re
-import configparser
-from pathlib import Path
+from unittest.mock import MagicMock
 
 
 class TestConfigLevels:

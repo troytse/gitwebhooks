@@ -11,7 +11,7 @@
 | 语言 | Python（`requires-python = ">=3.7"`，classifiers 覆盖 3.7–3.14） |
 | 运行时依赖 | **无**（仅标准库；`pyproject.toml` 的 `dependencies = []` 是硬约定） |
 | 开发依赖 | `pytest`、`pytest-cov`（dev extra；**全量测试套件的运行器**） |
-| 代码规模 | ~4.9k 行（`gitwebhooks/`） |
+| 代码规模 | 4.6k 行（`gitwebhooks/`，4582 行） |
 | 配置格式 | INI（`configparser`） |
 | HTTP | 标准库 `http.server` |
 | 打包 | `setuptools`，可发布 PyPI，亦支持原地从源码运行 |
@@ -79,7 +79,7 @@ gitwebhooks/
 │   ├── serve.py             # cmd_serve：启动服务器 / systemd 安装卸载分发
 │   ├── service.py           # systemd 安装卸载实现（被 serve.py 调用，非子命令）
 │   ├── config.py            # cmd_init / cmd_view
-│   ├── init_wizard.py       # 交互式配置向导（⚠️ 779 行，见宪章 §1.2）
+│   ├── init_wizard.py       # 交互式配置向导（⚠️ 785 行，见宪章 §1.2）
 │   ├── prompts.py           # 交互提示辅助
 │   └── help.py              # help 子命令（输出由 argparse format_help 生成，与 --help 同源）
 ├── config/
@@ -200,7 +200,7 @@ python3 -m build && python3 -m twine upload dist/*
 
 ```bash
 pip install -e ".[dev]"     # 含 pytest
-python3 -m pytest tests/    # 226 个测试全跑，约 10 秒
+python3 -m pytest tests/    # 228 个测试全跑，约 10 秒
 ```
 
 **零依赖子集 runner**（`unittest`，**不是**全量）：
@@ -213,7 +213,7 @@ python3 -m tests -v         # 详细
 ```
 
 > ⚠️ `python3 -m tests` 跑不到 `tests/unit/test_main.py` 等 7 个 pytest 风格模块
-> （当前约 98 个测试），因此**不能**用它声称「测试全通过」。
+> （当前约 100 个测试），因此**不能**用它声称「测试全通过」。
 
 **语法静态校验**：
 
@@ -230,9 +230,9 @@ python3 -m compileall -q gitwebhooks
 
 ### 测试基线
 
-**`python3 -m pytest tests/`（Python 3.14）**：`226 passed`，约 10 秒，**0 挂起**。
+**`python3 -m pytest tests/`（Python 3.14）**：`228 passed`，约 10 秒，**0 挂起**。
 
-**`python3 -m tests`（无 pytest）**：`Ran 128 tests`，7 个 error（那 7 个 pytest 风格模块整体无法导入）。这些 error 是**子集 runner 的已知限制**，不是代码缺陷。
+**`python3 -m tests`（无 pytest）**：`Ran 128 tests`，5 个 error（pytest 风格模块无法导入）。这些 error 是**子集 runner 的已知限制**，不是代码缺陷。
 
 判定改动是否引入回归时，必须以**全量 pytest 结果**为准。
 

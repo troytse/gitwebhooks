@@ -4,15 +4,12 @@ Tests configuration file discovery and error formatting functionality.
 """
 
 import os
-import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock, Mock
-from unittest.mock import call
+from unittest.mock import patch, MagicMock
 
 import pytest
 
 from gitwebhooks.main import find_config_file, format_config_error, main, run_server
-from gitwebhooks.utils.exceptions import ConfigurationError
 
 
 class TestFindConfigFile:

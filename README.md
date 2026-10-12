@@ -205,7 +205,7 @@ sudo pip uninstall gitwebhooks
 ### Step 2: Backup your configuration (if exists)
 
 ```bash
-cp ~/.gitwebhook.ini ~/.gitwebhook.ini.backup
+cp ~/.gitwebhooks.ini ~/.gitwebhooks.ini.backup
 ```
 
 ### Step 3: Stop and uninstall the service (if installed)
@@ -242,7 +242,7 @@ pip install gitwebhooks
 
 ```bash
 # If you backed up your configuration
-cp ~/.gitwebhook.ini.backup ~/.gitwebhook.ini
+cp ~/.gitwebhooks.ini.backup ~/.gitwebhooks.ini
 # Or create a new one
 gitwebhooks-cli config init
 ```
@@ -380,7 +380,7 @@ Example payload:
 
 ## Configuration
 
-Default configuration file: `~/.gitwebhook.ini`
+Default configuration file: `~/.gitwebhooks.ini`
 
 ### Initialize Configuration
 
@@ -419,7 +419,7 @@ NO_COLOR=1 gitwebhooks-cli config view
 [server]
 address=0.0.0.0          # Listen address
 port=6789                # Listen port
-log_file=~/.gitwebhook.log  # Log file (empty = stdout only)
+log_file=~/.gitwebhooks.log  # Log file (empty = stdout only)
 ```
 
 ### SSL Configuration (Optional)

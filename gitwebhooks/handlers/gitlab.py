@@ -11,6 +11,7 @@ from gitwebhooks.models.request import WebhookRequest
 from gitwebhooks.models.result import SignatureVerificationResult
 from gitwebhooks.config.models import ProviderConfig
 from gitwebhooks.auth.factory import VerifierFactory
+from gitwebhooks.utils.constants import HEADER_GITLAB_TOKEN
 
 
 class GitlabHandler(WebhookHandler):
@@ -26,7 +27,7 @@ class GitlabHandler(WebhookHandler):
     def verify_signature(self, request: WebhookRequest,
                         config: ProviderConfig) -> SignatureVerificationResult:
         """Verify GitLab token"""
-        signature = request.headers.get('X-Gitlab-Token')
+        signature = request.headers.get(HEADER_GITLAB_TOKEN)
         return self._verifier.verify(request.payload, signature, config.secret)
 
     def extract_repository(self, request: WebhookRequest,

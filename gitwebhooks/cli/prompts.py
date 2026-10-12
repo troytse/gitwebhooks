@@ -9,89 +9,9 @@ from gitwebhooks.utils.constants import ConfigLevel
 
 
 # Question template for configuration initialization
-QUESTIONS = [
-    # Server configuration
-    {
-        'key': 'server_address',
-        'prompt': 'Server listen address [default: 0.0.0.0]: ',
-        'default': '0.0.0.0',
-        'validator': None,
-        'required': True
-    },
-    {
-        'key': 'server_port',
-        'prompt': 'Server port [default: 6789]: ',
-        'default': '6789',
-        'validator': 'validate_port',
-        'required': True
-    },
-    {
-        'key': 'log_file',
-        'prompt': 'Log file path [default: ~/.gitwebhook.log]: ',
-        'default': '~/.gitwebhook.log',
-        'validator': None,
-        'required': False
-    },
-]
 
 
 # Platform-specific questions
-PLATFORM_QUESTIONS = {
-    'github': [
-        {
-            'section': 'github',
-            'key': 'verify',
-            'prompt': '  Enable signature verification? (Y/n) [default: Y]: ',
-            'default': 'true',
-            'validator': None,
-            'required': False
-        },
-        {
-            'section': 'github',
-            'key': 'secret',
-            'prompt': '  Webhook secret (leave empty to skip): ',
-            'default': '',
-            'validator': None,
-            'required': False
-        },
-    ],
-    'gitee': [
-        {
-            'section': 'gitee',
-            'key': 'verify',
-            'prompt': '  Enable signature verification? (Y/n) [default: Y]: ',
-            'default': 'true',
-            'validator': None,
-            'required': False
-        },
-        {
-            'section': 'gitee',
-            'key': 'secret',
-            'prompt': '  Webhook secret (leave empty to skip): ',
-            'default': '',
-            'validator': None,
-            'required': False
-        },
-    ],
-    'gitlab': [
-        {
-            'section': 'gitlab',
-            'key': 'verify',
-            'prompt': '  Enable token verification? (Y/n) [default: Y]: ',
-            'default': 'true',
-            'validator': None,
-            'required': False
-        },
-        {
-            'section': 'gitlab',
-            'key': 'secret',
-            'prompt': '  Webhook token (leave empty to skip): ',
-            'default': '',
-            'validator': None,
-            'required': False
-        },
-    ],
-}
 
 
 def ask_yes_no(prompt: str, default: bool = False) -> bool:

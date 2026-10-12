@@ -5,7 +5,6 @@ Tests the core service installation functions and parameter handling.
 
 import pytest
 from unittest.mock import patch, MagicMock
-from argparse import Namespace
 
 from gitwebhooks.cli.service import install_service
 from gitwebhooks.utils.constants import ConfigLevel
