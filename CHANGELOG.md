@@ -23,6 +23,24 @@ _无（当前没有未发布的变更）。_
 
 ---
 
+## [2.4.3] - 2026-10-12
+
+本次为**文档与治理变更**，无代码行为改动；发布目的是让下列文档随 sdist 分发
+（2.4.2 的包是在这些改动之前构建的）。
+
+### Changed / 变更
+
+- **明确本仓库有两个正式远端**：`origin` = Gitee（`holyhi/git-webhooks-server`）、
+  `github` = GitHub（`troytse/gitwebhooks`）。任何推送**必须同时覆盖两个远端**
+  （分支与 tag 都是）。此前只推 Gitee，导致 GitHub 静默落后 19 个提交、
+  缺 2.3.0–2.4.2 且无任何 tag；而 `pyproject.toml` 的 `[project.urls]` 恰好指向 GitHub，
+  等于 PyPI 页面把用户引向过时仓库。（`AGENTS.md`、`CONSTITUTION.md` §9.3）
+- **`CHANGELOG.md` 的空「未发布」小节必须写明「无」并用 `---` 与最新版本隔断**，
+  不得只留一个标题——否则它会紧贴版本标题，读者无法判断最新版本是否已发布。
+  （`CONSTITUTION.md` §7.2、`.dsh/skills/code-review/SKILL.md`）
+
+---
+
 ## [2.4.2] - 2026-10-12
 
 > ### ⚠️ 升级注意事项（行为变更）
@@ -275,7 +293,8 @@ _无（当前没有未发布的变更）。_
 - 支持 SSL。
 - 修复重启后服务无法启动的问题。
 
-[未发布 / Unreleased]: https://gitee.com/holyhi/git-webhooks-server/compare/v2.4.2...HEAD
+[未发布 / Unreleased]: https://gitee.com/holyhi/git-webhooks-server/compare/v2.4.3...HEAD
+[2.4.3]: https://pypi.org/project/gitwebhooks/2.4.3/
 [2.4.2]: https://pypi.org/project/gitwebhooks/2.4.2/
 [2.4.1]: https://pypi.org/project/gitwebhooks/2.4.1/
 [2.4.0]: https://pypi.org/project/gitwebhooks/2.4.0/

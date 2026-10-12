@@ -15,7 +15,7 @@
 | 配置格式 | INI（`configparser`） |
 | HTTP | 标准库 `http.server` |
 | 打包 | `setuptools`，可发布 PyPI，亦支持原地从源码运行 |
-| 当前版本 | `2.4.2`（`pyproject.toml` 与 `gitwebhooks/__init__.py` **两处**） |
+| 当前版本 | `2.4.3`（`pyproject.toml` 与 `gitwebhooks/__init__.py` **两处**） |
 
 **支持平台**：GitHub（HMAC-SHA1 签名）、Gitee（签名或密码）、GitLab（token）、custom（自定义 Header + JSON 路径识别）。
 
