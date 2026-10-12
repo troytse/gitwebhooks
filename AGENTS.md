@@ -251,6 +251,21 @@ python3 -m compileall -q gitwebhooks
 - 一次提交只含一项已完成工作，禁止夹带无关文件；未过门禁不得提交；
 - 未经用户明确授权，**不得** `git commit` / `git push` / 改写历史。
 
+### 两个远端（必须同时推送）
+
+本仓库在 **GitHub 与 Gitee 各有一份**，两者都是正式仓库，**不是镜像关系**：
+
+| remote | 地址 |
+|--------|------|
+| `origin` | `git@gitee.com:holyhi/git-webhooks-server.git`（Gitee） |
+| `github` | `git@github.com:troytse/gitwebhooks.git`（GitHub） |
+
+- **必须**：推送时**推到两个远端**（`git push origin master && git push github master`，tag 同理 `--tags`）。
+  只推一个会让另一个静默落后——2026-10 就发生过 GitHub 落后 19 个提交、缺 2.3.0–2.4.2 且无任何 tag。
+- **PYPI 元数据指向 GitHub**：`pyproject.toml` 的 `[project.urls]`（Homepage / Repository / Issues）
+  全部是 `github.com/troytse/gitwebhooks`。因此 GitHub 落后 = PyPI 页面把用户引到过时的仓库。
+- 不要据 `git remote -v` 只有一个 remote 就断定「URL 配错了」——单看 remote 推不出仓库不存在。
+
 ## 开发原则
 
 1. **文档优先**：改前先 `read` / `grep` 验证 API 与现有模式，不假设文件或函数存在；
