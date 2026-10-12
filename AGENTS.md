@@ -80,7 +80,7 @@ gitwebhooks/
 │   ├── config.py            # cmd_init / cmd_view
 │   ├── init_wizard.py       # 交互式配置向导（⚠️ 779 行，见宪章 §1.2）
 │   ├── prompts.py           # 交互提示辅助
-│   └── help.py              # help 子命令
+│   └── help.py              # help 子命令（输出由 argparse format_help 生成，与 --help 同源）
 ├── config/
 │   ├── loader.py            # INI 加载与自动查找
 │   ├── registry.py          # 配置注册表
@@ -140,14 +140,16 @@ INI 格式（`configparser`），保留节名以 `utils/constants.py` 的 `RESER
 
 ```bash
 # 从源码运行（开发模式，推荐）
-./gitwebhooks-cli -c gitwebhooks.ini.sample
+./gitwebhooks-cli serve -c gitwebhooks.ini.sample
 
 # 模块方式（等价）
-python3 -m gitwebhooks.main -c gitwebhooks.ini.sample
+python3 -m gitwebhooks.main serve -c gitwebhooks.ini.sample
 
 # 不指定 -c：按优先级自动查找配置并打印所用路径
-./gitwebhooks-cli
+./gitwebhooks-cli serve
 ```
+
+> ⚠️ 启动服务器**必须**带 `serve` 子命令。`./gitwebhooks-cli -c file.ini`（无子命令）只会打印帮助并返回 0，不会启动服务。
 
 **配置文件查找优先级**（唯一出处 `utils/constants.py` 的 `CONFIG_SEARCH_PATHS`）：
 
@@ -158,8 +160,10 @@ python3 -m gitwebhooks.main -c gitwebhooks.ini.sample
 ### 子命令
 
 ```bash
-./gitwebhooks-cli help                # 总览帮助（⚠️ -h/--help 被有意拒绝，返回码 1）
+./gitwebhooks-cli --help              # 总览帮助（亦可 -h；每层级均支持）
+./gitwebhooks-cli help                # 等价形式：help 子命令
 ./gitwebhooks-cli help serve          # 指定子命令帮助（serve / config）
+./gitwebhooks-cli serve --help        # 同上，标准 flag 形式（两者输出完全一致）
 ./gitwebhooks-cli --version           # 版本（亦可 -v）
 
 # 配置：交互式向导（可指定级别 system/local/user）
@@ -231,11 +235,11 @@ tests/unit/test_install_service_logic.py   tests/integration/test_config_discove
 tests/unit/cli/test_init_wizard.py
 ```
 
-**基线（2026-10-12 实测，Python 3.14，无 pytest）**：`Ran 111 tests`，**1 failure + 7 errors**。
-- 7 个 error = 上述 pytest 导入失败；
-- 1 个 failure = `unit.test_config_loading.TestConfigLoading.test_help_display_with_h_argument`（`python -m gitwebhooks.main -h` 返回码 1）。
+**基线（2026-10-12 实测，Python 3.14，无 pytest）**：`Ran 121 tests`，**0 failures + 7 errors**。
+- 7 个 error = 上述 pytest 导入失败（模块整体无法导入，不是因为断言失败）；
+- **0 failures**：此前的 `test_help_display_with_h_argument` 失败已修复（`-h` 现按标准约定返回码 0）。
 
-判定改动是否引入回归时，**必须与此基线对比**，不得把既有失败当作新缺陷，也不得把既有失败当正常而隐去不报。宪章 §6.1 要求新测试用 `unittest` 编写，不新增 pytest 依赖。
+判定改动是否引入回归时，**必须与此基线对比**：新增 failure 才算回归；7 个 error 是既有环境缺陷，不得当作新缺陷，也不得隐去不报。宪章 §6.1 要求新测试用 `unittest` 编写，不新增 pytest 依赖。
 
 ## 代码审查
 
@@ -273,6 +277,9 @@ tests/unit/cli/test_init_wizard.py
 | **配置常量分散风险** | 路径列表、Header 名、状态码、敏感字段关键词的唯一出处是 `utils/constants.py`；别处硬编码即漂移。 |
 | **命令执行信任边界** | `execute_deployment` 使用 `shell=True`。安全前提是「命令只来自本地配置文件」——**禁止**把请求体内容拼进命令。 |
 | **CLI 文档漂移** | README 两个语言版本与 `scripts/pre-release-check.sh` 曾残留已删除的 `service` 引用；增删子命令时按引用点清单全查。 |
+| **模块入口是 `gitwebhooks.main`** | `gitwebhooks.cli` 是子命令包，**没有** `__main__.py`，`python3 -m gitwebhooks.cli` 会失败；模块方式启动一律用 `python3 -m gitwebhooks.main`。 |
+| **帮助只有一个来源** | 帮助文本由 argparse 从解析器定义生成：`help.py` 不再持有手写文案。改选项后 `help <cmd>` 与 `<cmd> --help` 自动同步，不要另写一份帮助字符串。 |
+| **启动服务器必须带 `serve`** | `./gitwebhooks-cli -c file.ini`（无子命令）只打印帮助并返回 0，**不会**启动服务；正确写法是 `./gitwebhooks-cli serve -c file.ini`。文档一律以此为准。 |
 
 ## 受控文档索引
 

@@ -23,6 +23,25 @@ except ImportError:
 _parser = None
 
 
+class _VersionAction(argparse.Action):
+    """Print version information and exit with status 0.
+
+    Registered as an argument so that ``-v``/``--version`` follow standard
+    Unix CLI conventions: handled by argparse (thus listed in ``--help``)
+    and available only at the top level.
+    """
+
+    def __init__(self, option_strings, dest=argparse.SUPPRESS,
+                 default=argparse.SUPPRESS, help=None):
+        super().__init__(option_strings, dest, default=default,
+                         nargs=0, help=help)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        from gitwebhooks.main.version import print_version
+        print_version()
+        parser.exit(0)
+
+
 def get_parser() -> argparse.ArgumentParser:
     """Get the main argument parser instance.
 
@@ -51,16 +70,20 @@ def create_parser() -> argparse.ArgumentParser:
         >>> isinstance(parser, argparse.ArgumentParser)
         True
     """
-    # Create main argument parser (help disabled)
+    # Create main argument parser (argparse provides -h/--help)
     parser = argparse.ArgumentParser(
         prog='gitwebhooks-cli',
-        description='Git Webhooks Server - Automated deployment webhook handler',
-        add_help=False
+        description='Git Webhooks Server - Automated deployment webhook handler'
     )
     parser.add_argument(
         '-c', '--config',
         default=None,
         help='Path to INI configuration file (default: auto-discover)'
+    )
+    parser.add_argument(
+        '-v', '--version',
+        action=_VersionAction,
+        help='Show version information and exit'
     )
 
     # Add subcommands if available
@@ -131,14 +154,16 @@ def main(argv: List[str] = None) -> int:
         Exit code (0 = success, 1 = error)
 
     Raises:
-        SystemExit: Exit on error
+        SystemExit: Exit code 0 when -h/--help or -v/--version is handled by
+            argparse; nonzero on argument errors
 
     Command Line Arguments:
+        -h, --help       Show help information and exit (standard)
         -v, --version   Show version information and exit
         -c, --config     Specify configuration file path (optional)
         serve            Start webhook server or manage systemd service
         config           Configuration management subcommands
-        help             Show help information
+        help             Show help information (subcommand form)
 
     Config Discovery:
         When -c is not specified, searches in order:
@@ -156,18 +181,6 @@ def main(argv: List[str] = None) -> int:
     """
     if argv is None:
         argv = sys.argv[1:]
-
-    # Pre-check for -v/--version parameters (takes priority over everything)
-    if '-v' in argv or '--version' in argv:
-        from gitwebhooks.main.version import print_version
-        print_version()
-        return 0
-
-    # Check for -h/--help parameters and show error
-    if '-h' in argv or '--help' in argv:
-        print('Error: -h/--help parameters are not supported.', file=sys.stderr)
-        print('Use \'gitwebhooks-cli help\' or \'gitwebhooks-cli help <subcommand>\' instead.', file=sys.stderr)
-        return 1
 
     # Create parser and parse arguments
     parser = create_parser()

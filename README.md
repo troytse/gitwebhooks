@@ -183,7 +183,7 @@ sudo ln "$(pwd)/gitwebhooks-cli" /usr/local/bin/gitwebhooks-cli
 # Show version
 gitwebhooks-cli -v
 
-# Show help
+# Show help (also: gitwebhooks-cli --help)
 gitwebhooks-cli help
 
 # View configuration
@@ -278,11 +278,11 @@ The `gitwebhooks-cli` automatically searches for configuration files in the foll
 2. **Local level**: `/usr/local/etc/gitwebhooks.ini`
 3. **System level**: `/etc/gitwebhooks.ini` (lowest priority)
 
-You can run `gitwebhooks-cli` without specifying `-c` parameter, and it will automatically use the first existing configuration file.
+You can run `gitwebhooks-cli serve` without specifying `-c` parameter, and it will automatically use the first existing configuration file.
 
 ```bash
 # Auto-discover and use configuration file
-gitwebhooks-cli
+gitwebhooks-cli serve
 
 # The server will display which config file is being used
 # Using configuration file: /home/user/.gitwebhooks.ini
@@ -292,7 +292,7 @@ If you want to use a specific configuration file, use the `-c` parameter:
 
 ```bash
 # Use a specific configuration file
-gitwebhooks-cli -c /path/to/custom.ini
+gitwebhooks-cli serve -c /path/to/custom.ini
 ```
 
 If no configuration file is found, a friendly error message will display all searched paths:
@@ -325,7 +325,7 @@ cmd=git fetch --all && git reset --hard origin/master && git pull
 systemctl restart gitwebhooks
 
 # Or run directly (auto-discovers config file):
-gitwebhooks-cli
+gitwebhooks-cli serve
 ```
 
 ### 3. Add Webhook
@@ -467,10 +467,9 @@ cmd=your_command     # Command to execute
 
 ```
 gitwebhooks/
-├── gitwebhooks/              # Python package (modular v2.0)
-│   ├── __init__.py
-│   ├── __main__.py
-│   ├── cli.py                # CLI entry point
+├── gitwebhooks/              # Python package (modular)
+│   ├── main/                 # CLI entry point (python3 -m gitwebhooks.main)
+│   ├── cli/                  # Subcommands (serve / config / help)
 │   ├── server.py             # HTTP server
 │   ├── models/               # Data models
 │   ├── config/               # Configuration management
@@ -479,10 +478,14 @@ gitwebhooks/
 │   ├── utils/                # Utilities
 │   └── logging/              # Logging setup
 ├── gitwebhooks-cli           # CLI wrapper script
-├── install.sh                # Installation script
-├── gitwebhooks.ini.sample
-└── tests/                    # Test suite
+├── gitwebhooks.ini.sample    # Configuration template
+├── scripts/                  # pre-release-check.sh
+├── tests/                    # Test suite
+├── CONSTITUTION.md           # Coding charter (highest authority)
+└── AGENTS.md                 # Agent guide (full file tree)
 ```
+
+> The authoritative, complete file tree lives in [`AGENTS.md`](./AGENTS.md); this is a summary.
 
 ## Development
 
@@ -490,10 +493,10 @@ gitwebhooks/
 
 ```bash
 # Method 1: Use CLI tool (recommended)
-./gitwebhooks-cli -c gitwebhooks.ini.sample
+./gitwebhooks-cli serve -c gitwebhooks.ini.sample
 
 # Method 2: Use module entry
-python3 -m gitwebhooks.cli -c gitwebhooks.ini.sample
+python3 -m gitwebhooks.main serve -c gitwebhooks.ini.sample
 ```
 
 ### Running Tests

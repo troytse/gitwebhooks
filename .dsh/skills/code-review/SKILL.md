@@ -57,6 +57,7 @@ git diff master...HEAD
 - [ ] **配置查找顺序**：`~/.gitwebhooks.ini` > `/usr/local/etc/gitwebhooks.ini` > `/etc/gitwebhooks.ini`，且只在 `CONFIG_SEARCH_PATHS` 定义。
 - [ ] **版本双源同步**：`pyproject.toml` 的 `version` 与 `gitwebhooks/__init__.py` 的 `__version__` 一致（改一处未改另一处 = P1）。
 - [ ] **命令执行不阻塞**：`execute_deployment` 仍为异步 `Popen` 且 `stdin=subprocess.DEVNULL`。
+- [ ] **CLI 约定**（宪章 §3.3）：`-h`/`--help` 在**每个层级**可用、输出到 **stdout**、退出码 **0**；`-v`/`--version` 主层可用；`help <cmd>` 与 `<cmd> --help` 输出**完全一致**；**没有**第二份手写帮助字符串（帮助由 argparse 从解析器定义生成）；用法错误走 stderr + 非 0 退出码。
 
 ### B. 分层与职责（宪章 §1.1）
 

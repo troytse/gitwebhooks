@@ -7,6 +7,22 @@ from gitwebhooks.cli.config import cmd_init, cmd_view
 from gitwebhooks.cli.help import cmd_help
 from gitwebhooks.cli.serve import cmd_serve
 
+# Top-level subparsers keyed by name, so the `help` subcommand can render
+# exactly the same text argparse prints for `<subcommand> --help`.
+_SUBPARSERS = {}
+
+
+def get_subparser(topic):
+    """Get a registered top-level subparser by name.
+
+    Args:
+        topic: Subcommand name ('serve' or 'config')
+
+    Returns:
+        The ArgumentParser for that subcommand, or None if unknown
+    """
+    return _SUBPARSERS.get(topic)
+
 
 def register_subparsers(subparsers):
     """Register all CLI subparsers
@@ -38,9 +54,9 @@ def register_serve_subparser(subparsers):
     """
     serve_parser = subparsers.add_parser(
         'serve',
-        add_help=False,
         help='Start webhook server or manage systemd service'
     )
+    _SUBPARSERS['serve'] = serve_parser
     serve_parser.add_argument(
         '-c', '--config',
         dest='config',
@@ -49,7 +65,10 @@ def register_serve_subparser(subparsers):
     serve_subparsers = serve_parser.add_subparsers(dest='serve_action')
 
     # install action
-    install_parser = serve_subparsers.add_parser('install', add_help=False)
+    install_parser = serve_subparsers.add_parser(
+        'install',
+        help='Install systemd service'
+    )
     install_parser.add_argument(
         '--force',
         action='store_true',
@@ -74,7 +93,10 @@ def register_serve_subparser(subparsers):
     install_parser.set_defaults(func=cmd_serve)
 
     # uninstall action
-    uninstall_parser = serve_subparsers.add_parser('uninstall', add_help=False)
+    uninstall_parser = serve_subparsers.add_parser(
+        'uninstall',
+        help='Uninstall systemd service'
+    )
     uninstall_parser.add_argument(
         '--purge',
         action='store_true',
@@ -97,7 +119,7 @@ def register_help_subparser(subparsers):
     """
     help_parser = subparsers.add_parser(
         'help',
-        add_help=False
+        help='Show help information'
     )
     help_parser.add_argument(
         'topic',
@@ -118,15 +140,14 @@ def register_config_subparser(subparsers):
     """
     config_parser = subparsers.add_parser(
         'config',
-        add_help=False,
         help='Manage gitwebhooks configuration'
     )
+    _SUBPARSERS['config'] = config_parser
     config_subparsers = config_parser.add_subparsers(dest='config_action')
 
     # init action
     init_parser = config_subparsers.add_parser(
         'init',
-        add_help=False,
         help='Initialize configuration file using interactive wizard'
     )
     init_parser.add_argument(
@@ -138,7 +159,10 @@ def register_config_subparser(subparsers):
     init_parser.set_defaults(func=cmd_init)
 
     # view action
-    view_parser = config_subparsers.add_parser('view', add_help=False)
+    view_parser = config_subparsers.add_parser(
+        'view',
+        help='View configuration file content'
+    )
     view_parser.add_argument(
         '-c',
         '--config',

@@ -183,7 +183,7 @@ sudo ln "$(pwd)/gitwebhooks-cli" /usr/local/bin/gitwebhooks-cli
 # 显示版本
 gitwebhooks-cli -v
 
-# 显示帮助
+# 显示帮助（亦可 gitwebhooks-cli --help）
 gitwebhooks-cli help
 
 # 查看配置
@@ -278,11 +278,11 @@ pip uninstall gitwebhooks
 2. **本地级**：`/usr/local/etc/gitwebhooks.ini`
 3. **系统级**：`/etc/gitwebhooks.ini`（最低优先级）
 
-您可以直接运行 `gitwebhooks-cli` 而无需指定 `-c` 参数，系统会自动使用第一个存在的配置文件。
+您可以直接运行 `gitwebhooks-cli serve` 而无需指定 `-c` 参数，系统会自动使用第一个存在的配置文件。
 
 ```bash
 # 自动查找并使用配置文件
-gitwebhooks-cli
+gitwebhooks-cli serve
 
 # 服务器会显示正在使用的配置文件
 # Using configuration file: /home/user/.gitwebhooks.ini
@@ -292,7 +292,7 @@ gitwebhooks-cli
 
 ```bash
 # 使用指定的配置文件
-gitwebhooks-cli -c /path/to/custom.ini
+gitwebhooks-cli serve -c /path/to/custom.ini
 ```
 
 如果找不到配置文件，会显示友好的错误消息并列出所有搜索路径：
@@ -325,7 +325,7 @@ cmd=git fetch --all && git reset --hard origin/master && git pull
 systemctl restart gitwebhooks
 
 # 或直接运行（自动查找配置文件）：
-gitwebhooks-cli
+gitwebhooks-cli serve
 ```
 
 ### 3. 添加 Webhook
@@ -467,10 +467,9 @@ cmd=your_command     # 要执行的命令
 
 ```
 gitwebhooks/
-├── gitwebhooks/              # Python 包（模块化 v2.0）
-│   ├── __init__.py
-│   ├── __main__.py
-│   ├── cli.py                # CLI 入口点
+├── gitwebhooks/              # Python 包（模块化）
+│   ├── main/                 # CLI 入口（python3 -m gitwebhooks.main）
+│   ├── cli/                  # 子命令（serve / config / help）
 │   ├── server.py             # HTTP 服务器
 │   ├── models/               # 数据模型
 │   ├── config/               # 配置管理
@@ -479,10 +478,14 @@ gitwebhooks/
 │   ├── utils/                # 工具函数
 │   └── logging/              # 日志配置
 ├── gitwebhooks-cli           # CLI 包装脚本
-├── install.sh                # 安装脚本
-├── gitwebhooks.ini.sample
-└── tests/                    # 测试套件
+├── gitwebhooks.ini.sample    # 配置模板
+├── scripts/                  # pre-release-check.sh
+├── tests/                    # 测试套件
+├── CONSTITUTION.md           # 编码宪章（最高准则）
+└── AGENTS.md                 # Agent 指南（完整文件树）
 ```
+
+> 完整且权威的文件树见 [`AGENTS.md`](./AGENTS.md)，此处仅为摘要。
 
 ## 开发
 
@@ -490,10 +493,10 @@ gitwebhooks/
 
 ```bash
 # 方式1: 使用 CLI 工具（推荐）
-./gitwebhooks-cli -c gitwebhooks.ini.sample
+./gitwebhooks-cli serve -c gitwebhooks.ini.sample
 
 # 方式2: 使用模块入口
-python3 -m gitwebhooks.cli -c gitwebhooks.ini.sample
+python3 -m gitwebhooks.main serve -c gitwebhooks.ini.sample
 ```
 
 ### 运行测试
