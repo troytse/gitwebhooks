@@ -104,7 +104,7 @@ gitwebhooks/
 ├── utils/
 │   ├── constants.py         # HTTP 常量、Header 名、路径、RESERVED_SECTIONS、SENSITIVE_KEYWORDS
 │   ├── exceptions.py        # 自定义异常（含 ConfigurationError）
-│   ├── executor.py          # execute_deployment（异步 subprocess）
+│   ├── executor.py          # execute_deployment（异步 subprocess；守护线程排空输出 + wait 回收）
 │   └── systemd.py           # systemd 检测与服务文件生成
 └── logging/setup.py         # 日志配置
 tests/
@@ -236,7 +236,7 @@ tests/unit/test_install_service_logic.py   tests/integration/test_config_discove
 tests/unit/cli/test_init_wizard.py
 ```
 
-**基线（2026-10-12 实测，Python 3.14，无 pytest）**：`Ran 121 tests`，**0 failures + 7 errors**。
+**基线（2026-10-12 实测，Python 3.14，无 pytest）**：`Ran 128 tests`，**0 failures + 7 errors**。
 - 7 个 error = 上述 pytest 导入失败（模块整体无法导入，不是因为断言失败）；
 - **0 failures**：此前的 `test_help_display_with_h_argument` 失败已修复（`-h` 现按标准约定返回码 0）。
 
@@ -277,6 +277,7 @@ tests/unit/cli/test_init_wizard.py
 | **pytest 依赖** | 7 个测试模块 `import pytest` 导致无 pytest 环境整体导入失败（见上「已知测试基线偏差」）。新测试用 `unittest`。 |
 | **配置常量分散风险** | 路径列表、Header 名、状态码、敏感字段关键词的唯一出处是 `utils/constants.py`；别处硬编码即漂移。 |
 | **命令执行信任边界** | `execute_deployment` 使用 `shell=True`。安全前提是「命令只来自本地配置文件」——**禁止**把请求体内容拼进命令。 |
+| **禁止创建无人读取的管道** | `stdout=PIPE` 而不读 ⇒ 输出超过管道缓冲区（Linux 64 KiB）后命令**永久阻塞**（「推送后没反应、无报错、无日志尾」）。当前实现用守护线程合并排空 `stdout`/`stderr` 并 `wait()` 回收；改动此处**必须**保持「有消费者 + 有回收」，回归测试见 `tests/unit/test_executor.py`。 |
 | **CLI 文档漂移** | README 两个语言版本与 `scripts/pre-release-check.sh` 曾残留已删除的 `service` 引用；增删子命令时按引用点清单全查。 |
 | **模块入口是 `gitwebhooks.main`** | `gitwebhooks.cli` 是子命令包，**没有** `__main__.py`，`python3 -m gitwebhooks.cli` 会失败；模块方式启动一律用 `python3 -m gitwebhooks.main`。 |
 | **帮助只有一个来源** | 帮助文本由 argparse 从解析器定义生成：`help.py` 不再持有手写文案。改选项后 `help <cmd>` 与 `<cmd> --help` 自动同步，不要另写一份帮助字符串。 |

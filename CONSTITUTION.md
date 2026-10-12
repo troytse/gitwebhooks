@@ -141,7 +141,11 @@ standing instructions 分层如下，**冲突时以上级为准**：
 - **必须**：平台中立——各平台（GitHub / Gitee / GitLab / custom）地位平等，平台识别**只**依据请求 Header；除已文档化的 Header / 事件名差异外，不得有平台特权分支。
 - **必须**：平台标识与 Header / 事件名 / 常量集中定义，不得散落字面量（见 §1.2）。
 - **必须**：请求体解析同时支持 JSON 与 `application/x-www-form-urlencoded`；新增平台不得削减既有支持。
-- **必须**：命令执行异步非阻塞，且 `stdin=subprocess.DEVNULL`——避免继承 stdin 造成文件描述符泄漏。
+- **必须**：命令执行异步非阻塞，且**禁止创建无人读取的管道**：
+  - `stdin` 必须为 `subprocess.DEVNULL`（避免继承 stdin 造成文件描述符泄漏）；
+  - stdout / stderr 若用 `subprocess.PIPE`，则**必须**有消费者持续排空（本项目用守护线程合并读取并写入日志）。**禁止**只创建 `PIPE` 而不读——命令输出超过管道缓冲区（Linux 默认 64 KiB）后写端会**永久阻塞在 `write()`**，表现为「推送后没反应、无报错、无日志尾」；
+  - 子进程**必须** `wait()` 回收。不回收会让它永久留在 `subprocess._active`，**管道读端也永不释放**，即使 Popen 对象已被丢弃；
+  - 失败（非 0 退出码）**必须**记录退出码与输出尾部，使故障可诊断。
 - **必须**（CLI 约定，遵循标准 Unix 工具规范）：
   - `-h` / `--help` 在**每一个命令层级**（主命令、`serve`/`config`、其下动作）都必须可用，帮助输出到 **stdout**，退出码 **0**；
   - `-v` / `--version` 在**主命令层**可用，输出到 stdout，退出码 0；

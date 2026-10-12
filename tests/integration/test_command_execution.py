@@ -64,6 +64,53 @@ class TestCommandExecution(WebhookTestCase):
             self.assertTrue(marker_file.exists(),
                           f"Command did not execute: marker file not found at {marker_file}")
 
+    def test_large_command_output_does_not_block(self):
+        """
+        Test that a command producing more output than the OS pipe buffer
+        still completes.
+
+        Regression: execute_deployment used to create stdout/stderr pipes that
+        were never read, so a chatty deploy command blocked forever once it
+        filled the pipe buffer (Linux default 64 KiB) - the "push, nothing
+        happens, no error, no log tail" symptom.
+        """
+        marker_file = Path(self.temp_dir) / ".flood_marker"
+        emitter = Path(self.temp_dir) / "emit.py"
+        emitter.write_text(
+            "import sys\n"
+            "sys.stdout.write('x' * 400000)\n"
+            "sys.stdout.flush()\n"
+            "open(sys.argv[1], 'w').write('done')\n",
+            encoding='utf-8'
+        )
+        cmd = f"{sys.executable} {emitter} {marker_file}"
+
+        config_builder = TestConfigBuilder(self.temp_dir)
+        config_builder.set_platform_verify('github', verify=False)
+        config_builder.add_repository("test/repo", self.temp_dir, cmd)
+        config_path = config_builder.build()
+
+        with TestServer(config_path) as server:
+            server.wait_for_ready()
+
+            client = TestWebhookClient("127.0.0.1", server.port)
+
+            response = client.send_webhook(
+                headers={"X-GitHub-Event": "push"},
+                payload=PayloadBuilder.github_push_event(repo="test/repo")
+            )
+            self.assertStatusCode(response, 200)
+
+            # Bounded poll instead of a fixed sleep
+            deadline = time.time() + 30
+            while time.time() < deadline and not marker_file.exists():
+                time.sleep(0.2)
+
+            self.assertTrue(
+                marker_file.exists(),
+                "deploy command never finished: it blocked writing to an unread pipe"
+            )
+
     def test_command_failure_logged_but_returns_200(self):
         """
         Test that command failure is logged but server returns 200.

@@ -18,6 +18,22 @@
 
 <!-- 发布新版本时：把本节的条目移动到新的版本号小节，并更新下方链接。 -->
 
+### Fixed / 修复
+
+- **部署命令输出超过管道缓冲区后会永久卡死**（表现为「推送后没反应、无报错、无日志尾」）。
+  `execute_deployment` 原先用 `stdout=PIPE, stderr=PIPE` 启动命令却**从不读取**这两个管道，
+  且 `Popen` 对象被直接丢弃 ⇒ 进程一直留在 `subprocess._active`、**管道读端永不释放**，
+  命令输出超过管道缓冲区（Linux 默认 64 KiB）后写端阻塞在 `write()`。
+  `composer install`、`git reset --hard`、`npm ci`、`docker build` 等输出量足以触发。
+  现由守护线程持续排空 stdout/stderr（合并读取）并在结束后 `wait()` 回收子进程。
+- 部署失败（非 0 退出码）现在会记录退出码与输出尾部，此前完全无迹可查。
+
+### Changed / 变更
+
+- `execute_deployment` 现在返回排空输出的工作线程（`Optional[threading.Thread]`），
+  便于调用方按需 join；原有调用方忽略返回值即可，行为不变。
+- 部署输出逐行记入日志（DEBUG 级），失败时把尾部重新以 WARNING 级输出。
+
 ## [2.4.1] - 2026-10-12
 
 ### Fixed / 修复
